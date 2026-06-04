@@ -1,0 +1,22 @@
+# Belt-and-braces if the image is ever built from the full dir instead of the tarball.
+# (The canonical build is make-caprover-tar.sh, which whitelists only the working app.)
+node_modules
+.env
+.env.*
+db/
+*.db
+*.db-shm
+*.db-wal
+*.tar
+test/
+.DS_Store
+# docs — never needed at runtime (corpus/**/*.md are NOT matched here, only root docs)
+/brand.md
+/build-plan.md
+/GOAL-AND-CURTAIN-LOGIC.md
+/README.md
+/verification-consensus-backing.md
+/verification-slowdesign-critical.md
+/google-oauth-setup.txt
+/deploy-blevn.txt
+/make-caprover-tar.sh

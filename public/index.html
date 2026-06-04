@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>zetizeti — it asks the questions, you do the thinking</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/favicon.ico" sizes="any" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<meta name="theme-color" content="#0a1428" />
+<meta name="description" content="A questioning partner for design students. It asks the questions; you do the thinking — name the edge you're trying to sharpen and it asks back, grounding each question in the real, unresolved tensions of your discipline. The thinking stays yours." />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="zetizeti — it asks the questions, you do the thinking" />
+<meta property="og:description" content="A questioning partner for design students. It asks the questions; you do the thinking — each one grounded in the real, unresolved tensions of your discipline." />
+<meta property="og:url" content="https://zetizeti.com" />
+<meta property="og:image" content="https://zetizeti.com/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="zetizeti — it asks the questions, you do the thinking" />
+<meta name="twitter:description" content="A questioning partner for design students. The thinking stays yours." />
+<meta name="twitter:image" content="https://zetizeti.com/og-image.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Rozha+One&family=Besley:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+<style>
+  /* Prayas-flavour: vivid colour as PAINTING ENVIRONMENT (abstract masses), dialogue as
+     serious large type. No per-message colour boxes (read kiddish). Deep, wide, adult. */
+  :root{
+    --ink:#0a1428; --ink-2:#0c1c40;                 /* deep blue-black ground — never #000 */
+    --cobalt:#173a8c; --cobalt-deep:#102b66; --sheet:#143173; --sheet-edge:rgba(246,232,198,.14);
+    --gold:#f0b324; --gold-bright:#ffd24a; --amber:#ec8a1e; --vermilion:#e8431f;
+    --teal:#0f7d72; --teal-deep:#0a4f49; --turq:#0f7f8d;
+    --bone:#F6E8C6; --bone-dim:#cdd6ea; --goldtext:#f0d49a; --muted:#9aa8c6; --faint:#6f7ea0;
+    --display:"Rozha One",Georgia,serif;            /* high-contrast didone — wordmark + the stone's questions */
+    --text:"Besley",Georgia,serif;                  /* warm slab — the learner's words + reading text */
+    --mono:"Space Mono",ui-monospace,monospace;     /* the machinery, behind the curtain */
+    --col:980px; --axis:6vw; --viz-w:38vw;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    /* cobalt light up top, sinking to deep blue-black below — gravity, glow against dark */
+    background:linear-gradient(180deg, var(--cobalt) 0%, var(--cobalt-deep) 52%, var(--ink) 100%);
+    background-attachment:fixed; background-repeat:no-repeat;
+    color:var(--bone); font-family:var(--text);
+    font-size:18px; line-height:1.72; -webkit-font-smoothing:antialiased;
+    overflow-x:hidden; position:relative; min-height:100%;
+  }
+  /* painterly washes — saturated masses glowing (screen blend) against the dark ground; slow drift */
+  .mass{position:fixed; z-index:0; pointer-events:none; filter:blur(30px); mix-blend-mode:screen; will-change:transform,border-radius}
+  .mass.gold{top:-16%; right:-12%; width:48vw; height:86vh; background:var(--gold); opacity:.8;
+    border-radius:46% 54% 50% 50% / 54% 46% 54% 46%; animation:driftG 19s ease-in-out infinite alternate}
+  .mass.teal{bottom:-20%; left:-14%; width:46vw; height:60vh; background:var(--teal); opacity:.72;
+    border-radius:54% 46% 56% 44% / 46% 56% 44% 56%; animation:driftT 16s ease-in-out infinite alternate}
+  .mass.verm{top:40%; left:-7%; width:20vw; height:30vh; background:var(--vermilion); opacity:.74;
+    border-radius:50% 50% 46% 54% / 56% 44% 56% 44%; animation:driftV 13s ease-in-out infinite alternate}
+  /* gravity is a force — paint runs bleed downward (the drip is literal) */
+  .run{position:fixed; z-index:0; pointer-events:none; top:0; width:4px; filter:blur(3px); mix-blend-mode:screen; transform-origin:top center}
+  .run.r1{left:21%; height:52vh; background:linear-gradient(var(--vermilion),transparent); opacity:.5; animation:run1 17s ease-in-out infinite alternate}
+  .run.r2{right:28%; top:5%; height:66vh; background:linear-gradient(var(--gold),transparent); opacity:.42; animation:run2 21s ease-in-out infinite alternate}
+  @keyframes run1{0%{transform:scaleY(.8)}100%{transform:scaleY(1.08)}}
+  @keyframes run2{0%{transform:scaleY(1.06)}100%{transform:scaleY(.84)}}
+  @keyframes driftG{
+    0%{transform:translate(0,0) scale(1) rotate(0deg); border-radius:46% 54% 50% 50% / 54% 46% 54% 46%}
+    50%{transform:translate(-8vw,6vh) scale(1.18) rotate(9deg); border-radius:60% 40% 54% 46% / 42% 60% 40% 58%}
+    100%{transform:translate(5vw,-4vh) scale(1.07) rotate(-6deg); border-radius:46% 54% 42% 58% / 54% 42% 60% 44%}}
+  @keyframes driftT{
+    0%{transform:translate(0,0) scale(1) rotate(0deg); border-radius:54% 46% 56% 44% / 46% 56% 44% 56%}
+    50%{transform:translate(9vw,-6vh) scale(1.20) rotate(-10deg); border-radius:42% 58% 46% 54% / 60% 40% 58% 42%}
+    100%{transform:translate(-5vw,5vh) scale(1.08) rotate(7deg); border-radius:58% 42% 52% 48% / 44% 58% 42% 58%}}
+  @keyframes driftV{
+    0%{transform:translate(0,0) scale(1) rotate(0deg); border-radius:50% 50% 46% 54% / 56% 44% 56% 44%}
+    50%{transform:translate(8vw,8vh) scale(1.5) rotate(16deg); border-radius:60% 40% 58% 42% / 42% 60% 40% 60%}
+    100%{transform:translate(-4vw,-6vh) scale(1.18) rotate(-10deg); border-radius:44% 56% 48% 52% / 56% 44% 58% 42%}}
+  @media(prefers-reduced-motion:reduce){ .mass,.run{animation:none !important} }
+  body::after{content:""; position:fixed; inset:0; z-index:1; pointer-events:none; opacity:.05; mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+  /* ---- views ---- */
+  .view{display:none} .view.active{display:block}
+
+  /* ---- topbar (in-app) ---- */
+  .topbar{position:fixed; top:0; left:0; right:0; z-index:7; display:flex; align-items:center; justify-content:space-between;
+    padding:14px 28px; background:linear-gradient(var(--cobalt) 60%, transparent)}
+  .topbar[hidden]{display:none}
+  .topbar .tb-brand{display:flex; align-items:center; gap:12px; cursor:pointer}
+  .topbar .tb-brand h1{font-family:var(--display); font-weight:400; font-size:24px; color:var(--bone); line-height:1}
+  .topbar .tb-brand .tb-logo{height:28px; width:auto; display:block}
+  .topbar nav{display:flex; align-items:center; gap:22px; font-family:var(--mono); font-size:12px; letter-spacing:.08em}
+  .topbar nav a{color:var(--bone-dim); cursor:pointer; text-decoration:none}
+  .topbar nav a:hover, .topbar nav a.on{color:var(--gold-bright)}
+  .topbar .who{color:var(--faint); font-size:11px}
+  .topbar .who b{color:var(--goldtext); font-weight:400}
+
+  .wrap{position:relative; z-index:2; isolation:isolate; width:var(--col); max-width:calc(100vw - 48px); margin:6vh auto 0;
+    padding:46px 56px 230px}
+  .wrap.short{padding-bottom:90px}
+  /* the landing is ONE screen — topbar is hidden here, so use the full viewport and centre the
+     content; never inherit the composer-clearance bottom padding that would force a scroll. */
+  #view-login.active{display:flex; align-items:center; min-height:100vh; position:relative}
+  #view-login .wrap{margin:0 auto; padding-top:4vh; padding-bottom:4vh}
+  .wrap::before{content:""; position:absolute; inset:-40px; z-index:0; pointer-events:none;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      linear-gradient(152deg, rgba(18,46,108,.91), rgba(11,32,82,.88) 55%, rgba(17,44,104,.92));
+    background-blend-mode:soft-light, normal;
+    filter:blur(22px);
+    border-radius:46% 54% 48% 52% / 70px 80px 90px 75px;
+    animation:readBlob 16s ease-in-out infinite}
+  .wrap > *{position:relative; z-index:1}
+  @keyframes readBlob{
+    0%{border-radius:46% 54% 48% 52% / 70px 80px 90px 75px; transform:scale(1.00)}
+    25%{border-radius:55% 45% 52% 48% / 86px 72px 82px 90px; transform:scale(1.015)}
+    50%{border-radius:50% 50% 44% 56% / 94px 88px 74px 80px; transform:scale(1.028)}
+    75%{border-radius:44% 56% 54% 46% / 78px 92px 90px 72px; transform:scale(1.014)}
+    100%{border-radius:46% 54% 48% 52% / 70px 80px 90px 75px; transform:scale(1.00)}}
+  @media(prefers-reduced-motion:reduce){ .wrap::before{animation:none} }
+  @media(max-width:1240px){ :root{--col:860px} .wrap{padding:38px 28px 230px} .mass.gold{width:58vw} }
+
+  /* ---- header (login / landing) ---- */
+  header{padding:14px 0 22px; opacity:0; animation:rise .9s .1s forwards}
+  .mark{display:block}
+  .logo{display:block; width:108px; height:178px; margin-bottom:22px}   /* the big mark — lone protagonist in the field */
+  .mark h1{font-family:var(--display); font-weight:400; font-size:clamp(56px,9vw,92px); letter-spacing:.5px; line-height:.92; color:var(--bone)}
+  .ethos{display:block; margin-top:18px; font-family:var(--display); font-size:clamp(24px,3.4vw,36px); letter-spacing:.3px; color:var(--gold-bright)}
+  .lede{margin-top:24px; color:var(--bone-dim); max-width:58ch; font-size:18px; line-height:1.74}
+  .lede b{color:var(--goldtext); font-weight:500; font-style:italic}
+  .nameline{margin-top:20px; font-family:var(--mono); font-size:12px; letter-spacing:.03em; color:var(--faint); max-width:66ch; line-height:1.7}
+  /* second tagline line — the quieter clause that names the second voice */
+  .ethos-sub{display:block; margin-top:8px; font-family:var(--text); font-style:italic; font-size:clamp(16px,2vw,20px); color:var(--bone-dim)}
+  .aboutlink{color:var(--gold); cursor:pointer; white-space:nowrap}
+  .aboutlink:hover{color:var(--gold-bright)}
+  /* small footer link on the landing — absolute, so it never adds height (the home stays one no-scroll screen) */
+  .login-foot{position:absolute; bottom:2.4vh; left:0; right:0; text-align:center; font-family:var(--mono); font-size:11px; letter-spacing:.05em; color:var(--faint)}
+  /* About — the two-voice page. Colour arrives as a soft MASS bleeding from a corner (never a
+     structural line/spine), edges wobble; reading text on a faint sheet over the painted ground. */
+  .about-mode{position:relative; margin:30px 0; padding:24px 28px;
+    background:rgba(246,232,198,.045); overflow:hidden}
+  .about-mode::before{content:""; position:absolute; inset:auto auto -30% -20%; width:60%; height:160%;
+    background:radial-gradient(closest-side, var(--teal) 0%, transparent 72%); opacity:.20; filter:blur(26px); pointer-events:none}
+  .about-mode.crit::before{background:radial-gradient(closest-side, var(--vermilion) 0%, transparent 72%); opacity:.22}
+  .about-tag{position:relative; font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--turq)}
+  .about-mode.crit .about-tag{color:var(--vermilion)}
+  .about-mode h3{position:relative; font-family:var(--display); font-weight:400; font-size:24px; color:var(--gold-bright); margin:6px 0 10px}
+  .about-mode p{position:relative; color:var(--bone-dim); max-width:64ch; line-height:1.78; margin-top:12px}
+  .about-mode em{color:var(--goldtext); font-style:italic}
+  .about-mode b{color:var(--bone); font-weight:600}
+  .about-want{border-top:1px solid var(--sheet-edge); padding-top:14px}
+  .about-credit{position:relative; margin-top:16px; font-family:var(--mono); font-size:12px;
+    line-height:1.72; color:var(--muted); max-width:64ch}
+  .about-credit b{color:var(--goldtext); font-weight:400}
+  .about-credit a{color:var(--goldtext); text-decoration:none; border-bottom:1px solid rgba(240,212,154,.4)}
+  .about-credit a:hover{color:var(--gold-bright); border-bottom-color:var(--gold-bright)}
+  /* Criticism surface — the specimen under glass: pasted text on a cream sheet (photographic
+     restraint), the located blurs marked as a soft vermilion MASS (never a line). */
+  /* criticism input mirrors the enquiries composer's grammar exactly — sharp edge, gold hairline,
+     round → send (the .send button). The one deliberate difference is the cream "specimen" fill:
+     a found text examined under glass, not your own voice. No rounded-card radii (off-brand). */
+  .crit-goal{display:block; width:100%; margin-top:14px; background:rgba(13,38,94,.55);
+    border:1px solid rgba(217,165,42,.40); padding:12px 16px; color:var(--bone);
+    font-family:var(--text); font-size:15px; outline:none}
+  .crit-goal::placeholder{color:var(--faint)}
+  .crit-actions{display:flex; align-items:center; gap:20px; margin-top:14px}
+  .crit-demo{font-family:var(--mono); font-size:12px; letter-spacing:.04em; color:var(--turq); cursor:pointer}
+  .crit-demo:hover{color:var(--gold-bright)}
+  .crit-turn{margin-top:30px}
+  /* the located reading — on the dark ground like the enquiries curtain (no white box) */
+  .crit-reading .crit-segs{background:rgba(13,38,94,.45); color:var(--bone-dim); font-family:var(--text);
+    padding:16px 18px; line-height:2.0; border:1px solid var(--sheet-edge)}
+  .crit-seg.blur{background:rgba(232,67,31,.30); color:var(--bone); padding:1px 5px; cursor:pointer;
+    -webkit-box-decoration-break:clone; box-decoration-break:clone; transition:background .2s}
+  .crit-seg.blur:hover{background:rgba(232,67,31,.5)}
+  .crit-ratio{margin-top:14px; font-family:var(--mono); font-size:12px; line-height:1.74; color:var(--muted)}
+  .crit-ratio b{color:var(--gold-bright)} .crit-ratio em{color:var(--goldtext); font-style:italic}
+  .crit-list-head{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--faint); margin:34px 0 2px; padding-top:20px; border-top:1px solid rgba(244,231,200,.12)}
+  /* the artefact under question — on the dark ground (consistent with the enquiries edge panel),
+     a found AI text held in bone type, capped + scrollable. NOT a white sheet. */
+  .crit-specimen{background:rgba(13,38,94,.40); color:var(--bone-dim); font-family:var(--text);
+    font-size:15px; line-height:1.62; padding:14px 18px; margin-top:8px; max-height:30vh; overflow:auto;
+    white-space:pre-wrap; border:1px solid var(--sheet-edge)}
+  .nameline em{color:var(--goldtext); font-style:italic}
+
+  /* sign-up / log-in */
+  .signin{margin-top:38px; display:flex; flex-wrap:wrap; gap:16px; align-items:center}
+  .btn-google{display:inline-flex; align-items:center; gap:12px; font-family:var(--mono); font-size:14px; letter-spacing:.04em;
+    background:var(--gold); color:#1a1206; border:none; padding:15px 24px; cursor:pointer; text-decoration:none; transition:transform .15s,background .15s}
+  .btn-google:hover{transform:translateY(-2px); background:var(--gold-bright)}
+  .btn-login{font-family:var(--mono); font-size:13px; letter-spacing:.04em; color:var(--goldtext); background:none;
+    border:1px solid rgba(240,212,154,.4); padding:14px 20px; cursor:pointer; text-decoration:none; transition:border-color .15s,color .15s}
+  .btn-login:hover{border-color:var(--gold-bright); color:var(--gold-bright)}
+  .signin-note{margin-top:14px; font-family:var(--mono); font-size:11px; color:var(--faint); max-width:54ch; line-height:1.6}
+  /* access-code entry (the pre-launch / funder gate) */
+  .codeentry{margin-top:30px; max-width:430px}
+  .codeentry label{display:block; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin-bottom:10px}
+  .codeentry-row{display:flex; gap:10px}
+  .codeentry-row input{flex:1; background:rgba(13,38,94,.55); border:1px solid rgba(217,165,42,.40); color:var(--bone);
+    font-family:var(--mono); font-size:15px; letter-spacing:.08em; padding:13px 15px; outline:none}
+  .codeentry-row input::placeholder{color:var(--faint); letter-spacing:0; font-family:var(--text); font-style:italic}
+  .codeentry-row input:focus{border-color:var(--gold-bright)}
+  .codeentry-row button{font-family:var(--mono); font-size:13px; background:var(--vermilion); color:var(--bone); border:none; padding:13px 22px; cursor:pointer; transition:background .15s,color .15s}
+  .codeentry-row button:hover{background:var(--gold-bright); color:#1a1206}
+  .codeentry-msg{margin-top:10px; font-family:var(--mono); font-size:11px; color:var(--vermilion); letter-spacing:.03em}
+  /* inline bring-your-own-key prompt (shown in a stone when a turn needs a key) */
+  .keyprompt-msg{color:var(--bone-dim); font-size:15px; margin-bottom:12px; line-height:1.6}
+  .keyprompt-msg .kmono{font-family:var(--mono); font-size:12px; color:var(--goldtext)}
+  .keyprompt-row{display:flex; gap:10px; max-width:470px}
+  .keyprompt-row input{flex:1; background:rgba(13,38,94,.55); border:1px solid rgba(217,165,42,.40); color:var(--bone); font-family:var(--mono); font-size:14px; padding:11px 14px; outline:none}
+  .keyprompt-row input:focus{border-color:var(--gold-bright)}
+  .keyprompt-row button{font-family:var(--mono); font-size:13px; background:var(--gold); color:#1a1206; border:none; padding:11px 18px; cursor:pointer}
+  .keyprompt-row button:hover{background:var(--gold-bright)}
+  .keyprompt-apply{margin-top:14px; font-family:var(--mono); font-size:12px; color:var(--muted)}
+  .keyprompt-apply a{color:var(--goldtext); cursor:pointer; border-bottom:1px solid rgba(240,212,154,.4)}
+  .keyprompt-apply a:hover{color:var(--gold-bright)}
+
+  /* ---- subsidy: apply form + status (learner-facing — warm register) ---- */
+  .subsidy-cta{font-family:var(--mono); font-size:12px; color:var(--muted); margin:-16px 0 26px}
+  .subsidy-cta a{color:var(--goldtext); cursor:pointer; border-bottom:1px solid rgba(240,212,154,.4)}
+  .subsidy-cta a:hover{color:var(--gold-bright)}
+  .subsidy-cta input.keyinline{background:rgba(13,38,94,.55); border:1px solid rgba(217,165,42,.4); color:var(--bone); font-family:var(--mono); font-size:12px; padding:5px 9px; outline:none; width:210px; vertical-align:middle}
+  .subsidy-cta input.keyinline:focus{border-color:var(--gold-bright)}
+  /* key gate — the big key box shown before the enquiry UI */
+  .keygate-form{display:flex; gap:12px; max-width:620px; margin:8px 0 14px}
+  .keygate-form input{flex:1; background:rgba(13,38,94,.55); border:1px solid rgba(217,165,42,.45); color:var(--bone); font-family:var(--mono); font-size:16px; padding:16px 18px; outline:none}
+  .keygate-form input:focus{border-color:var(--gold-bright)}
+  .keygate-form input::placeholder{color:var(--faint); letter-spacing:0}
+  .keygate-form button{font-family:var(--mono); font-size:14px; background:var(--gold); color:#1a1206; border:none; padding:16px 26px; cursor:pointer; white-space:nowrap}
+  .keygate-form button:hover{background:var(--gold-bright)}
+  .keygate-links{font-family:var(--mono); font-size:12px; color:var(--muted)}
+  .keygate-links a{color:var(--goldtext); cursor:pointer; border-bottom:1px solid rgba(240,212,154,.4)}
+  .keygate-links a:hover{color:var(--gold-bright)}
+  /* shared "pool" key — the live "free messages left" counter in the chat header + the free/own-key line */
+  .poolcount{font-family:var(--mono); font-size:12px; color:var(--goldtext); border:1px solid rgba(240,179,36,.40); padding:5px 11px; white-space:nowrap; letter-spacing:.02em}
+  .poolcount.low{color:var(--gold-bright); border-color:rgba(255,210,74,.6)}
+  .poolcount.out{color:var(--vermilion); border-color:rgba(232,67,31,.6)}
+  .keystatus-free a{color:var(--goldtext); cursor:pointer; border-bottom:1px solid rgba(240,212,154,.4)}
+  .keystatus-free a:hover{color:var(--gold-bright)}
+  .subsidy-form{display:flex; flex-direction:column; gap:14px; max-width:600px}
+  .subsidy-form textarea{background:rgba(13,38,94,.55); border:1px solid rgba(217,165,42,.40); color:var(--bone);
+    font-family:var(--text); font-size:16px; line-height:1.6; padding:14px 16px; outline:none; resize:vertical; min-height:130px}
+  .subsidy-form textarea:focus{border-color:var(--gold-bright)}
+  .subsidy-form textarea::placeholder{color:var(--faint); font-style:italic}
+  .subsidy-form button{align-self:flex-start; font-family:var(--mono); font-size:13px; background:var(--vermilion); color:var(--bone); border:none; padding:12px 22px; cursor:pointer}
+  .subsidy-form button:hover{background:var(--gold-bright); color:#1a1206}
+  .subsidy-form button:disabled{opacity:.5; cursor:default}
+  .subsidy-status{border-top:1px solid rgba(244,231,200,.14); padding:22px 0; max-width:620px}
+  .subsidy-status .ss-label{font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin-bottom:8px}
+  .subsidy-status .ss-state{font-family:var(--display); font-size:22px; margin-bottom:12px; line-height:1.3}
+  .subsidy-status.pending .ss-state{color:var(--gold)}
+  .subsidy-status.approved .ss-state, .subsidy-status.fulfilled .ss-state{color:var(--teal)}
+  .subsidy-status.declined .ss-state{color:var(--muted)}
+  .subsidy-status .ss-context{color:var(--bone-dim); font-size:15px; line-height:1.6; padding-left:14px; border-left:2px solid rgba(244,231,200,.16)}
+  .subsidy-status .ss-note{margin-top:12px; font-family:var(--mono); font-size:12px; color:var(--goldtext)}
+
+  /* ---- admin: subsidy review (machinery — Space Mono register) ---- */
+  .nav-admin{color:var(--gold) !important}
+  .adminlist{display:flex; flex-direction:column}
+  .areq{border-top:1px solid rgba(244,231,200,.12); padding:18px 0}
+  .areq-head{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; font-family:var(--mono); font-size:12px; color:var(--faint)}
+  .areq-email{color:var(--goldtext)}
+  .areq-status{padding:2px 8px; border:1px solid currentColor; letter-spacing:.08em; text-transform:uppercase; font-size:10px}
+  .areq-status.pending{color:var(--gold)} .areq-status.approved,.areq-status.fulfilled{color:var(--teal)} .areq-status.declined{color:var(--muted)}
+  .areq-context{color:var(--bone-dim); font-size:15px; line-height:1.6; margin:10px 0 12px; font-family:var(--text)}
+  .areq-actions{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+  .areq-actions button{font-family:var(--mono); font-size:11px; background:none; border:1px solid rgba(244,231,200,.28); color:var(--bone-dim); padding:7px 12px; cursor:pointer}
+  .areq-actions button:hover{border-color:var(--gold-bright); color:var(--gold-bright)}
+  .areq-actions input{flex:1; min-width:170px; background:rgba(13,38,94,.55); border:1px solid rgba(217,165,42,.3); color:var(--bone); font-family:var(--mono); font-size:12px; padding:7px 10px; outline:none}
+  .areq-actions input.areq-amt{flex:0 0 86px; min-width:0}
+  .subsidy-budget{font-family:var(--mono); font-size:13px; color:var(--bone-dim); padding:0 0 20px; letter-spacing:.04em}
+  .subsidy-budget b{color:var(--gold-bright); font-size:19px}
+  .subsidy-budget span{color:var(--faint); font-size:12px}
+  .subsidy-asuser{font-family:var(--mono); font-size:12px; color:var(--muted); margin-bottom:16px}
+  .subsidy-asuser b{color:var(--goldtext)}
+
+  /* ---- enquiries (quests) ---- */
+  .vh{font-family:var(--display); font-weight:400; font-size:30px; color:var(--bone); margin-bottom:6px}
+  .vsub{color:var(--bone-dim); font-size:16px; margin-bottom:26px; max-width:60ch}
+  .newq{display:flex; gap:12px; align-items:center; margin-bottom:30px}
+  .newq input{flex:1; max-width:520px; background:rgba(13,38,94,.55); border:1px solid rgba(217,165,42,.40); color:var(--bone);
+    font-family:var(--text); font-size:17px; padding:12px 16px; outline:none}
+  .newq input::placeholder{color:var(--faint); font-style:italic}
+  .newq button{font-family:var(--mono); font-size:13px; background:var(--vermilion); color:var(--bone); border:none; padding:12px 18px; cursor:pointer}
+  .newq button:hover{background:var(--gold-bright); color:#1a1206}
+  .discpick{display:flex; align-items:center; gap:10px; margin-bottom:22px; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint)}
+  .discpick select{background:rgba(13,38,94,.55); border:1px solid rgba(217,165,42,.40); color:var(--bone); font-family:var(--text); font-size:15px; padding:8px 12px; outline:none; text-transform:none; letter-spacing:0}
+  .qlist{display:flex; flex-direction:column; gap:2px}
+  .qcard{padding:20px 22px; border-top:1px solid rgba(244,231,200,.12); cursor:pointer; transition:background .15s}
+  .qcard:hover{background:rgba(13,38,94,.4)}
+  .qcard .qname{font-family:var(--display); font-size:21px; color:var(--goldtext)}
+  .qcard .qgoal{font-style:italic; color:var(--bone-dim); font-size:15.5px; margin-top:4px; max-width:64ch}
+  .qcard .qmeta{display:flex; align-items:center; gap:16px; margin-top:10px; font-family:var(--mono); font-size:11px; color:var(--faint); letter-spacing:.05em}
+  .qcard .qmeta .fork{color:var(--turq); cursor:pointer} .qcard .qmeta .fork:hover{color:var(--gold-bright)}
+  .qempty{color:var(--muted); font-style:italic; padding:24px 0}
+
+  /* ---- THE EDGE — pinned goal + honing progress (code-tracked) ---- */
+  .edge{position:relative; z-index:2; margin:22px 0 20px; padding:26px 40px 28px; isolation:isolate}
+  .edge::before{content:""; position:absolute; inset:-18px -26px; z-index:-1;
+    background:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20640%20230'%20preserveAspectRatio='none'%3E%3Cpath%20fill='%23123a5c'%20d='M16,36%20C92,10%20184,24%20300,18%20C420,12%20532,26%20622,38%20C640,96%20636,152%20614,200%20C528,226%20418,212%20318,216%20C212,222%20114,214%2024,200%20C6,146%202,86%2016,36%20Z'/%3E%3C/svg%3E") no-repeat center/100% 100%;
+    filter:blur(1px); transform-origin:50% 50%;
+    animation:edgeBlob 16s ease-in-out infinite}
+  @keyframes edgeBlob{
+    0%{transform:scale(1,1) rotate(0deg)}
+    33%{transform:scale(1.05,1.11) rotate(1.4deg)}
+    66%{transform:scale(1.03,1.00) rotate(-1.1deg)}
+    100%{transform:scale(1,1) rotate(0deg)}}
+  @media(prefers-reduced-motion:reduce){ .edge::before{animation:none} }
+  .edge[hidden]{display:none}
+  .edge-label{font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:rgba(244,231,200,.62); margin-bottom:9px}
+  .edge-text{font-family:var(--text); font-weight:400; font-style:italic; font-size:19px; line-height:1.5; color:var(--goldtext); max-width:54ch}
+  .edge-foot{display:flex; align-items:center; gap:18px; margin-top:12px; flex-wrap:wrap}
+  .edge-trace{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:rgba(244,231,200,.85); cursor:pointer; display:inline-flex; align-items:center; gap:4px}
+  .edge-trace b{color:#fff; font-weight:400}
+  .edge-trace .tick{color:var(--gold-bright)} .edge-trace .tick.dim{color:rgba(244,231,200,.4)}
+  .edge-redraw{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--vermilion); background:none; border:none; cursor:pointer; padding:0}
+  .edge-redraw:hover{color:var(--gold-bright)}
+  .lineage{margin-top:12px; padding-left:14px; border-left:1px solid rgba(244,231,200,.3); display:none}
+  .lineage.open{display:block}
+  .lineage div{font-family:var(--text); font-style:italic; font-size:14.5px; color:rgba(244,231,200,.6); padding:3px 0}
+  .lineage div:last-child{color:var(--goldtext)}
+  .lineage div.struck{text-decoration:line-through; text-decoration-color:rgba(255,255,255,.18)}
+
+  /* ---- dialogue ---- */
+  #stream{padding-top:24px}
+  .turn{padding:24px 0; opacity:0; animation:rise .8s forwards}
+  .turn .who{font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase; margin-bottom:14px; display:flex; align-items:center; gap:10px}
+  .turn .who::before{content:""; height:2px; width:18px; background:var(--faint)}
+  .turn.you .who{color:var(--faint)}
+  .turn.stone .who{color:var(--gold)} .turn.stone .who::before{background:var(--gold); width:26px}
+  .turn.you .body{font-family:var(--text); color:var(--bone-dim); font-size:17.5px; line-height:1.72; max-width:62ch}
+  .turn.stone .body{font-family:var(--display); font-weight:400; font-size:22px; line-height:1.56; letter-spacing:0; color:var(--goldtext); max-width:46ch}
+  .turn.stone .body em{font-style:italic; color:var(--gold-bright)}
+  .divider{padding:18px 0 2px; font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--vermilion); opacity:0; animation:rise .7s forwards}
+  .divider::before{content:"— "}.divider::after{content:" —"}
+  /* a read handed back to the learner (the nudge's "surface" — never a verdict, a question) */
+  .nudge-surface{ padding:12px 0 2px; font-family:var(--text); font-style:italic; font-size:16px; color:#8fd0c6; opacity:0; animation:rise .7s forwards; max-width:54ch; }
+  .nudge-surface::before{ content:"⌁ "; font-family:var(--mono); color:var(--teal); font-style:normal; }
+  /* progress view trace — the line from vague to sharp + the tensions an enquiry was drawn against */
+  .ptrace{ margin-top:12px; font-family:var(--mono); font-size:11px; line-height:1.7; color:var(--faint); }
+  .pline span.struck{ text-decoration:line-through; opacity:.55; }
+  .pline span:last-child{ color:var(--goldtext); }
+  .ptensions{ margin-top:6px; color:#74b0a6; }
+
+  /* behind the curtain */
+  .curtain-toggle{margin-top:16px; font-family:var(--mono); font-size:11px; letter-spacing:.14em; color:var(--muted); background:none; border:none; cursor:pointer; padding:6px 0; display:inline-flex; align-items:center; gap:10px}
+  .curtain-toggle:hover{color:var(--gold-bright)}
+  .curtain-toggle .chev{transition:transform .3s}
+  .curtain-toggle[aria-expanded="true"] .chev{transform:rotate(90deg)}
+  .curtain{display:none; margin-top:16px; padding:20px 24px; max-width:64ch; background:rgba(10,70,63,.34); border-left:2px solid var(--teal)}
+  .curtain.open{display:block; animation:rise .4s forwards}
+  .curtain h4{font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:#7fc0b6; margin-bottom:14px; font-weight:500}
+  .grit{padding:11px 0; border-top:1px solid rgba(244,231,200,.12); font-family:var(--text); font-size:16px; color:#dceae5; font-style:italic; line-height:1.6}
+  .grit:first-of-type{border-top:none}
+  .grit .id{font-family:var(--mono); font-size:11px; color:var(--gold-bright); font-style:normal; letter-spacing:.04em}
+  .grit .src{display:block; margin-top:6px; font-size:12px; color:#74b0a6; font-family:var(--mono); font-style:normal}
+  .grit .prov{display:block; margin-top:5px; font-size:9.5px; letter-spacing:.04em; font-family:var(--mono); font-style:normal}
+  .grit .prov.ver{color:#74b0a6} .grit .prov.pend{color:var(--amber)}
+  .guard{margin-top:14px; font-family:var(--mono); font-size:10.5px; color:#74b0a6}
+  .guard b{color:var(--gold-bright); font-weight:500}
+
+  .thinking{display:inline-flex; align-items:center; gap:12px; font-family:var(--text); font-style:italic; color:var(--muted); font-size:19px}
+  .thinking .bead{width:11px;height:11px;border-radius:50%;background:var(--vermilion);animation:bead 1.2s ease-in-out infinite}
+  @keyframes bead{0%,100%{transform:translateY(-3px)}50%{transform:translateY(4px)}}
+
+  /* ---- composer ---- */
+  .composer{position:fixed; left:0; right:0; bottom:0; z-index:6; background:linear-gradient(transparent,var(--ink) 40%); padding:48px 24px 26px}
+  .composer .inner{width:var(--col); max-width:calc(100vw - 48px); margin:0 auto}
+  .field{display:flex; align-items:flex-end; gap:12px; background:rgba(13,38,94,.55); border:1px solid rgba(217,165,42,.40); padding:13px 13px 13px 22px}
+  .field.redraw{border-color:var(--vermilion)}
+  textarea{flex:1; background:none; border:none; resize:none; color:var(--bone); font-family:var(--text); font-size:18.5px; line-height:1.5; max-height:170px; outline:none; padding:6px 0}
+  textarea::placeholder{color:var(--faint); font-style:italic}
+  .send{flex:none; width:46px; height:46px; border-radius:50%; border:none; cursor:pointer; background:var(--vermilion); color:var(--bone); font-size:20px; line-height:1; transition:transform .15s}
+  .send:hover{transform:translateY(-2px)} .send:disabled{opacity:.4; cursor:default; transform:none}
+  .hint{margin-top:12px; font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; color:var(--faint)}
+  .hint b{color:var(--goldtext); font-weight:500}
+  .backlink{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--muted); cursor:pointer; display:inline-block; margin-bottom:6px}
+  .backlink:hover{color:var(--gold-bright)}
+
+  @keyframes rise{from{opacity:0; transform:translateY(13px)} to{opacity:1; transform:none}}
+  @media(max-width:640px){ .mark h1{font-size:32px} .turn.stone .body{font-size:20px} .edge-text{font-size:17px} .topbar{padding:12px 16px} .topbar nav{gap:14px} }
+
+  /* ---- edge visualisation panel (split-screen — conversation view only) ---- */
+  .vizpanel{ position:fixed; top:0; right:0; bottom:0; width:var(--viz-w); z-index:3; display:none;
+    flex-direction:column; padding:64px 22px 18px;
+    background:linear-gradient(180deg, rgba(10,20,40,0), rgba(10,20,40,.40)); }
+  body.conv-active .vizpanel{ display:flex; }
+  .vizpanel .vizmeta{ font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--faint); margin-bottom:8px; }
+  #vizHolder{ flex:1; min-height:0; position:relative; line-height:0; }
+  #vizHolder canvas{ width:100%!important; height:100%!important; display:block; cursor:crosshair; }
+  .vizpanel .viznote{ font-family:var(--mono); font-size:10px; letter-spacing:.03em; color:var(--faint); line-height:1.7; margin-top:10px; }
+  .vizpanel .viznote b{ color:var(--goldtext); font-weight:400; }
+  /* the reading — the signals shown directly, so a LOW state reads as low (not as nothing) */
+  #vizReadout{ margin-top:12px; font-family:var(--mono); font-size:10px; color:var(--faint); display:flex; flex-direction:column; gap:3px; }
+  #vizReadout .rhead{ letter-spacing:.18em; text-transform:uppercase; color:var(--faint); opacity:.7; margin-bottom:3px; }
+  #vizReadout .rrow{ display:flex; align-items:baseline; gap:9px; }
+  #vizReadout .rlab{ width:92px; color:var(--bone-dim); opacity:.8; }
+  #vizReadout .rbar{ color:var(--gold-bright); letter-spacing:1px; }
+  #vizReadout .rpole{ color:var(--faint); }
+  /* make room for the panel: shift the dialogue column + composer to the left region */
+  body.conv-active #view-conversation{ padding-right:var(--viz-w); }
+  body.conv-active #view-conversation .wrap{ max-width:calc(100vw - var(--viz-w) - 48px); }
+  body.conv-active .composer{ right:var(--viz-w); }
+  body.conv-active .composer .inner{ max-width:calc(100vw - var(--viz-w) - 48px); }
+  @media(max-width:1024px){  /* too narrow for a split — drop the panel, restore full width */
+    body.conv-active .vizpanel{ display:none; }
+    body.conv-active #view-conversation{ padding-right:0; }
+    body.conv-active #view-conversation .wrap, body.conv-active .composer .inner{ max-width:calc(100vw - 48px); }
+    body.conv-active .composer{ right:0; }
+  }
+</style>
+</head>
+<body>
+  <div class="mass gold" aria-hidden="true"></div>
+  <div class="mass teal" aria-hidden="true"></div>
+  <div class="mass verm" aria-hidden="true"></div>
+  <div class="run r1" aria-hidden="true"></div>
+  <div class="run r2" aria-hidden="true"></div>
+
+  <div class="topbar" id="topbar" hidden>
+    <div class="tb-brand" id="tbBrand">
+      <img class="tb-logo" src="/logo.webp" alt="zetizeti" width="198" height="48" />
+    </div>
+    <nav>
+      <a id="navQuests">enquiries</a>
+      <a id="navCrit">critique</a>
+      <a id="navProgress">progress</a>
+      <a id="navAbout">about</a>
+      <a id="navAdmin" class="nav-admin" hidden>review</a>
+      <span class="poolcount" id="poolCount" hidden></span>
+      <span class="who" id="who"></span>
+      <a id="navLogout">sign out</a>
+    </nav>
+  </div>
+
+  <!-- ===== LOGIN ===== -->
+  <section class="view" id="view-login">
+    <div class="wrap short">
+      <header>
+        <div class="mark">
+          <svg class="logo" viewBox="0 0 40 66" aria-hidden="true">
+            <!-- abstract jewel cluster (after ib00) — overlapping teardrops, red as MASS not a line -->
+            <path d="M13 8 C7 28 6 44 13 59 C20 44 19 28 13 8Z" fill="#e8431f" opacity=".9"/>
+            <path d="M26 5 C18 28 17 46 26 61 C35 46 34 27 26 5Z" fill="#f0b324" opacity=".92"/>
+            <path d="M20 17 C14 32 14 46 20 57 C26 46 25 32 20 17Z" fill="#0f7d72" opacity=".82"/>
+          </svg>
+          <h1>zetizeti</h1>
+        </div>
+        <span class="ethos">It asks the questions. You do the thinking.</span>
+        <span class="ethos-sub">One voice sharpens an edge; the other pushes back on an idea.</span>
+        <p class="lede">A questioning partner for design students, in two voices. In the first, you name the edge you're trying to sharpen — what you're trying to do — and the stone asks back, grounding each question in the real, unresolved tensions of your discipline. In the second, you bring an idea you want to pressure-test — a conclusion you reached, an answer a machine handed you, a claim from anywhere — and it questions <em>that</em>, pointing to where the text quietly decided something for you and leaving the deciding to you. Either way it never hands you the answer; the thinking stays <b>yours</b>.</p>
+        <p class="nameline">The name doubles <em>zeti</em>, from the Greek <em>zetetic</em> — "proceeding by inquiry" — with a chance echo of the Sanskrit <em>neti neti</em>, "not this, not this": which is also what the second voice does to a settled idea's smuggled certainties. <a id="aboutLink" class="aboutlink">What the two voices are →</a></p>
+        <div class="signin">
+          <a class="btn-google" href="/auth/google" id="googleBtn">
+            <svg width="18" height="18" viewBox="0 0 48 48" fill="#1a1206" aria-hidden="true">
+              <path d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
+              <path d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
+              <path d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
+              <path d="M43.611 20.083H42V20H24v8h11.303c-0.792 2.237-2.231 4.166-4.087 5.571l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
+            </svg>
+            Sign up with Google
+          </a>
+          <a class="btn-login" href="/auth/google" id="loginBtn">Log in</a>
+        </div>
+        <p class="signin-note" id="signinNote"></p>
+      </header>
+    </div>
+    <footer class="login-foot"><a id="aboutFoot" class="aboutlink">about</a></footer>
+  </section>
+
+  <!-- ===== ENQUIRIES (quests) ===== -->
+  <section class="view" id="view-quests">
+    <div class="wrap short">
+      <h2 class="vh">Your enquiries</h2>
+
+      <!-- KEY GATE — shown until an OpenRouter key is set; the enquiry UI stays hidden until then -->
+      <div id="keyGate" hidden>
+        <p class="vsub">zetizeti runs on your own <b>OpenRouter</b> API key — it stays in your browser, is sent only with your requests, and is never stored on our server. Add it once to begin.</p>
+        <div class="keygate-form">
+          <input id="gateKey" type="password" placeholder="sk-or-…" autocomplete="off" spellcheck="false" />
+          <button id="gateSave">use key</button>
+        </div>
+        <p class="keygate-links">Don't have one? <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">Get an OpenRouter key →</a> &nbsp;·&nbsp; Can't afford one? <a id="gateApply">Apply for a subsidised key</a>.</p>
+      </div>
+
+      <div id="enquiryUI" hidden>
+      <p class="vsub">Each enquiry is a thread you open and return to. The stone questions; you keep the edge. Fork a thread to take it in a new direction without losing the original.</p>
+      <div class="discpick">
+        <label for="discSel">discipline</label>
+        <select id="discSel">
+          <option value="all">All disciplines</option>
+          <option value="interaction-design">Interaction Design</option>
+          <option value="communication-design">Communication Design</option>
+          <option value="product-design">Product Design</option>
+          <option value="space-design">Space Design</option>
+          <option value="moving-image">Moving Image</option>
+          <option value="sustainable-fashion">Sustainable Fashion &amp; Textile</option>
+          <option value="transdisciplinary-design">Transdisciplinary Design</option>
+        </select>
+      </div>
+      <div class="newq">
+        <input id="newqName" placeholder="Name a new enquiry — e.g. “onboarding for a meditation app”" />
+        <button id="newqBtn">begin</button>
+      </div>
+      <p class="subsidy-cta"><span id="keyStatus"></span></p>
+      <div class="qlist" id="qlist"></div>
+      </div><!-- /enquiryUI -->
+    </div>
+  </section>
+
+  <!-- ===== CONVERSATION ===== -->
+  <section class="view" id="view-conversation">
+    <div class="wrap">
+      <span class="backlink" id="convBack">‹ enquiries</span>
+      <div class="edge" id="edge" hidden>
+        <div class="edge-label">the edge — what you're sharpening</div>
+        <div class="edge-text" id="edgeText"></div>
+        <div class="edge-foot">
+          <span class="edge-trace" id="edgeTrace" title="show how the edge has been re-drawn"></span>
+          <button class="edge-redraw" id="redraw">↻ re-draw the edge</button>
+        </div>
+        <div class="lineage" id="lineage"></div>
+      </div>
+      <main id="stream"></main>
+    </div>
+    <div class="composer">
+      <div class="inner">
+        <div class="field" id="field">
+          <textarea id="input" rows="1" placeholder="Name what you're trying to do…"></textarea>
+          <button class="send" id="send" title="Send">→</button>
+        </div>
+        <div class="hint" id="hint">grounded in <b>design</b> · name the edge, then it sharpens</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PROGRESS ===== -->
+  <section class="view" id="view-progress">
+    <div class="wrap short">
+      <h2 class="vh">Where your enquiries have travelled</h2>
+      <p class="vsub">Progress here is not a score. It's the edge getting sharper — how many times you re-drew each goal, and the line from vague to sharp. Private to you.</p>
+      <div class="qlist" id="progressList"></div>
+    </div>
+  </section>
+
+  <!-- ===== EDGE VISUALISATION (split-screen — conversation view only) ===== -->
+  <!-- ===== ABOUT ===== -->
+  <section class="view" id="view-about">
+    <div class="wrap short">
+      <span class="backlink" id="aboutBack">‹ back</span>
+      <h2 class="vh">The two voices</h2>
+      <p class="vsub">zetizeti is a whetstone. A whetstone does not cut for you; it is the stone you draw your own edge against. It asks; it does not answer. It has two voices — <b>one sharpens an edge, the other pushes back on an idea</b>; both ask questions in your own words, and neither hands you a conclusion.</p>
+
+      <div class="about-mode">
+        <div class="about-tag">first voice · to sharpen</div>
+        <h3>It questions your own thinking</h3>
+        <p>You name an edge — what you are trying to do, and where it resists you. The stone asks back, each question grounded in a real, unresolved tension of your discipline. It does not resolve the tension for you; it keeps you in the question long enough to think. This is the older harm it was built against: the answer dropped in too soon, before you have done the thinking that would make it yours. An <em>information</em> gap a sentence can close; an <em>understanding</em> gap only your own movement can close. The stone refuses to close the second one for you.</p>
+      </div>
+
+      <div class="about-mode crit">
+        <div class="about-tag">second voice · to push back</div>
+        <h3>It pushes back on an idea</h3>
+        <p>Bring an idea you want to pressure-test — a conclusion you reached in an enquiry, an answer a machine handed you, a claim you found anywhere — and paste it in. The stone questions <em>that text</em> instead of you. A settled idea, wherever it came from, is a conclusion already sitting in your understanding; the question worth asking is whether you reached it, or it was simply deposited there. So the stone does to the text what it does to your own premature certainty — it locates the spots where the text quietly decided something <em>for</em> you (called a thing "intuitive", "best practice", "obviously" — a judgement worn as a description) and asks you about those spots.</p>
+        <p class="about-want"><b>What this voice wants.</b> Not to tell you the idea is wrong. It never grades the text, never marks it right or wrong — that would only be a second deposited verdict, this time the tool's. It wants to give you back the act of judging. <b>It locates; you decide.</b> It is the <em>neti neti</em> of the name turned outward — "not this, not this" — subtracting the text's smuggled certainties until what is left is yours to weigh.</p>
+        <p class="about-want"><b>Saved, but never aggregated.</b> Each critique is kept, so you can return to it — like your enquiries. But it is never scored, ranked, averaged, or compared against your others, and never rolled into any leaderboard or profile. Each stands alone. That line — keep the individual reading, refuse the aggregate — is the one the split-ratio practice this borrows from cares about most: a reading is a self-frame, never a benchmark. So you get a history without the tally that would quietly turn examining a text into a metric.</p>
+      </div>
+
+      <div class="about-mode crit">
+        <div class="about-tag">how the second voice reads · its method</div>
+        <h3>The reading is made of rules you can read</h3>
+        <p>When you paste a text in, nothing about it is decided by a model. It is first broken into segments, and each segment is tagged by plain, stated rules — is this <em>describing</em>, or is it quietly <em>deciding</em>? A value worn as a property (the <em>clean</em> interface), a directive (you <em>should</em>…), a verdict relayed as settled (<em>obviously</em>, best practice) — each is caught by a rule about grammar and a short list of words, not by anything trained on the open web. A second step, also only arithmetic, settles which of those spots the question will point at. Only then does the model arrive, and only to do one thing: phrase a single question about that one spot, in the text's own words. A last check confirms what comes back is still a question, and carries no verdict of its own.</p>
+        <p>This is deliberate, and it has three consequences worth naming plainly. The reading <b>cannot fail</b> — there is no model call to time out or hallucinate; the worst case is that a spot reads as neutral. It is <b>reproducible</b> — the same text yields the same spots every time, not a different mood on a different day. And it is <b>inspectable</b> — every spot it marks carries the reason it was marked, down to the exact word and the rule that caught it. You can ask the tool why, and get an answer you could check by hand.</p>
+        <p class="about-want"><b>Its blind spots are a list, not a mystery.</b> What the tool treats as a deciding word is a short, readable list — not weights you must take on trust. It is deliberately blunt: it would rather miss a smuggled verdict than invent one where there is none. And when it does miss — and it will — the fix is a line added to that list, something you can see and argue with, not a retraining no one can audit. The model does the language; the rules do the locating; <b>you do the judging.</b> Where another tool asks you to trust what it cannot show you, this one shows you how little it is deciding.</p>
+      </div>
+
+      <div class="about-mode">
+        <div class="about-tag">what holds across both</div>
+        <h3>Questions only. The thinking stays yours.</h3>
+        <p>The second voice is not a looser version of the first — it is the same discipline, held tighter. Both speak in questions and nothing else. Both reuse your exact words rather than paraphrasing them. Neither explains, advises, reassures, concludes, or scores. There are no grades here, no leaderboards, no percent-complete — only the edge getting sharper, which is private to you. <b>It asks the questions; you do the thinking — whether the premature answer came from you, or from a machine.</b></p>
+        <p class="about-credit">All of this is open and checkable — the code, the corpus, the locating rules, and the full verification records (citation ledgers, adversarial passes, sign-off sheets): <a href="https://github.com/zetizeti/zetizeti" target="_blank" rel="noopener">github.com/zetizeti/zetizeti</a> (AGPL-3.0). Nothing here asks to be trusted; it asks to be read.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CRITICISM — index of saved critiques (like enquiries) → chat ===== -->
+  <section class="view" id="view-criticism">
+    <div class="wrap short">
+      <span class="backlink" id="critBack">‹ back</span>
+      <h2 class="vh">Push back on an idea</h2>
+      <p class="vsub">Bring an idea you want to pressure-test — a conclusion you reached in an enquiry, an answer a machine gave you, a claim from anywhere — and the stone questions the <em>text</em>: pointing to where it quietly decided something, where a judgement was slipped in as fact. It never grades it, never says "this is wrong": it locates, you judge. Each critique is <b>saved to your list and you can return to it</b> — but it is <b>never scored, ranked, or compared</b> against your others. Each stands alone.</p>
+      <div class="discpick">
+        <label for="critDisc">discipline</label>
+        <select id="critDisc">
+          <option value="all">All disciplines</option>
+          <option value="interaction-design">Interaction Design</option>
+          <option value="communication-design">Communication Design</option>
+          <option value="product-design">Product Design</option>
+          <option value="space-design">Space Design</option>
+          <option value="moving-image">Moving Image</option>
+          <option value="sustainable-fashion">Sustainable Fashion &amp; Textile</option>
+          <option value="transdisciplinary-design">Transdisciplinary Design</option>
+        </select>
+      </div>
+      <div class="newq">
+        <button id="critNew">push back on an idea →</button>
+        <a id="critDemo" class="crit-demo">▷ see an example — no key needed</a>
+      </div>
+      <div class="crit-list-head" id="critListHead" hidden>your critiques</div>
+      <div class="qlist" id="critList"></div>
+    </div>
+  </section>
+
+  <!-- ===== CRITICISM CHAT — the SAME immersive layout as enquiries, minus the p5 visualisation.
+       You paste into the bottom composer (first turn = the AI text); the stone questions stream above. -->
+  <section class="view" id="view-criticism-chat">
+    <div class="wrap">
+      <span class="backlink" id="critChatBack">‹ critiques</span>
+      <div class="edge" id="critArtefact" hidden>
+        <div class="edge-label">the text you're questioning</div>
+        <div class="edge-text crit-specimen" id="critArtefactText"></div>
+      </div>
+      <main id="critChatStream"></main>
+    </div>
+    <div class="composer">
+      <div class="inner">
+        <div class="field">
+          <textarea id="critChatInput" rows="1" placeholder="Paste an idea, claim, or answer you want to push back on…"></textarea>
+          <button class="send" id="critChatSend" title="Send">→</button>
+        </div>
+        <div class="hint">saved to your critiques · <b>never scored or compared</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== APPLY FOR A SUBSIDISED KEY ===== -->
+  <section class="view" id="view-subsidy">
+    <div class="wrap short">
+      <span class="backlink" id="subsidyBack">‹ enquiries</span>
+      <h2 class="vh">Apply for a subsidised key</h2>
+      <p class="vsub">zetizeti runs on your own OpenRouter API key. If the cost is a barrier, tell us who you are and why — the project issues a small, capped key to students who need one. When granted, it's emailed to your sign-in address. You don't paste anything here; the key comes to you.</p>
+      <div id="subsidyBody"></div>
+    </div>
+  </section>
+
+  <!-- ===== ADMIN — subsidy review ===== -->
+  <section class="view" id="view-admin">
+    <div class="wrap short">
+      <span class="backlink" id="adminBack">‹ enquiries</span>
+      <h2 class="vh">Subsidy requests</h2>
+      <p class="vsub">Applications for subsidised OpenRouter keys. Granting happens at OpenRouter — issue a capped org-key, email it to the applicant, then mark the request <b>fulfilled</b>. <b>Never paste a key here; nothing of the sort is stored.</b></p>
+      <div class="adminlist" id="adminList"></div>
+    </div>
+  </section>
+
+  <aside class="vizpanel" id="vizPanel" aria-hidden="true">
+    <div class="vizmeta">the edge — the question, condensing</div>
+    <div id="vizHolder"></div>
+    <div id="vizReadout" aria-hidden="true"></div>
+    <div class="viznote">the cloud is the question; it condenses as the inquiry sharpens, rising toward an open clarity. <b>Not a score, not a destination.</b></div>
+  </aside>
+
+<script>
+const $ = id => document.getElementById(id);
+const views = { login:$('view-login'), quests:$('view-quests'), conversation:$('view-conversation'), progress:$('view-progress'), about:$('view-about'), criticism:$('view-criticism'), 'criticism-chat':$('view-criticism-chat'), subsidy:$('view-subsidy'), admin:$('view-admin') };
+function showView(name){
+  for(const k in views) views[k].classList.toggle('active', k===name);
+  // topbar hidden on the landing, and on About when reached before sign-in (nav links would 404).
+  $('topbar').hidden = (name==='login') || (name==='about' && !me);
+  $('navQuests').classList.toggle('on', name==='quests');
+  $('navCrit').classList.toggle('on', name==='criticism' || name==='criticism-chat');
+  $('navProgress').classList.toggle('on', name==='progress');
+  $('navAbout').classList.toggle('on', name==='about');
+  const inConv = name==='conversation';
+  document.body.classList.toggle('conv-active', inConv);
+  const pc=$('poolCount'); if(pc){ if(inConv && poolMode()) renderPoolCount(); else pc.hidden=true; }
+  const vp=$('vizPanel'); if(vp) vp.setAttribute('aria-hidden', String(!inConv));
+  if(inConv){ requestAnimationFrame(startViz); if(viz) viz.loop(); } else if(viz){ viz.noLoop(); }
+  window.scrollTo({top:0});
+}
+// ---------- routing: real, shareable URLs (History API — not hash links) ----------
+// Every top-level surface has a real path (/critique, /about, /progress, /enquiry/:id,
+// /critique/:id) so a link survives a reload and can be sent to someone. showView stays the
+// low-level renderer; go() rewrites the URL then route() drives the matching view. The server
+// serves the app shell for these paths (see server.mjs), so direct loads resolve too.
+function go(path, opts){
+  opts = opts || {};
+  if(opts.replace) history.replaceState({}, '', path);
+  else if(location.pathname !== path) history.pushState({}, '', path);
+  return route(path);
+}
+async function route(path){
+  path = (path || '/').replace(/\/+$/, '') || '/';
+  const conv = path.match(/^\/enquiry\/(.+)$/);
+  const crit = path.match(/^\/critique\/(.+)$/);
+  if(!me){
+    // pre-sign-in only the landing and About are public; any deeper path is remembered
+    // (it survives the Google round-trip in sessionStorage) and resumed after sign-in.
+    if(path === '/about'){ showView('about'); return; }
+    if(path !== '/'){ try{ sessionStorage.setItem('zetizeti_redirect', path); }catch(e){} }
+    showView('login'); return;
+  }
+  if(conv){ await openQuest(conv[1]); return; }
+  if(crit){ await openCriticismChat(crit[1]); return; }
+  switch(path){
+    case '/about':    showView('about'); break;
+    case '/critique': await showCriticismIndex(); break;
+    case '/progress': await loadQuests().then(renderProgress); showView('progress'); break;
+    case '/subsidy':  openSubsidy(); break;
+    case '/admin':    openAdmin(); break;
+    case '/':
+    case '/enquiries':
+    default:          await loadQuests(); showView('quests'); break;
+  }
+}
+window.addEventListener('popstate', ()=>{ route(location.pathname); });
+async function api(path, opts){
+  const r = await fetch(path, Object.assign({ headers:{'Content-Type':'application/json'} }, opts));
+  if(!r.ok) throw new Error((await r.json().catch(()=>({}))).error || r.status);
+  return r.json();
+}
+function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function el(html){ const t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstChild; }
+
+let me=null, quests=[], discipline='all';
+// shared "pool" key state: whether a free shared key is configured, the daily per-user allowance,
+// and how many free messages this user has left today (null until fetched).
+let cfg={poolEnabled:false, poolUserTurns:0}, poolTurnsLeft=null;
+
+// ---------- conversation state (per quest) — declared BEFORE boot() so the file:// self-demo can run ----------
+const stream=$('stream'), input=$('input'), send=$('send'), field=$('field'), hint=$('hint');
+const edge=$('edge'), edgeText=$('edgeText'), edgeTrace=$('edgeTrace'), lineageEl=$('lineage'), redrawBtn=$('redraw');
+const DIALOG_PH='Respond — or sit with the question…', REDRAW_PH='Re-draw the edge, sharper…';
+const OPENING="What are you trying to do right now — and where does it resist you?";
+let questId=null, history=[], busy=false, phase='goal', goal='', honed=0, exchanges=0, lineage=[];
+// edge-visualisation state (declared before boot/showView to avoid a TDZ on first render)
+let viz=null,
+    vizTarget={condensation:.12,conviction:.4,movement:.12,redraws:0},
+    vizCur={condensation:.12,conviction:.4,movement:.12,redraws:0},
+    vizSeed=7;
+
+// ---------- boot ----------
+(async function boot(){
+  if(location.protocol==='file:'){ // offline self-demo, no backend/auth
+    showView('conversation'); $('topbar').hidden=true; $('convBack').style.display='none';
+    resetConversation(); openingQuestion(); runDemo(); return;
+  }
+  const c = await api('/api/config').catch(()=>({}));
+  cfg.poolEnabled = !!c.poolEnabled; cfg.poolUserTurns = c.poolUserTurns || 0; cfg.guestAllowed = !!c.guestAllowed;
+  // Dev-only guest entry (the server only offers this off-production) — so the app is drivable
+  // locally without Google OAuth configured. Hidden on the real, OAuth-only site.
+  if(cfg.guestAllowed){
+    const sg=document.querySelector('.signin');
+    if(sg && !$('guestBtn')) sg.appendChild(el(`<a class="btn-login" id="guestBtn" href="/auth/guest" style="opacity:.85">continue as guest · local dev</a>`));
+  }
+  $('signinNote').textContent = cfg.poolEnabled
+    ? `Sign in with Google to begin. You can use it free — ${cfg.poolUserTurns} messages a day on our shared key — or bring your own OpenRouter key for unlimited use. Either way, no posting, no contacts.`
+    : 'Sign in with Google to keep your enquiries between sessions. You bring your own OpenRouter API key — it stays in your browser. No posting, no contacts.';
+  const r = await api('/api/me').catch(()=>({user:null}));
+  me = r.user;
+  if(me) enterApp(); else route(location.pathname);
+})();
+
+// ---- BYOK: the learner's own OpenRouter API key, stored only in this browser, sent per request ----
+function llmKey(){ try{ return localStorage.getItem('zetizeti_llm_key') || ''; }catch(e){ return ''; } }
+function setLlmKey(k){ try{ localStorage.setItem('zetizeti_llm_key', k); }catch(e){} }
+// Proactive key status on the enquiries view, so the key isn't a mid-question surprise.
+function renderKeyStatus(){
+  const s=$('keyStatus'); if(!s) return;
+  if(llmKey()){
+    s.className=''; s.innerHTML = `OpenRouter key set ✓ — unlimited. <a id="keySet">change</a>.`;
+  } else if(cfg.poolEnabled){
+    s.className='keystatus-free';
+    s.innerHTML = `Using zetizeti <b>free</b> — <b>${cfg.poolUserTurns}</b> messages a day on our shared key, no key needed. Prefer unlimited? <a id="keySet">Use your own OpenRouter key</a>.`;
+  } else {
+    s.className=''; s.innerHTML = `You'll bring your own OpenRouter key — it stays in your browser. <a id="keySet">Add it now</a>.`;
+  }
+  const a=s.querySelector('#keySet'); if(a) a.addEventListener('click', editKeyInline);
+}
+// pool mode = a shared key is configured AND this user hasn't set their own (so they're on free turns).
+function poolMode(){ return cfg.poolEnabled && !llmKey(); }
+// The chat-header counter of free messages left today. Hidden unless on pool, in the conversation view.
+function renderPoolCount(){
+  const elc=$('poolCount'); if(!elc) return;
+  if(!poolMode()){ elc.hidden=true; return; }
+  const n = (poolTurnsLeft!=null ? poolTurnsLeft : cfg.poolUserTurns);
+  elc.hidden = false;
+  elc.textContent = `${n} free ${n===1?'message':'messages'} left today`;
+  elc.classList.toggle('low', n>0 && n<=5);
+  elc.classList.toggle('out', n<=0);
+}
+// Refresh the live remaining count from the server (called on entering a conversation).
+async function fetchPool(){
+  if(!poolMode()){ poolTurnsLeft=null; renderPoolCount(); return; }
+  try{ const p = await api('/api/pool'); if(p && p.enabled) poolTurnsLeft = p.userTurnsLeft; }catch(e){}
+  renderPoolCount();
+}
+function editKeyInline(){
+  const s=$('keyStatus'); if(!s) return;
+  s.innerHTML = `<input class="keyinline" type="password" placeholder="sk-or-…" autocomplete="off" spellcheck="false"> <a id="keySave">save</a> · <a id="keyCancel">cancel</a>`;
+  const f=s.querySelector('.keyinline'); f.value=llmKey(); f.focus();
+  const save=()=>{ setLlmKey(f.value.trim()); renderKeyStatus(); applyKeyGate(); };
+  s.querySelector('#keySave').addEventListener('click', save);
+  s.querySelector('#keyCancel').addEventListener('click', renderKeyStatus);
+  f.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); save(); } });
+}
+// Gate the enquiry UI on having a key: no key → only the big key box shows; key set → enquiries show.
+function applyKeyGate(){
+  // The enquiry UI opens if the user has their own key OR a shared pool key is configured (free turns).
+  // The big key-gate box only blocks when there is no key AND no pool fallback.
+  const canUse = !!llmKey() || cfg.poolEnabled;
+  const g=$('keyGate'), u=$('enquiryUI');
+  if(g) g.hidden = canUse;
+  if(u) u.hidden = !canUse;
+}
+$('navLogout').addEventListener('click', async ()=>{ await api('/auth/logout',{method:'POST'}).catch(()=>{}); location.reload(); });
+$('navQuests').addEventListener('click', ()=>go('/'));
+$('navProgress').addEventListener('click', ()=>go('/progress'));
+$('navAbout').addEventListener('click', ()=>go('/about'));
+$('aboutLink').addEventListener('click', ()=>go('/about'));
+$('aboutFoot').addEventListener('click', ()=>go('/about'));
+$('aboutBack').addEventListener('click', ()=>go('/'));
+// ───────── criticism: index (list of saved critiques) → chat (looks like enquiries, minus p5) ─────────
+// STATEFUL but never aggregated. The index lists the user's saved critiques; opening one resumes its
+// chat. A critique = one pasted AI text, its per-instance sensed reading, the stone's questions about
+// the located blurs (+ your responses). Endpoints: POST /api/criticism/chats, GET …, GET …/:id,
+// POST …/:id/turn. The chat reuses the conversation view's .turn/.composer/.edge CSS; no p5 viz.
+let critDiscipline='all', critChatId=null, critReading=null;
+$('navCrit').addEventListener('click', ()=>go('/critique'));
+$('critBack').addEventListener('click', ()=>go('/'));
+$('critChatBack').addEventListener('click', ()=>go('/critique'));
+$('critNew').addEventListener('click', openNewCritique);
+$('critDisc').addEventListener('change', e=>{ critDiscipline=e.target.value; });
+$('critDemo').addEventListener('click', runCritDemo);
+$('critChatSend').addEventListener('click', sendCritTurn);
+$('critChatInput').addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendCritTurn(); } });
+
+// The immersive chat — SAME layout as enquiries, minus the p5 viz. The bottom composer is the only
+// input: the FIRST send is the pasted AI text (creates the critique); later sends are your responses.
+function openNewCritique(){
+  critChatId=null; critReading=null;
+  showView('criticism-chat');
+  $('critChatStream').innerHTML='';
+  $('critArtefact').hidden = true; $('critArtefactText').textContent='';
+  const node=critAddStone('Paste an idea in the box below — something you concluded, or a claim from anywhere — and I’ll question the text, not you: pointing to where it quietly decided something. You judge.');
+  const inp=$('critChatInput'); inp.value=''; inp.placeholder='Paste an idea, claim, or answer you want to push back on…';
+  setTimeout(()=>inp.focus(), 50);
+}
+function sendCritTurn(){
+  const inp=$('critChatInput'); const t=inp.value.trim(); if(!t) return; inp.value='';
+  if(!critChatId){                               // first send = the pasted AI text → create the critique
+    $('critChatStream').innerHTML='';            // drop the opening line; the specimen takes over
+    $('critArtefactText').textContent=t; $('critArtefact').hidden=false;
+    inp.placeholder='Respond, or sit with the question…';
+    streamCriticismCreate(t);
+  } else {                                        // a response in the ongoing critique
+    critAddYou(t); streamCriticismTurn({ message:t });
+  }
+}
+
+async function showCriticismIndex(){
+  showView('criticism');
+  const list=$('critList'); list.innerHTML='<div class="qempty">loading…</div>';
+  let chats=[]; try{ chats=(await api('/api/criticism/chats')).chats||[]; }catch(e){ chats=[]; }
+  $('critListHead').hidden = chats.length===0;
+  if(!chats.length){ list.innerHTML=''; return; }
+  list.innerHTML='';
+  chats.forEach(c=>{
+    const card=el(`<div class="qcard"><div class="qname">${esc(c.title||'Untitled critique')}</div><div class="qmeta">${esc(c.discipline||'all')} · ${new Date(c.updated_at).toLocaleDateString()}</div></div>`);
+    card.addEventListener('click', ()=>go('/critique/'+c.id));
+    list.appendChild(card);
+  });
+}
+
+// open an existing critique → resume (GET): artefact + reading curtain + the saved turns.
+async function openCriticismChat(id){
+  let d; try{ d=await api('/api/criticism/chats/'+id); }catch(e){ showCriticismIndex(); return; }
+  critChatId=id; critReading=d.reading||null;
+  showView('criticism-chat');
+  $('critArtefactText').textContent = d.chat.artefact; $('critArtefact').hidden=false;
+  $('critChatInput').value=''; $('critChatInput').placeholder='Respond, or sit with the question…';
+  const stream=$('critChatStream'); stream.innerHTML='';
+  (d.messages||[]).forEach((m,idx)=>{
+    if(m.role==='you') critAddYou(m.content);
+    else { const node=critAddStone(m.content); if(idx===0 && critReading) attachCritReading(node, critReading); }
+  });
+  $('critChatInput').focus();
+}
+
+// render helpers — reuse the conversation .turn/.stone/.you classes (look identical to enquiries).
+function critAddStone(text){
+  const node=el(`<div class="turn stone"><div class="who">the stone</div><div class="body">${text?esc(text):'<span class="thinking"><span class="bead"></span> reading the text</span>'}</div></div>`);
+  $('critChatStream').appendChild(node); scroll(); return node;
+}
+function critAddYou(text){ $('critChatStream').appendChild(el(`<div class="turn you"><div class="who">you</div><div class="body">${esc(text)}</div></div>`)); scroll(); }
+
+// the curtain for a stone turn: the per-instance sensed reading — the text segmented, located blurs as
+// a soft mass (clickable → question that spot), the strict ratio as a sensed reading, NEVER a score.
+function attachCritReading(node, reading){
+  if(!reading) return;
+  const ids=new Set(reading.strict && reading.strict.conflation_segment_ids || []);
+  const toggle=el(`<button class="curtain-toggle" aria-expanded="false"><span class="chev">›</span> what the instrument sensed — the spots it located</button>`);
+  const panel=el(`<div class="curtain crit-reading"></div>`);
+  const segWrap=el(`<div class="crit-segs"></div>`);
+  (reading.segments||[]).forEach(s=>{
+    const isBlur=ids.has(s.id);
+    const seg=el(`<span class="crit-seg ${isBlur?'blur':''}">${esc(s.text)} </span>`);
+    if(isBlur){ seg.title=`${s.sdc_stage} · ${s.why || ('held by '+s.judgement_held_by)} — click to question this spot`; seg.addEventListener('click',()=>{ if(critChatId) streamCriticismTurn({ segment:{text:s.text, sdc_stage:s.sdc_stage, judgement_held_by:s.judgement_held_by} }); }); }
+    segWrap.appendChild(seg);
+  });
+  panel.appendChild(segWrap);
+  if(reading.strict) panel.appendChild(el(`<div class="crit-ratio"><b>sensed reading — not a score.</b> ${esc(reading.strict.ratio)} held to conflated · ${esc(reading.strict.why)} The blurs are highlighted; click one to question it. Whether a blur is a smuggled verdict is <em>your</em> call.</div>`));
+  toggle.addEventListener('click',()=>{ const open=panel.classList.toggle('open'); toggle.setAttribute('aria-expanded',open); });
+  node.appendChild(toggle); node.appendChild(panel);
+  return {toggle, panel};
+}
+
+// the shared SSE reader for both create + turn. `node` is the stone turn whose body streams the question.
+async function critStream(url, payload, node, onReading, retry){
+  const body=node.querySelector('.body'); let full='', guard=null, reading=null, needKey=false, errored=false;
+  try{
+    const res=await fetch(url,{ method:'POST', headers:{'Content-Type':'application/json','X-LLM-Key':llmKey()}, body:JSON.stringify(payload) });
+    const reader=res.body.getReader(), dec=new TextDecoder(); let buf='';
+    while(true){
+      const {value,done}=await reader.read(); if(done) break;
+      buf+=dec.decode(value,{stream:true});
+      const events=buf.split('\n\n'); buf=events.pop();
+      for(const ev of events){
+        const m=ev.match(/^event: (.+)\ndata: (.+)$/s); if(!m) continue;
+        const type=m[1], data=JSON.parse(m[2]);
+        if(type==='chat'){ critChatId=data.id; try{ history.replaceState({}, '', '/critique/'+data.id); }catch(e){} }
+        else if(type==='reading'){ reading=data; critReading=data; }
+        else if(type==='status'){ if(!full) body.innerHTML=`<span class="thinking"><span class="bead"></span> ${esc(data.t)}</span>`; }
+        else if(type==='token'){ if(!full) body.textContent=''; full+=data.t; body.textContent=full; scroll(); }
+        else if(type==='validation'){ guard=data; }
+        else if(type==='pool'){ poolTurnsLeft=data.turnsLeft; renderPoolCount(); }
+        else if(type==='error'){ errored=true;
+          if(data.code==='POOL_USER_CAP'||data.code==='POOL_CAP'||data.code==='POOL_USERS_CAP'){ poolTurnsLeft=0; renderPoolCount(); needKey=true; promptForKey(body, retry, data); }
+          else if(data.code==='NO_KEY'||/401|invalid|unauthor/i.test(data.message||'')){ needKey=true; promptForKey(body, retry, data); }
+          else body.innerHTML=`<span style="color:var(--muted);font-style:italic">${esc(data.message)}</span>`;
+        }
+      }
+    }
+  }catch(err){ errored=true; body.innerHTML=`<span style="color:var(--muted);font-style:italic">connection lost — ${esc(String(err))}</span>`; }
+  // the stream ended with no question and no surfaced error → don't leave a silent spinner.
+  if(!full && !needKey && !errored) body.innerHTML=`<span style="color:var(--muted);font-style:italic">the model didn't return a question — try again, or paste your own OpenRouter key.</span>`;
+  if(reading && onReading && !needKey) onReading(reading);
+}
+
+function streamCriticismCreate(text){
+  const node=critAddStone('');
+  critStream('/api/criticism/chats', { text, goal:'', discipline:critDiscipline }, node,
+    (reading)=>attachCritReading(node, reading), ()=>{ node.remove(); streamCriticismCreate(text); });
+}
+function streamCriticismTurn({ message, segment }){
+  if(!critChatId) return;
+  const node=critAddStone('');
+  critStream('/api/criticism/chats/'+critChatId+'/turn', { message:message||'', segment:segment||null }, node,
+    null, ()=>{ node.remove(); streamCriticismTurn({ message, segment }); });
+}
+
+// Offline canned demo — no key, no backend. Opens the chat view and plays a found AI text → the stone's
+// question → the sensed reading with located blurs, so the flow can be seen without an API call.
+const CRIT_DEMO_TEXT = "Onboarding is the first sequence a new user moves through. The best approach is to make your onboarding as clean and intuitive as possible. A frictionless sign-up is always better, so you should remove every optional field. Users obviously prefer a minimal interface, and this is considered best practice in modern design.";
+const CRIT_DEMO_READING = {
+  segments:[
+    {id:1, text:"Onboarding is the first sequence a new user moves through.", sdc_stage:"qualification", judgement_held_by:"n/a"},
+    {id:2, text:"The best approach is to make your onboarding as clean and intuitive as possible.", sdc_stage:"mixed", judgement_held_by:"text"},
+    {id:3, text:"A frictionless sign-up is always better, so you should remove every optional field.", sdc_stage:"judgement", judgement_held_by:"text"},
+    {id:4, text:"Users obviously prefer a minimal interface,", sdc_stage:"narration", judgement_held_by:"text"},
+    {id:5, text:"and this is considered best practice in modern design.", sdc_stage:"narration", judgement_held_by:"text"},
+  ],
+  strict:{ ratio:"2:8", why:"4 of 5 segments meet the strict conflation rule (judgement→ai/shared, narration→ai, or mixed).", conflation_segment_ids:[2,3,4,5] },
+};
+const CRIT_DEMO_Q = "“Intuitive” — names what it does, or approves of it? And “the best approach” — whose call is that, yours or the text’s?";
+function runCritDemo(){
+  critChatId=null; critReading=CRIT_DEMO_READING;
+  showView('criticism-chat');
+  $('critArtefactText').textContent = CRIT_DEMO_TEXT; $('critArtefact').hidden=false;
+  $('critChatInput').value=''; $('critChatInput').placeholder='Paste an idea, claim, or answer you want to push back on…';
+  const stream=$('critChatStream'); stream.innerHTML='';
+  stream.appendChild(el(`<div class="divider">an example — canned, no model called, nothing saved</div>`));
+  const node=critAddStone('');
+  const body=node.querySelector('.body'); body.textContent='';
+  let i=0; const tick=()=>{ if(i<=CRIT_DEMO_Q.length){ body.textContent=CRIT_DEMO_Q.slice(0,i++); setTimeout(tick, 14); }
+    else { const r=attachCritReading(node, CRIT_DEMO_READING); if(r&&r.toggle) r.toggle.click(); } };
+  tick();
+}
+$('tbBrand').addEventListener('click', ()=>go('/'));
+$('convBack').addEventListener('click', ()=>go('/'));
+$('navAdmin').addEventListener('click', ()=>go('/admin'));
+$('subsidyBack').addEventListener('click', ()=>go('/'));
+$('adminBack').addEventListener('click', ()=>go('/'));
+$('gateApply').addEventListener('click', ()=>go('/subsidy'));
+$('gateSave').addEventListener('click', ()=>{ const k=$('gateKey').value.trim(); if(!k) return; setLlmKey(k); applyKeyGate(); renderKeyStatus(); });
+$('gateKey').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); $('gateSave').click(); } });
+
+function enterApp(){
+  $('who').innerHTML = me ? `signed in as <b>${esc(me.name||me.email||'you')}</b>` : '';
+  $('navAdmin').hidden = !(me && me.isAdmin);
+  // resume a remembered deep link (a /critique link survives the Google round-trip via
+  // sessionStorage), else honour the path the page actually loaded on, else the enquiries home.
+  let dest = location.pathname;
+  try{ const saved = sessionStorage.getItem('zetizeti_redirect'); if(saved){ sessionStorage.removeItem('zetizeti_redirect'); dest = saved; } }catch(e){}
+  go(dest, {replace:true});
+}
+
+// ---------- enquiries ----------
+async function loadQuests(){ quests = (await api('/api/quests').catch(()=>({quests:[]}))).quests; renderQuests(); return quests; }
+function renderQuests(){
+  applyKeyGate();
+  renderKeyStatus();
+  const list = $('qlist'); list.innerHTML='';
+  if(!quests.length){ list.appendChild(el(`<div class="qempty">No enquiries yet. Name one above to begin.</div>`)); return; }
+  for(const q of quests){
+    const card = el(`<div class="qcard">
+      <div class="qname">${esc(q.name)}</div>
+      ${q.current_goal?`<div class="qgoal">${esc(q.current_goal)}</div>`:`<div class="qgoal" style="opacity:.6">— not yet started —</div>`}
+      <div class="qmeta"><span>honed ×${q.honed}</span><span>${q.exchanges} ${q.exchanges===1?'exchange':'exchanges'}</span><span class="fork" data-fork="${q.id}">fork ⑂</span></div>
+    </div>`);
+    card.addEventListener('click', e=>{ if(e.target.dataset.fork) return; go('/enquiry/'+q.id); });
+    card.querySelector('[data-fork]').addEventListener('click', async e=>{
+      e.stopPropagation();
+      try{ const r = await api(`/api/quests/${q.id}/fork`,{method:'POST'}); await loadQuests(); go('/enquiry/'+r.quest.id); }
+      catch(err){ alert('Could not fork: '+err.message); }
+    });
+    list.appendChild(card);
+  }
+}
+$('newqBtn').addEventListener('click', newQuest);
+$('newqName').addEventListener('keydown', e=>{ if(e.key==='Enter') newQuest(); });
+$('discSel').addEventListener('change', e=>{ discipline=e.target.value; });
+async function newQuest(){
+  const name = $('newqName').value.trim() || 'Untitled enquiry';
+  const r = await api('/api/quests',{method:'POST', body:JSON.stringify({name})});
+  $('newqName').value='';
+  go('/enquiry/'+r.quest.id);
+}
+
+// ---------- conversation state — declared above, before boot() ----------
+
+function resetConversation(){
+  questId=null; history=[]; busy=false; phase='goal'; goal=''; honed=0; exchanges=0; lineage=[];
+  stream.innerHTML=''; edge.hidden=true; field.classList.remove('redraw');
+  input.value=''; input.placeholder='Name what you’re trying to do…';
+  hint.innerHTML='grounded in <b>design</b> · name the edge, then it sharpens';
+  setVizSignals({condensation:0.12, specificity:0, conviction:0.5, movement:0, redraws:0}); // diffuse: the question, unformed
+}
+function openingQuestion(){ addStone(OPENING, null, null, {opening:true}); }
+
+async function openQuest(id){
+  resetConversation(); showView('conversation');
+  let data;
+  try{ data = await api('/api/quests/'+id); }
+  catch(e){ alert('Could not open enquiry: '+e.message); showView('quests'); return; }
+  questId = id;
+  fetchPool();   // refresh the "free messages left" header counter for this session
+  seedViz(hashStr(id)); if(data.signals) setVizSignals(data.signals);
+  const q = data.quest, msgs = data.messages||[];
+  if(!q.current_goal && msgs.length===0){
+    phase='goal'; openingQuestion(); input.focus(); return;
+  }
+  // hydrate an existing enquiry
+  goal=q.current_goal||''; lineage=q.lineage||[]; honed=q.honed||0; exchanges=q.exchanges||0;
+  for(const m of msgs){
+    if(m.role==='student'){
+      if(m.kind==='redraw') addDivider('the edge, re-drawn');
+      addYou(m.content); history.push({role:'student', content:m.content});
+    }else{
+      addStone(m.content, m.retrieved, m.guard); history.push({role:'interlocutor', content:m.content});
+    }
+  }
+  showEdge(); updateEdge();
+  phase='dialogue'; field.classList.remove('redraw'); input.placeholder=DIALOG_PH;
+  hint.innerHTML='grounded in <b>design</b> · the question is yours to answer';
+  input.focus();
+}
+
+input.addEventListener('input', ()=>{ input.style.height='auto'; input.style.height=Math.min(input.scrollHeight,170)+'px'; });
+input.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); submit(); } });
+send.addEventListener('click', submit);
+redrawBtn.addEventListener('click', ()=>{ if(busy) return; phase='redraw'; field.classList.add('redraw'); input.placeholder=REDRAW_PH; input.focus(); });
+edgeTrace.addEventListener('click', ()=> lineageEl.classList.toggle('open'));
+
+function scroll(){ window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}); }
+function addYou(text){ stream.appendChild(el(`<div class="turn you"><div class="who">you</div><div class="body">${esc(text)}</div></div>`)); scroll(); }
+function addDivider(label){ stream.appendChild(el(`<div class="divider">${esc(label)}</div>`)); scroll(); }
+function showNudge(text){ if(!text) return; stream.appendChild(el(`<div class="nudge-surface">${esc(text)}</div>`)); scroll(); }
+function addStone(text, retrieved, guard, opts={}){
+  const node = el(`<div class="turn stone"><div class="who">the stone</div><div class="body"></div></div>`);
+  node.querySelector('.body').textContent = text;
+  stream.appendChild(node);
+  if(!opts.opening) attachCurtain(node, retrieved, guard);
+  scroll(); return node;
+}
+function attachCurtain(node, retrieved, guard){
+  if(!retrieved) return;
+  const toggle = el(`<button class="curtain-toggle" aria-expanded="false"><span class="chev">›</span> behind the curtain — what sharpened this</button>`);
+  const panel = el(`<div class="curtain"></div>`);
+  let inner = `<h4>tensions retrieved</h4>`;
+  if(retrieved.length){ for(const r of retrieved){ const pend=r.provenance==='pending'; inner += `<div class="grit"><span class="id">${esc(r.id)}</span> — ${esc(r.snippet||'')}<span class="src">${esc(r.sources||'')}</span><span class="prov ${pend?'pend':'ver'}">${pend?'◔ synthetic seed · citation verified, framing pending verification':'✓ verified'}</span></div>`; } }
+  else inner += `<div class="grit">no domain tension matched — questioned from method alone.</div>`;
+  if(guard) inner += `<div class="guard">guard: <b>${guard.ok?'passed':'flagged'}</b>${guard.ok?'':' — '+esc((guard.reasons||[]).join('; '))}</div>`;
+  panel.innerHTML = inner;
+  toggle.addEventListener('click', ()=>{ const open=panel.classList.toggle('open'); toggle.setAttribute('aria-expanded',open); });
+  node.appendChild(toggle); node.appendChild(panel);
+}
+function showEdge(){ edge.hidden=false; }
+function updateEdge(){
+  edgeText.textContent = goal;
+  let ticks=''; const shown=Math.max(1,honed+1);
+  for(let i=0;i<shown;i++) ticks += `<span class="tick${i<honed?'':' dim'}">◆</span>`;
+  edgeTrace.innerHTML = `${ticks} &nbsp;honed <b>×${honed}</b> · <b>${exchanges}</b> ${exchanges===1?'exchange':'exchanges'}`;
+  lineageEl.innerHTML = lineage.map((g,i)=>`<div class="${i<lineage.length-1?'struck':''}">${esc(g)}</div>`).join('');
+}
+
+function submit(){
+  const text=input.value.trim(); if(!text||busy) return;
+  input.value=''; input.style.height='auto';
+  if(phase==='goal')        startDialogue(text);
+  else if(phase==='redraw'){ phase='dialogue'; redraw(text); }
+  else                      turn(text);
+}
+function startDialogue(text){
+  goal=text; lineage.push(text); honed=0; history.push({role:'student', content:text});
+  showEdge(); updateEdge();
+  phase='dialogue'; field.classList.remove('redraw'); input.placeholder=DIALOG_PH;
+  hint.innerHTML='grounded in <b>design</b> · the question is yours to answer';
+  busy=true; send.disabled=true;
+  streamStone(text,'goal').then(()=>{ busy=false; send.disabled=false; input.focus(); });
+}
+async function turn(text){
+  busy=true; send.disabled=true;
+  addYou(text); history.push({role:'student', content:text}); exchanges++; updateEdge();
+  await streamStone(text,'turn');
+  busy=false; send.disabled=false; input.focus();
+}
+function redraw(text){
+  goal=text; lineage.push(text); honed++; exchanges++;
+  history.push({role:'student', content:text});
+  updateEdge(); addDivider('the edge, re-drawn'); addYou(text);
+  busy=true; send.disabled=true;
+  streamStone(text,'redraw').then(()=>{ busy=false; send.disabled=false; input.focus(); });
+}
+
+async function streamStone(message, kind, reuseNode){
+  const node=reuseNode||addStone('', null, null, {opening:true});
+  const body=node.querySelector('.body');
+  body.innerHTML=`<span class="thinking"><span class="bead"></span> drawing the edge</span>`;
+  let retrieved=null, guard=null, full='', needKey=false;
+  try{
+    const res = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json', 'X-LLM-Key':llmKey()},
+      body: JSON.stringify({ quest_id:questId, message, history:history.slice(0,-1), goal, kind, honed, exchanges, lineage, discipline }) });
+    const reader=res.body.getReader(), dec=new TextDecoder(); let buf='';
+    while(true){
+      const {value,done}=await reader.read(); if(done) break;
+      buf+=dec.decode(value,{stream:true});
+      const events=buf.split('\n\n'); buf=events.pop();
+      for(const ev of events){
+        const m=ev.match(/^event: (.+)\ndata: (.+)$/s); if(!m) continue;
+        const type=m[1], data=JSON.parse(m[2]);
+        if(type==='curtain') retrieved=data.retrieved;
+        else if(type==='token'){ if(!full) body.textContent=''; full+=data.t; body.textContent=full; scroll(); }
+        else if(type==='signals') setVizSignals(data);
+        else if(type==='nudge') showNudge(data.surface);
+        else if(type==='validation') guard=data;
+        else if(type==='pool'){ poolTurnsLeft=data.turnsLeft; renderPoolCount(); }
+        else if(type==='error'){
+          if(data.code==='POOL_USER_CAP' || data.code==='POOL_CAP' || data.code==='POOL_USERS_CAP'){ poolTurnsLeft=0; renderPoolCount(); needKey=true; promptForKey(body, ()=>streamStone(message, kind, node), data); }
+          else if(data.code==='NO_KEY' || /401|invalid|unauthor/i.test(data.message||'')){ needKey=true; promptForKey(body, ()=>streamStone(message, kind, node), data); }
+          else body.innerHTML=`<span style="color:var(--muted);font-style:italic">${esc(data.message)}</span>`;
+        }
+      }
+    }
+  }catch(err){ body.innerHTML=`<span style="color:var(--muted);font-style:italic">connection lost — ${esc(String(err))}</span>`; }
+  if(full) history.push({role:'interlocutor', content:full});
+  if(!needKey) attachCurtain(node, retrieved, guard);
+}
+
+// Inline "bring your own key" prompt — shown only when a turn needs a key and none/invalid is set.
+// The key is saved in this browser only (localStorage) and sent per request; never to our server beyond the call.
+function promptForKey(body, retry, err){
+  body.innerHTML='';
+  const cap = err && (err.code==='POOL_USER_CAP' || err.code==='POOL_CAP' || err.code==='POOL_USERS_CAP');
+  // For pool-cap errors the server emits a precise message ("today's 5 free spots are all taken",
+  // "you've used today's 40 free messages", etc.) — surface it verbatim so the user sees which cap
+  // they hit. For NO_KEY / generic 401s, use the generic onboarding copy.
+  const msg = cap
+    ? `${esc(err.message)} Your OpenRouter key stays in your browser, never on our server (it starts with <span class="kmono">sk-or-</span>).`
+    : `zetizeti runs on <b>your own</b> OpenRouter API key — it stays in your browser, sent only to make your requests. Paste your OpenRouter key (it starts with <span class="kmono">sk-or-</span>).`;
+  const wrap=el(`<div class="keyprompt">
+    <div class="keyprompt-msg">${msg}</div>
+    <div class="keyprompt-row"><input type="password" placeholder="sk-or-…" autocomplete="off" spellcheck="false"><button>Use key</button></div>
+    <div class="keyprompt-apply">Can't afford a key? <a id="kpApply">Apply for a subsidised key</a></div>
+  </div>`);
+  const inp=wrap.querySelector('input'), btn=wrap.querySelector('button');
+  const go=()=>{ const k=inp.value.trim(); if(!k) return; setLlmKey(k); renderKeyStatus(); renderPoolCount(); retry(); };
+  btn.addEventListener('click', go);
+  inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); go(); } });
+  wrap.querySelector('#kpApply').addEventListener('click', openSubsidy);
+  body.appendChild(wrap); inp.focus();
+}
+
+// ---------- subsidy: apply for a subsidised key (intake only; granting is manual at OpenRouter) ----------
+function openSubsidy(){
+  $('subsidyBody').innerHTML='<div class="qempty">loading…</div>';
+  showView('subsidy');
+  api('/api/subsidy/mine').then(d=>renderSubsidy(d.request)).catch(()=>renderSubsidy(null));
+}
+function renderSubsidy(reqr){
+  const body=$('subsidyBody'); body.innerHTML='';
+  if(reqr && ['pending','approved','fulfilled','declined'].includes(reqr.status)){
+    const states={
+      pending:'Received — under review.',
+      approved:'Approved — your key is on its way to '+esc(reqr.email)+'.',
+      fulfilled:'A key has been issued to '+esc(reqr.email)+'. Paste it on the key prompt when you next ask a question.',
+      declined:'Not approved this time.'
+    };
+    const card=el(`<div class="subsidy-status ${reqr.status}">
+      <div class="ss-label">your application</div>
+      <div class="ss-state">${states[reqr.status]||esc(reqr.status)}</div>
+      <div class="ss-context">${esc(reqr.context)}</div>
+      ${reqr.admin_note?`<div class="ss-note">note: ${esc(reqr.admin_note)}</div>`:''}
+    </div>`);
+    body.appendChild(card);
+    if(reqr.status==='declined'){
+      const again=el(`<p class="subsidy-cta" style="margin:18px 0 0">Circumstances changed? <a id="reapply">Apply again</a></p>`);
+      body.appendChild(again);
+      again.querySelector('#reapply').addEventListener('click', renderSubsidyForm);
+    }
+    return;
+  }
+  renderSubsidyForm();
+}
+function renderSubsidyForm(){
+  const body=$('subsidyBody'); body.innerHTML='';
+  if(me) body.appendChild(el(`<p class="subsidy-asuser">Applying as <b>${esc(me.name||'')}</b> · ${esc(me.email||'')} — if approved, your key is emailed here.</p>`));
+  const form=el(`<div class="subsidy-form">
+    <textarea id="subsidyContext" rows="6" placeholder="Who are you, and why would a subsidised key help? Your course / institution, what you're working on, and why the cost is a barrier."></textarea>
+    <button id="subsidySubmit">apply</button>
+  </div>`);
+  body.appendChild(form);
+  const ta=form.querySelector('#subsidyContext'), btn=form.querySelector('#subsidySubmit');
+  btn.addEventListener('click', async ()=>{
+    const context=ta.value.trim();
+    if(context.length<10){ ta.focus(); ta.style.borderColor='var(--vermilion)'; return; }
+    btn.disabled=true; btn.textContent='sending…';
+    try{ const d=await api('/api/subsidy',{method:'POST',body:JSON.stringify({context})}); renderSubsidy(d.request); }
+    catch(err){ btn.disabled=false; btn.textContent='apply'; alert(err.message||'Could not submit'); }
+  });
+  ta.focus();
+}
+
+// ---------- admin: subsidy review (operator only) ----------
+function openAdmin(){
+  $('adminList').innerHTML='<div class="qempty">loading…</div>';
+  showView('admin');
+  api('/api/admin/subsidy').then(renderAdmin).catch(err=>{ $('adminList').innerHTML=`<div class="qempty">${esc(err.message||'could not load')}</div>`; });
+}
+function renderAdmin(d){
+  const reqs=(d&&d.requests)||[];
+  const list=$('adminList'); list.innerHTML='';
+  const avail=(d&&d.available!=null)?d.available:0, budget=(d&&d.budget!=null)?d.budget:0, committed=(d&&d.committed!=null)?d.committed:0;
+  list.appendChild(el(`<div class="subsidy-budget">available to grant: <b>$${avail.toFixed(2)}</b> <span>of $${budget.toFixed(2)} · committed $${committed.toFixed(2)}</span></div>`));
+  if(!reqs.length){ list.appendChild(el(`<div class="qempty">No applications yet.</div>`)); return; }
+  for(const r of reqs){
+    const when=new Date(r.created_at).toLocaleDateString();
+    const card=el(`<div class="areq">
+      <div class="areq-head">
+        <span class="areq-email">${esc(r.email||'—')}</span>
+        <span>${esc(r.name||'')}</span>
+        <span class="areq-status ${r.status}">${esc(r.status)}</span>
+        <span>${when}</span>
+      </div>
+      <div class="areq-context">${esc(r.context)}</div>
+      <div class="areq-actions">
+        <input class="areq-amt" type="number" min="0" step="1" placeholder="$ cap" value="${r.amount?esc(String(r.amount)):''}">
+        <input class="areq-note" placeholder="note (e.g. issued, capped $5)" value="${esc(r.admin_note||'')}">
+        <button data-s="approved">approve</button>
+        <button data-s="fulfilled">mark fulfilled</button>
+        <button data-s="declined">decline</button>
+      </div>
+    </div>`);
+    const amtInp=card.querySelector('.areq-amt'), noteInp=card.querySelector('.areq-note');
+    card.querySelectorAll('button[data-s]').forEach(b=>b.addEventListener('click', async ()=>{
+      try{ await api('/api/admin/subsidy/'+r.id,{method:'POST',body:JSON.stringify({status:b.dataset.s, note:noteInp.value, amount:amtInp.value})}); openAdmin(); }
+      catch(err){ alert(err.message||'update failed'); }
+    }));
+    list.appendChild(card);
+  }
+}
+
+// ---------- progress ----------
+function renderProgress(){
+  const list=$('progressList'); list.innerHTML='';
+  const started = quests.filter(q=>q.current_goal || q.exchanges>0);
+  if(!started.length){ list.appendChild(el(`<div class="qempty">No journeys yet. Open an enquiry and name an edge.</div>`)); return; }
+  for(const q of started){
+    const card = el(`<div class="qcard" style="cursor:default">
+      <div class="qname">${esc(q.name)}</div>
+      <div class="qgoal">${esc(q.current_goal||'')}</div>
+      <div class="qmeta"><span>honed ×${q.honed}</span><span>${q.exchanges} ${q.exchanges===1?'exchange':'exchanges'}</span></div>
+      <div class="ptrace"></div>
+    </div>`);
+    list.appendChild(card);
+    // the trajectory (the line from vague to sharp + the tensions this enquiry was drawn against).
+    // Framed as the inquiry's own record, never a score.
+    api('/api/quests/'+q.id).then(d=>{
+      const trace=card.querySelector('.ptrace'); if(!trace) return;
+      const lin=(d.quest&&d.quest.lineage)||[];
+      const tensions=[...new Set((d.trajectory||[]).flatMap(t=>(t.retrieved||[]).map(r=>r.id)))];
+      let html='';
+      if(lin.length>1) html += `<div class="pline">the edge, vague → sharp:&nbsp; ${lin.map((g,i)=>`<span class="${i<lin.length-1?'struck':''}">${esc(g)}</span>`).join(' › ')}</div>`;
+      if(tensions.length) html += `<div class="ptensions">tensions this enquiry was drawn against: ${tensions.map(esc).join(' · ')}</div>`;
+      trace.innerHTML=html;
+    }).catch(()=>{});
+  }
+}
+
+// ---------- offline demo (file://) ----------
+function setEdge(text,isRedraw){ goal=text; lineage.push(text); if(isRedraw) honed++; showEdge(); updateEdge(); }
+function runDemo(){
+  phase='dialogue'; field.classList.remove('redraw'); input.placeholder=DIALOG_PH;
+  hint.innerHTML='grounded in <b>design</b> · offline demo — serve over http for the live model';
+  setEdge('A calmer onboarding for a meditation app', false);
+  addYou('A calmer onboarding for a meditation app — the sign-up still feels noisy.'); exchanges++;
+  addStone("When you say noisy — is the noise in what the screen asks of someone, or in what it promises them?",
+    [{id:'IxD·04',snippet:'legibility serves the novice; density serves the expert — one layout rarely serves both',sources:'Norman · Cooper'},
+     {id:'IxD·11',snippet:'the first screen sets a contract the rest of the product must keep',sources:'Saffer'}], {ok:true,reasons:[]});
+  addYou("What it asks, I think. Five fields before they've felt anything at all."); exchanges++;
+  addStone("What would the first screen feel like if it asked for nothing — and what are you afraid would happen then?",
+    [{id:'IxD·02',snippet:'every element you keep is paid for by the attention it takes from another',sources:'Krug'}], {ok:true,reasons:[]});
+  addYou("They might leave without signing up. But maybe they'd breathe first."); exchanges++;
+  addDivider('the edge, re-drawn'); setEdge('An onboarding that lets someone breathe before it asks anything of them', true);
+  addYou('An onboarding that lets someone breathe before it asks anything of them.');
+  addStone("If breath comes before the ask — what is the smallest thing the app must know about someone to begin?",
+    [{id:'IxD·15',snippet:'sequence is a moral choice; the cost of asking is paid before value is felt',sources:'Norman'}], {ok:true,reasons:[]});
+  updateEdge(); window.scrollTo({top:0});
+}
+
+// ---------- the edge visualisation (split-screen, signal-driven) ----------
+// p5 "Honing": a diffuse cloud condenses toward a struck edge as the watch-layer signals rise,
+// rising toward an open clarity (never a placed target). Driven ONLY by the code-computed signals.
+function hashStr(s){ s=String(s); let h=7; for(let i=0;i<s.length;i++) h=(h*31 + s.charCodeAt(i))>>>0; return (h%99991)+1; }
+function setVizSignals(sig){
+  if(!sig) return;
+  vizTarget = {
+    condensation: sig.condensation!=null ? sig.condensation : (sig.specificity!=null?sig.specificity:0.12),
+    conviction:   sig.conviction!=null   ? sig.conviction   : 0.5,
+    movement:     sig.movement!=null     ? sig.movement     : 0,
+    redraws:      sig.redraws!=null      ? sig.redraws      : vizTarget.redraws,
+  };
+  renderSignalReadout(sig);
+}
+// the reading — the signal state shown in words + bars, so a LOW state is legible AS low
+// (a near-empty bar, "broad / still / tentative"), never hidden. Describes the inquiry, not a score.
+function renderSignalReadout(sig){
+  const elr=document.getElementById('vizReadout'); if(!elr||!sig) return;
+  const bar=v=>{ v=Math.max(0,Math.min(1,v||0)); const n=Math.round(v*5); return '▰'.repeat(n)+'▱'.repeat(5-n); };
+  const rows=[
+    ['the goal','broad','precise', sig.specificity],
+    ['the question','tentative','settled', sig.conviction],
+    ['the inquiry','still','moving', sig.movement],
+  ];
+  let html='<div class="rhead">what the canvas reads</div>';
+  html += rows.map(([lab,lo,hi,v])=>`<div class="rrow"><span class="rlab">${lab}</span><span class="rbar">${bar(v)}</span><span class="rpole">${(v||0)<0.5?lo:hi}</span></div>`).join('');
+  html += `<div class="rrow"><span class="rlab">re-drawn</span><span class="rbar">×${sig.redraws||0}</span><span class="rpole"></span></div>`;
+  elr.innerHTML=html;
+}
+function seedViz(s){ vizSeed = s||7; if(viz && viz._rebuild) viz._rebuild(); }
+function startViz(){
+  if(typeof p5==='undefined') return;
+  const holder=document.getElementById('vizHolder'); if(!holder) return;
+  if(viz){ if(viz._resize) viz._resize(); return; }
+  viz = new p5((p)=>{
+    let parts=[], wpts=[], over=false;
+    const INK=[10,20,40], COB=[120,150,210], GOLD=[240,179,36], VERM=[232,67,31], BONE=[246,232,198];
+    const dims=()=>({w:holder.clientWidth||320, h:holder.clientHeight||600});
+    const ax=(t,w,h)=>{ const ox=w*.5,oy=h*.9,px=w*.56,py=h*.18,cx=w*.4,cy=h*.55, a=(1-t)*(1-t),b=2*(1-t)*t,d=t*t; return {x:a*ox+b*cx+d*px, y:a*oy+b*cy+d*py}; };
+    const ez=x=> x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+    // ordered-dither palette + 4x4 Bayer matrix (softens the sharp digital look into grain)
+    const BAYER=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+    function build(){ const {w,h}=dims(); p.randomSeed(vizSeed); p.noiseSeed(vizSeed); parts=[];
+      for(let i=0;i<620;i++){ const t=p.constrain(1-Math.abs(p.randomGaussian())*.16,.6,1), a=ax(t,w,h);
+        parts.push({dx:p.random(w*.08,w*.92),dy:p.random(h*.32,h*.98),axx:a.x+p.random(-1,1)*Math.max(12,w*.03),ayy:a.y+p.random(-14,14),ns:p.random(1000),hue:p.random(),bri:p.random(.5,1)}); } }
+    p.setup=function(){ const {w,h}=dims(); const c=p.createCanvas(w,h); c.parent(holder); p.frameRate(30); c.mouseOver(()=>{over=true;}); c.mouseOut(()=>{over=false;}); build(); };
+    p._resize=function(){ const {w,h}=dims(); if(w>1&&h>1){ p.resizeCanvas(w,h); build(); } };
+    p._rebuild=build;
+    p.windowResized=function(){ p._resize(); };
+    p.draw=function(){
+      vizCur.condensation+=(vizTarget.condensation-vizCur.condensation)*.06;
+      vizCur.conviction  +=(vizTarget.conviction  -vizCur.conviction)*.06;
+      vizCur.movement    +=(vizTarget.movement    -vizCur.movement)*.06;
+      vizCur.redraws = vizTarget.redraws;
+      const {w,h}=dims(), t=p.millis()*.001, cond=ez(vizCur.condensation), tremor=1-vizCur.conviction, move=vizCur.movement;
+      p.background(INK[0],INK[1],INK[2]);
+      p.push(); p.blendMode(p.SCREEN); p.noStroke();   // open clarity — unbounded wash, no point
+      const depth=h*(.30+.12*cond), peak=34*(.7+.5*move);
+      for(let y=0;y<depth;y++){ const f=1-y/depth; p.stroke(GOLD[0],GOLD[1],GOLD[2],peak*f*f); p.line(0,y,w,y); }
+      p.pop();
+      p.push(); p.blendMode(p.SCREEN); p.noStroke(); const o=ax(0,w,h);   // origin cloud — the question when it began
+      for(let i=0;i<34;i++){ const an=p.random(p.TAU), rr=p.randomGaussian()*Math.max(18,w*.05)+8; p.fill(COB[0],COB[1],COB[2],16); p.ellipse(o.x+p.cos(an)*rr*1.8,o.y+p.sin(an)*rr,p.random(14,32),p.random(10,24)); }
+      p.pop();
+      const n=vizCur.redraws+1; wpts=[]; p.push(); p.blendMode(p.BLEND); let pr=null;   // lineage trail — the path walked
+      for(let i=0;i<n;i++){ const tt=(n===1)?0:(i/(n-1))*.78, a=ax(tt,w,h), last=i===n-1, al=p.map(i,0,Math.max(1,n-1),28,170); wpts.push(a);
+        if(pr){ p.stroke(BONE[0],BONE[1],BONE[2],al*.4); p.strokeWeight(1); p.line(pr.x,pr.y,a.x,a.y); } p.noStroke();
+        p.fill(last?255:BONE[0],last?210:BONE[1],last?74:BONE[2],al); p.ellipse(a.x,a.y,last?7:4,last?7:4); pr=a; }
+      p.pop();
+      p.push(); p.blendMode(p.SCREEN); p.noStroke();   // the edge — particles condensing
+      for(const q of parts){ let x=p.lerp(q.dx,q.axx,cond), y=p.lerp(q.dy,q.ayy,cond);
+        const slack=(1-cond)*(1-.45*move), wob=tremor*.9+.05;
+        x+=(p.noise(q.ns,t*.6)-.5)*58*(slack+wob*.5); y+=(p.noise(q.ns+99,t*.6)-.5)*58*(slack+wob*.5);
+        const fr=[p.lerp(GOLD[0],VERM[0],q.hue),p.lerp(GOLD[1],VERM[1],q.hue),p.lerp(GOLD[2],VERM[2],q.hue)];
+        const c=[p.lerp(COB[0],fr[0],move*q.bri),p.lerp(COB[1],fr[1],move*q.bri),p.lerp(COB[2],fr[2],move*q.bri)];
+        p.fill(c[0],c[1],c[2],p.lerp(72,178,move)*p.lerp(.72,1,cond)); const sz=p.lerp(2.4,1.4,cond)*(1+.5*move); p.ellipse(x,y,sz,sz); }
+      p.pop();
+      // DITHERED EDGE — only the visualisation-AREA BORDER dissolves into grain; the visualisation
+      // itself stays crisp. An ordered Bayer threshold fades the outer band into the dark ground,
+      // so the panel has no hard rectangular edge.
+      const W=p.width, H=p.height, M=Math.round(Math.min(W,H)*0.14);
+      p.loadPixels();
+      const fade=(x,y,edge)=>{ if(edge>BAYER[y&3][x&3]/16){ const i=4*(x+y*W); p.pixels[i]=10; p.pixels[i+1]=20; p.pixels[i+2]=40; } };
+      for(let y=0;y<H;y++){ for(let x=0;x<M;x++) fade(x,y,1-x/M); for(let x=W-M;x<W;x++) fade(x,y,1-(W-1-x)/M); }
+      for(let x=0;x<W;x++){ for(let y=0;y<M;y++) fade(x,y,1-y/M); for(let y=H-M;y<H;y++) fade(x,y,1-(H-1-y)/M); }
+      p.updatePixels();
+      // hover — name the element under the cursor (drawn AFTER the dither, so the label stays crisp)
+      if(over){
+        const mx=p.mouseX, my=p.mouseY, depth=h*(.30+.12*cond);
+        let near=false; for(const a of wpts){ if(p.dist(mx,my,a.x,a.y)<22){ near=true; break; } }
+        // each label: what the element IS · what it SYMBOLISES in the inquiry
+        let txt;
+        if(my<depth) txt='THE OPEN CLARITY — the light the inquiry rises toward.\nSymbolises an arrival the system will not define: you reach it; it never marks your goal for you.';
+        else if(near) txt='THE LINE OF RE-DRAWS — a point each time you re-named the edge.\nSymbolises the path from vague to sharp; its length is how far the question has travelled.';
+        else if(my>h*.82) txt='THE ORIGIN CLOUD — your first, vaguest words.\nSymbolises the question before it has taken shape; it lingers, faint, as the source.';
+        else txt='THE QUESTION ITSELF — each mote a fragment of your thinking.\nScattered = still vague; gathered toward an edge = sharpening. Their warmth is your own insight rising.';
+        p.push(); p.blendMode(p.BLEND); p.textFont('Space Mono'); p.textSize(10.5); p.textLeading(15);
+        const bw=Math.min(248,w-24); let lx=mx+14, ly=my+16; if(lx+bw>w-8) lx=w-8-bw; const bh=108; if(ly+bh>h-6) ly=my-16-bh;
+        p.noStroke(); p.fill(8,16,34,230); p.rect(lx-8,ly-8,bw+16,bh+12,4);
+        p.fill(246,232,198,240); p.textAlign(p.LEFT,p.TOP); p.text(txt,lx,ly,bw,bh);
+        p.pop();
+      }
+    };
+  });
+}
+</script>
+</body>
+</html>
