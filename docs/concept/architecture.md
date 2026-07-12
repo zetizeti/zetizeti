@@ -1,0 +1,193 @@
+# zetizeti — working architecture (two-part corpus)
+
+**Created:** 23 May 2026, 17:05:39 · **Revised:** 23 May 2026, 17:10:05, 17:16:23
+**Status:** scratch — architecture spec, no build yet
+**Companion:** `spec.md` (feasibility). Prayas un-parked this 23 May 2026, then reframed the corpus into two parts with synthetic-verified content permitted.
+
+**One line:** A web-deployable Socratic questioning engine whose corpus is split in two — a *pedagogy* part that governs HOW to question, and a *design-domain* part (synthetic, verified) that gives the engine substance to question INTO — so the tool is both legally clean and actually fluent in a design student's vocabulary.
+
+---
+
+## 1. The reframe that fixes everything at once
+
+The first draft tried to ground questioning in public-domain books. Two problems surfaced: (a) the only PD method-texts are old (Plato, Dewey 1910) and (b) their 19th-century vocabulary doesn't match a modern student saying "I'm blocked on my game's economy loop" — literal retrieval would return nothing and the engine would run blind.
+
+**Prayas's two-part corpus dissolves both.** The corpus is no longer "books." It is two purpose-built layers:
+
+- **Part A — Pedagogy / questioning.** *How* to ask. Small, stable. Governs the engine's behaviour.
+- **Part B — Design-domain knowledge.** *What* the questioning engages. **Synthetic, verified.** Covers many design disciplines in their own current language.
+
+Because Part B is synthetic-and-verified, it is **copyright-clean by construction** (original generated text, not copied prose) AND it **speaks the student's vocabulary** (it is written about contemporary design, in contemporary terms). The retrieval that was going to fail against Jowett now hits, because the corpus and the student share a language.
+
+---
+
+## 2. Part A — Pedagogy / questioning corpus
+
+*How the engine questions. Small, stable, eligible to sit context-resident.*
+
+| Component | Licence / origin | Role |
+|-----------|-----------------|------|
+| Plato — *Meno, Theaetetus, Gorgias* (Jowett) | Public domain (global — Jowett d. 1893) | Elenchus *exemplars* — Socratic refutation in action |
+| Aristotle — *Topics* | Public domain | Structure of dialectic — kinds of question, valid vs. fallacious moves |
+| Dewey — *How We Think* (1910 ed. only) | Public domain (global — Dewey d. 1952) | Reflective-inquiry stages; problem-posing pedagogy |
+| Clean Language Principles | **CC BY 4.0** (attribution required) | Exact-word questioning syntax |
+| **Method notes + question-form library** | **Synthetic, verified** (Claude-generated, Prayas-checked) → AGPL | The usable distillation: canonical question forms, when to use each, clarity/confusion cues. **Replaces the in-copyright method books (Gendlin, Lawley-Tompkins archive, Palmer) by re-expressing method as original prose.** |
+
+**Part A is "mixed" (decision 1, 23 May 2026): public-domain primary anchors + synthetic re-expression.**
+
+### 2.1 Can Gendlin / Gadamer / Palmer / Lawley-Tompkins be synthetically rewritten to escape copyright? — the rule
+
+Operative principle: the **idea–expression dichotomy** (US 17 USC §102(b); India's Copyright Act treats ideas/methods the same).
+
+- ✅ **Ideas, methods, concepts, techniques are NOT copyrightable** — *felt sense*, *carrying forward*, *tacit knowing*, *banking vs. problem-posing*, the Clean Language question forms. Free to teach and build on.
+- ❌ **The author's expression IS protected** — their actual sentences, structure, distinctive phrasing, chosen examples.
+- ⚠️ **A close summary/rewrite is a derivative work** and can infringe even without verbatim copying. Generating text *from* the book's prose ("summarise Focusing") is the trap.
+
+**Therefore the binding construction for Part A synthetic method notes: RE-EXPRESS THE METHOD, do not SUMMARISE THE TEXT.** Original notes that teach the technique, organised our own way, our own examples, grounded in the concept — not generated from the source's sentences. Cite authors as source-of-idea (intellectual honesty). Direct quotation near-zero; a systematic extraction of a book's "heart" defeats fair-dealing. (Well-settled principle, not formal legal advice; zero-quotation + genuine re-expression is the posture that needs no lawyer.)
+
+This is enforced mechanically by a **copyright-safety gate** inside the verification system (§3a): a pass that asks "idea re-expressed, or protected expression paraphrased?"
+
+---
+
+## 3. Part B — Design-domain knowledge corpus (synthetic, verified)
+
+*What the questioning engages. Larger, retrieved per turn. Fully synthetic.*
+
+- **Disciplines (decision 2, 23 May 2026 — Anant School of Design structure):** Foundation Year · Communication Design · Sustainable Fashion & Textile Design · Interaction Design · Product Design · Space Design · Moving Image · Transdisciplinary Design. **Internal grounding** is organised around this real curriculum (uses the platform's actual affordance); **public framing** describes them as design disciplines, never "Anant's programme" (Anant-as-platform stance — no implied stakeholder status). Foundation Year is a *stage* not a discipline (cross-cutting); Transdisciplinary is a *meta* category — both modelled as such. **Pilot: Interaction Design** (Prayas's own department → easiest to verify).
+- **Per discipline, structured entries:** core concepts and their tensions; common methods; recurring failure modes; the live debates; the discipline's own vocabulary; the questions practitioners ask themselves. Written so retrieval on a student's actual words lands.
+- **Generation → verification pipeline (load-bearing):**
+  1. Claude generates structured domain entries, **each carrying citations to verifiable public sources** (decision 3).
+  2. **Three-pass verification system** — see §3a. The step that makes synthetic trustworthy.
+  3. Entries that clear all passes (plus human sign-off) enter the corpus with a provenance tag (`synthetic-verified`, passes-cleared, verifier, date).
+- **Honesty surface:** Behind the Curtain must say a cited domain passage is *synthetic-verified*, not primary literature. Transparency replaces the authority a real book would carry. (Consistent with the tool's transparency-over-grounding stance.)
+
+**Why synthetic beats scraped-or-licensed here:** no copyright exposure, no licence to track, full control of register and coverage, and — uniquely — it can be written to *match how students actually talk*, which no fixed book corpus can.
+
+---
+
+## 3a. The verification system (three-pass + copyright gate) — decision 3, 23 May 2026
+
+Verification = **citations + a three-pass Claude system doing logical and philosophical parsing of every synthetic part.** Each pass is an *independent* Claude invocation (fresh context, adversarial framing — "find what's wrong", temperature 0) so errors don't compound. The three passes check *different* things, so they aren't redundant.
+
+| Pass | Question it asks | Applies to | Fails when |
+|------|-----------------|-----------|-----------|
+| **1 — Factual / citation grounding** | Does each claim hold against its cited public source? Is the citation real and supporting? | Part B (domain), Part A factual claims | Claim unsupported, citation absent/misrepresented |
+| **2 — Logical parsing** | Internal consistency — contradictions, non-sequiturs, overclaims, circular reasoning, within and across entries? | All synthetic parts | Invalid inference, self-contradiction, overclaim |
+| **3 — Philosophical parsing** | Soundness beyond fact and logic — does it conflate domains that should stay apart (SDC sensitivity: descriptive vs. evaluative collapse), smuggle in verdicts, or drift from the tool's own positions? | All synthetic parts | Domain-collapse, hidden verdict, position drift |
+| **4 — External citation verification** *(MANDATORY; added 24 May 2026)* | Does the work exist and is it correctly attributed — checked **live against Crossref / publisher records** by the `citation-verifier` agent, never from model memory or a Perplexity answer? | Every citation in every entry | Fabricated, misattributed, wrong author / title / venue / year / pages |
+| **Gate — Copyright safety** | "Idea re-expressed, or protected expression paraphrased?" (§2.1) | Part A method notes derived from copyrighted authors | Tracks source structure/phrasing; non-trivial quotation |
+
+- **Why Pass 4 is mandatory and distinct from Pass 1.** Pass 1 grounds a claim against the *content* of a source from in-context knowledge; it cannot perform a live lookup, so a fabricated-but-plausible citation sails through it. On 24 May 2026 a single Perplexity research call returned, among five manufacturing-lens citations, one paper with **entirely invented authorship** (a real article misattributed to two real but uninvolved researchers — Moroni & Cavalieri for what is actually Mears & Summers), one with a **non-existent subtitle and the wrong co-author**, and one with **wrong page ranges** — every one caught only by the live `citation-verifier` pass against Crossref. In-context plausibility is not a floor. **Pass 4 runs on every entry, re-runs on any regeneration, and no entry reaches Prayas's sign-off without it.** It maps to Gate 1 in `verification-workflow.md`.
+- **Output:** each pass returns pass / flag-with-reasons. Any flag → **human review (Prayas)** before the entry is tagged `synthetic-verified`. Passes cleared are recorded in the provenance tag.
+- **Honest limit (the known weakness):** Claude verifying Claude-generated text can miss its own hallucination. The three passes *reduce* this but do not eliminate it. What actually anchors trust to ground truth is **(a) Pass 1's citations to external sources** and **(b) human sign-off on flagged items + a spot-check sample of cleared items.** The three passes are a filter, not a guarantee — treat the citation layer and the human spot-check as the real floor.
+- **Re-verification trigger:** any regeneration of a synthetic entry voids its tag and re-runs the passes.
+
+## 4. The net-input question — answered (and the two parts make it cleaner)
+
+**Is a `net-input`-like system needed? Adopt its configurability and negotiation stance; reject its load-everything-into-context mechanism — and the two-part split maps onto the two halves of that answer exactly.**
+
+| net-input trait | Needed? | Maps to |
+|-----------------|---------|---------|
+| Configurable corpus folder | ✅ Yes | The release model — bring-your-own corpus (a teacher supplies their own Part B) |
+| Generates as proposals, never verdicts | ✅ Yes | The engine's spine — questions only, never answers |
+| Whole corpus held in context | ⚠️ Split | **Part A: yes** (small enough to sit resident, net-input style). **Part B: no** (retrieved per turn — too large for context) |
+
+So the architecture is a clean hybrid the original agent never had: **Part A behaves like net-input (resident method core); Part B behaves like retrieval (FTS over synthetic domain knowledge).**
+
+---
+
+## 5. Architecture
+
+```
+        ┌──────────────────────────────────────────────┐
+        │  PART A — METHOD CORE  (context-resident)      │
+        │  • Clean Language Principles (CC BY 4.0)        │
+        │  • synthetic-verified method notes + Q-forms   │
+        │  • Dewey inquiry-stage digest                  │
+        │  • Plato/Aristotle elenchus exemplars (digest) │
+        └──────────────────────────────────────────────┘
+                              │ always in system prompt
+ student turn ─▶ ┌──────────────┐    ▼    ┌──────────────────────────┐
+                 │ RETRIEVE      │────────▶│ COMPOSE (Claude)         │
+                 │ SQLite FTS5   │ passages│ • question(s) only       │
+                 │ over PART B   │  + cites│ • ECHOES student's words │
+                 │ (domain corpus)│        │ • grounded in retrieved  │
+                 └──────────────┘         │   domain passages        │
+                       ▲                  └──────────────────────────┘
+        student's actual words + discipline tag         │
+        (Part B speaks the student's language, so               ▼
+         literal retrieval now WORKS)        ┌──────────────────────────┐
+                                             │ VALIDATE (deterministic) │
+                                             │ • reject answers/advice  │
+                                             │ • must contain a question│
+                                             │ • graceful degradation   │
+                                             └──────────────────────────┘
+                                                 pass→emit · fail→regen
+                                                        ▼
+                                             ┌──────────────────────────┐
+                                             │ SESSION STORE (SQLite)   │
+                                             │ new / branch / resume    │
+                                             └──────────────────────────┘
+```
+
+### 5.1 Two "exact words" — do not conflate
+- **Output literalism (Clean Language):** the *question emitted* echoes the student's own words. **Must hold** — enforced at COMPOSE.
+- **Retrieval keying:** because **Part B is synthetic and modern**, the student's actual words now retrieve usefully against it (the failure mode that killed PD-book retrieval is gone). Part A method-selection can additionally key on concept terms (elenchus / definition / aporia / problem-framing). Both paths preserve output literalism.
+- **Intent over precise vocabulary (`felt as:`):** each Part B entry carries a `felt as:` register — the colloquial/oblique/felt phrasings a student uses *before* they have the term — weighted in the FTS index beside `vocabulary`. So "the sign-up feels pushy" retrieves the *dark-patterns* tension without the words "dark pattern" (verified, 24 May 2026). This widens *retrieval keying* toward intent; it does **not** touch output literalism, and it stays pure exact-token FTS5 — the §5.2 no-embeddings invariant holds. Where retrieval still returns nothing, Part A's felt-sense move questions to help the learner surface their words, which then retrieve. **Status:** populated across **all 34 entries** — Interaction Design (16), the slow-design lens (8), and the critical-counterculture lens (10); verified by retrieval test (plain intent phrasings retrieve the right tension/lens without the precise term).
+
+### 5.2 Retrieval — SQLite FTS5
+- FTS5 over Part B as an external-content table; markdown stays source of truth, index sits beside it. One `.db`, no search daemon.
+- `unicode61` tokeniser; conservative — exact tokens and quoted-phrase `MATCH`; `snippet()` for cited excerpts. Avoid stemming/synonyms so the index mirrors student vocabulary.
+- WAL mode: many readers, occasional batch re-index when the synthetic corpus is regenerated. Comfortable on a small VPS.
+- Embeddings are the documented fallback only if recall proves thin; not v1. ripgrep is dev/debug only, never the request path.
+
+### 5.3 Dialogue engine
+- Anthropic SDK, Claude only, temperature 0 on composition (matches diagnostics' narration step).
+- System prompt = Part A method core + never-answer constraint + clarity/confusion tracking + direction-recalibration (every 3–4 exchanges) — original work, carried from the existing agent, ships freely.
+
+### 5.4 Output validation + graceful degradation
+- Forbidden-pattern check every turn: no declarative answers, no advice ("you should"), no diagnosis, no summary-conclusion. Same discipline as the diagnostics' forbidden-string lists.
+- Must contain ≥1 question. Citations preferred but **not forced** — if Part B retrieval returns nothing relevant, the engine falls back to Part A method-core questioning and Behind the Curtain says *"no domain passage matched — questioning from method only."* It never loops, never fabricates a citation. (Advisor flag, resolved.)
+- **Citations live in Behind the Curtain, never inside the question.** "Plato, Theaetetus 152a" stuffed into a question reads badly; the question stays clean.
+
+### 5.5 Sessions + privacy
+- SQLite + anonymous cookie (matches the three live demos' Turnstile + anonymous-cookie pattern). New / branch / resume preserved.
+- **Privacy:** Socratic sessions can be intimate. One-line policy needed — default: sessions expire after N days and are user-deletable; no account, no linkage. (Decide at build.)
+
+### 5.6 Frontend & deploy
+- zetizeti's own painterly identity (`app/brand.md`); Behind the Curtain shows retrieved Part B passages + provenance (incl. `synthetic-verified` tag).
+- **CC BY 4.0 attribution on a live surface** — an "About / Credits" link discoverable from the chat, not repo-only (CC BY requires attribution wherever the work appears).
+- CapRover, `zetizeti.com`.
+
+---
+
+## 6. Release shape
+
+- **Engine** (retrieval, dialogue loop, validation, sessions, UI) → original → **AGPL-3.0**.
+- **Part A** → PD texts (with status notices) + CC BY 4.0 Principles (attributed) + synthetic-verified method notes (AGPL).
+- **Part B** → **entirely zetizeti's own** (synthetic-verified) → AGPL or CC — **no third-party licence to track at all.** This is the cleanest part of the whole release.
+- Bring-your-own-corpus: a teacher can supply their own Part B folder; the engine indexes it.
+
+---
+
+## 7. What synthetic-verified buys, and its one real risk
+
+- **Buys:** copyright immunity, vocabulary match, full coverage control, register control.
+- **Risk:** synthetic domain knowledge can be confidently wrong. **Verification is the load-bearing wall, not a formality.** A `synthetic-verified` tag is only worth what the verification behind it is worth. Under-verify and the engine grounds sharp questions in quiet errors. This is the single thing that decides whether Part B is an asset or a liability.
+
+---
+
+## 8. Open decisions (Prayas) + build steps
+
+**Decisions:**
+- ✅ **Part A composition (decision 1, 23 May)** — mixed: PD primary anchors + synthetic re-expression (§2, §2.1).
+- ✅ **Verification (decision 3, 23 May)** — citations + three-pass Claude system (logical + philosophical parsing) + copyright-safety gate (§3a).
+- ⬜ **Part B discipline scope** — which disciplines, in what order? (IxD first, given Anant?) — STILL OPEN.
+
+**Build steps (when greenlit):**
+- [ ] Fix Part B discipline list + entry schema
+- [ ] Draft generation + verification pipeline; produce one discipline as a pilot
+- [ ] Write Part A synthetic method notes + question-form library; pull PD anchors; record CC BY attribution string
+- [ ] FTS5 schema + ingestion (markdown → external-content index)
+- [ ] Port system prompt; SQLite sessions; Behind-the-Curtain with provenance tags
+- [ ] Deploy clean to `zetizeti.com`
