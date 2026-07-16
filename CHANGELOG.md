@@ -7,8 +7,14 @@ running build reports its version at `GET /api/version`, in `GET /api/config`, i
 the page footer. (See `app/lib/version.mjs`.)
 
 **What the numbers mean here.** zetizeti is a live, public pilot still being tuned by student feedback,
-so it sits in `0.x` — minor bumps carry new behaviour, patch bumps carry fixes. On the major-version
-roadmap, **`3.0` marks campus-wide deployment.** (The `1.0` and `2.0` milestones are yet to be defined.)
+so it sits in `0.x` — minor bumps carry new behaviour, patch bumps carry fixes. The major versions mark
+states of the tool's maturity, not feature milestones:
+
+- **`1.0` — stable.** It holds; the core behaviour has stopped churning.
+- **`2.0` — unique.** It does something no other tool does.
+- **`3.0` — proven.** Its worth is demonstrated — the bar that earns campus-wide deployment.
+
+Today's `0.9.x` is the pilot approaching stable.
 
 ## [0.9.0] — 2026-07-16
 
