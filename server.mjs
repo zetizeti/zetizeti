@@ -12,6 +12,7 @@ import { buildIndex, retrieve } from './lib/retrieval.mjs';
 import {
   loadMethodCore, buildSystemPrompt, buildTurnContext, validateOutput,
   loadCriticismCore, buildCriticismSystemPrompt, validateCriticismOutput,
+  CRITICISM_POINTERS, pickCriticismPointer,
 } from './lib/dialogue.mjs';
 import { readSensed } from './lib/sensed.mjs';
 import { qualify, toCanonSegments } from './lib/qualify.mjs';   // DETERMINISTIC, no-LLM qualification (locating)
@@ -319,12 +320,36 @@ app.post('/api/chat', requireUser, async (req, res) => {
   } = req.body || {};
 
   const goalTerms = (goal.toLowerCase().match(/[a-z0-9]+/g) || []).filter((t) => t.length > 2);
-  const retrieved = retrieve(corpus, message, { limit: 3, extraTerms: goalTerms, discipline });
-  const curtain = retrieved.map((r) => ({ id: r.id, snippet: r.snippet, sources: r.sources, provenance: r.provenance }));
 
   // watch — deterministic, code-owned signals describing how the INQUIRY is moving (never a score).
+  // Both parties' turns are read: studentTurns drive the learner-side signals; stoneTurns let us see the
+  // interlocutor repeating ITSELF (selfEcho) — the "same question loop" the learner feels but which the
+  // learner-side signals cannot see. (Stateless: the client sends the whole transcript each turn.)
   const studentTurns = [...history.filter((h) => h.role === 'student').map((h) => h.content), message];
-  const sig = computeSignals({ goal, lineage, studentTurns, exchanges });
+  const stoneTurns = history.filter((h) => h.role !== 'student').map((h) => h.content);
+  const sig = computeSignals({ goal, lineage, studentTurns, stoneTurns, exchanges });
+
+  // Retrieval, tuned against BLANDNESS (Siddhie, 15 Jul: "questions become bland / round-and-round as we
+  // move forward") — the tail flattens when the SAME top tensions are retrieved turn after turn. Two
+  // invariant-#1-safe fixes (still exact-word FTS, only recency + more literal text — never semantics):
+  //   (a) ROLLING WINDOW — key retrieval on the last ~2 learner turns + this message (message weighted
+  //       twice), so grounding stays rich even when the latest reply is short/abstract and would otherwise
+  //       collapse onto the stable goal terms alone (the staleness driver).
+  //   (b) ROTATE BY DEFAULT — always drop the tensions the PREVIOUS turn served (not only when a loop is
+  //       detected), so each turn is pushed onto fresh ground. Graceful cycle-back: if rotation starves
+  //       this turn (small corpus, everything excluded), retry without the exclusion so it degrades to
+  //       "rotate", never "empty".
+  const prev = studentTurns[studentTurns.length - 2] || '';
+  const windowText = [prev, message, message].join(' ').trim() || message;
+  const prevWindow = [studentTurns[studentTurns.length - 3] || '', prev, prev].join(' ').trim() || prev;
+  const excludeIds = (studentTurns.length >= 2 && prevWindow)
+    ? retrieve(corpus, prevWindow, { limit: 3, extraTerms: goalTerms, discipline }).map((r) => r.id)
+    : [];
+  let retrieved = retrieve(corpus, windowText, { limit: 3, extraTerms: goalTerms, discipline, excludeIds });
+  if (!retrieved.length && excludeIds.length) {   // cycle-back: rotation emptied the results → re-include
+    retrieved = retrieve(corpus, windowText, { limit: 3, extraTerms: goalTerms, discipline });
+  }
+  const curtain = retrieved.map((r) => ({ id: r.id, snippet: r.snippet, sources: r.sources, provenance: r.provenance }));
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -484,10 +509,28 @@ async function resolveKeyForCriticism(req, res, send) {
 // Compose + stream ONE criticism question, guard it (verdict-drift, EVERY turn), and report its cost.
 // Shared by open + turn. Anchored to the artefact on every turn. Persists NOTHING — the client holds the
 // artefact, the reading, and the running transcript, and sends them back each turn.
-async function askCriticismQuestion({ send, apiKey, meter, artefact, located, discipline, goal, priorMessages, studentTurn }) {
+async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocated = null, discipline, goal, priorMessages, studentTurn }) {
+  // Anti-sameness on the criticism surface (Siddhie, 16 Jul: it "constantly framing 'is this a property
+  // or a verdict' to whatever answer I give"). This is the SAME machinery the enquiry path got on 13 Jul
+  // and which this surface never had: watch the stone repeating ITSELF (selfEcho over its own prior
+  // questions), ROTATE the line of questioning (the pointer — verdict/blur is one aim among several), and
+  // de-correlate retrieval when it circles.
+  const stoneTurns = priorMessages.filter((m) => m.role === 'stone').map((m) => m.content);
+  const selfEcho = computeSignals({ stoneTurns }).selfEcho;
+  // forcedLocated = the sensed blur on /open, or a spot the student explicitly clicked → the 'blur' line.
+  // Otherwise rotate through the pointer set (~3 questions each), advancing early if the stone is circling.
+  let pointer, located;
+  if (forcedLocated && forcedLocated.text) { pointer = CRITICISM_POINTERS[0]; located = forcedLocated; }
+  else { pointer = pickCriticismPointer({ stoneCount: stoneTurns.length, selfEcho }); located = null; }
   const probe = (located && located.text) ? located.text : (studentTurn || artefact);
-  const retrieved = retrieve(corpus, probe, { limit: 3, extraTerms: goalTermsOf(goal), discipline });
-  const system = buildCriticismSystemPrompt(criticismCore, { artefact, located, retrieved, goal });
+  // rotate retrieval off the previous turn's tensions when it's circling (recency filter, invariant #1 safe).
+  const prevStudent = [...priorMessages].reverse().find((m) => m.role !== 'stone')?.content || '';
+  const excludeIds = (selfEcho >= 0.5 && prevStudent)
+    ? retrieve(corpus, prevStudent, { limit: 3, extraTerms: goalTermsOf(goal), discipline }).map((r) => r.id)
+    : [];
+  let retrieved = retrieve(corpus, probe, { limit: 3, extraTerms: goalTermsOf(goal), discipline, excludeIds });
+  if (!retrieved.length && excludeIds.length) retrieved = retrieve(corpus, probe, { limit: 3, extraTerms: goalTermsOf(goal), discipline });
+  const system = buildCriticismSystemPrompt(criticismCore, { artefact, located, posture: pointer.aim, retrieved, goal });
   const messages = [
     ...priorMessages.map((m) => ({ role: m.role === 'stone' ? 'assistant' : 'user', content: m.content })),
     { role: 'user', content: studentTurn || (located ? `Point me at this spot: "${located.text}"` : '(continue questioning the text)') },
@@ -535,7 +578,7 @@ app.post('/api/criticism/open', requireUser, async (req, res) => {
     let located = null;
     if (ids.length) { const chosen = segments.find((s) => s.id === ids[0]) || segments[ids[0]]; if (chosen) located = { text: chosen.text, why: describeLocated(chosen) }; }
     send('status', { t: 'composing a question…' });
-    const { qCost } = await askCriticismQuestion({ send, apiKey: key.apiKey, meter: key.meter, artefact: text, located, discipline, goal, priorMessages: [], studentTurn: null });
+    const { qCost } = await askCriticismQuestion({ send, apiKey: key.apiKey, meter: key.meter, artefact: text, forcedLocated: located, discipline, goal, priorMessages: [], studentTurn: null });
     if (key.meter) { addPoolSpend(utcDay(), req.user.id, qCost, key.poolFlag); if (key.usingPool) send('pool', poolEvent(req.user.id)); }
     send('done', {});
   } catch (err) { sendGenerationError(send, err, key.usingPool ? null : req.user.email); }  // never echo req.body
@@ -561,7 +604,7 @@ app.post('/api/criticism/turn', requireUser, async (req, res) => {
     const located = seg ? { text: seg.text, why: describeLocated(seg) } : null;
     const { qCost } = await askCriticismQuestion({
       send, apiKey: key.apiKey, meter: key.meter,
-      artefact, located, discipline, goal,
+      artefact, forcedLocated: located, discipline, goal,
       priorMessages, studentTurn: message || null,
     });
     if (key.meter) { addPoolSpend(utcDay(), req.user.id, qCost, key.poolFlag); if (key.usingPool) send('pool', poolEvent(req.user.id)); }

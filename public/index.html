@@ -247,7 +247,7 @@
   .usage-summary span{color:var(--faint); font-size:12px}
   .usage-headrow,.usage-row{display:flex; align-items:baseline; gap:16px; padding:13px 0; font-family:var(--mono); font-size:13px; border-top:1px solid rgba(244,231,200,.12)}
   .usage-headrow{color:var(--faint); font-size:10px; letter-spacing:.1em; text-transform:uppercase; border-top:none}
-  .usage-row .u-who{flex:1 1 240px; min-width:0}
+  .usage-headrow .u-who,.usage-row .u-who{flex:1 1 240px; min-width:0}
   .usage-row .u-email{color:var(--goldtext); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:block}
   .usage-row .u-name{color:var(--faint); font-size:11px}
   .usage-row .u-src{display:inline-block; margin-top:3px; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint)}
@@ -369,17 +369,21 @@
   .composer .inner{width:var(--col); max-width:calc(100vw - 48px); margin:0 auto}
   .field{display:flex; align-items:flex-end; gap:12px; background:rgba(13,38,94,.55); border:1px solid rgba(217,165,42,.40); padding:13px 13px 13px 22px}
   .field.redraw{border-color:var(--vermilion)}
-  textarea{flex:1; background:none; border:none; resize:none; color:var(--bone); font-family:var(--text); font-size:18.5px; line-height:1.5; max-height:170px; outline:none; padding:6px 0}
+  textarea{flex:1; background:none; border:none; resize:none; color:var(--bone); font-family:var(--text); font-size:18.5px; line-height:1.5; min-height:56px; max-height:170px; outline:none; padding:6px 0}
   textarea::placeholder{color:var(--faint); font-style:italic}
   .send{flex:none; width:46px; height:46px; border-radius:50%; border:none; cursor:pointer; background:var(--vermilion); color:var(--bone); font-size:20px; line-height:1; transition:transform .15s}
   .send:hover{transform:translateY(-2px)} .send:disabled{opacity:.4; cursor:default; transform:none}
   .hint{margin-top:12px; font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; color:var(--faint)}
   .hint b{color:var(--goldtext); font-weight:500}
   .backlink{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--muted); cursor:pointer; display:inline-block; margin-bottom:6px}
-  .dl-transcript{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--faint); margin-left:16px}
+  /* the transcript download — since nothing is saved server-side, this is the ONLY way a
+     student's work survives the tab. Lifted from a faint footnote into a gold machinery chip. */
+  .dl-transcript{display:inline-flex; align-items:baseline; gap:10px; font-family:var(--mono); font-size:12px; letter-spacing:.05em; color:var(--gold-bright); border:1px solid rgba(240,179,36,.5); background:rgba(240,179,36,.08); padding:7px 14px; margin-left:16px}
   .dl-transcript[hidden]{display:none}
-  .dl-transcript a{color:var(--goldtext); cursor:pointer; text-decoration:none}
-  .dl-transcript a:hover{color:var(--gold-bright)}
+  .dl-transcript .dl-lead{color:var(--gold-bright); text-transform:uppercase; letter-spacing:.11em; font-size:11px}
+  .dl-transcript .dl-sep{color:var(--faint)}
+  .dl-transcript a{color:var(--goldtext); cursor:pointer; text-decoration:none; border-bottom:1px solid rgba(240,179,36,.55); padding-bottom:1px}
+  .dl-transcript a:hover{color:var(--gold-bright); border-bottom-color:var(--gold-bright)}
   .backlink:hover{color:var(--gold-bright)}
 
   @keyframes rise{from{opacity:0; transform:translateY(13px)} to{opacity:1; transform:none}}
@@ -426,8 +430,8 @@
           <h1>zetizeti</h1>
         </div>
         <span class="ethos">It asks the questions. You do the thinking.</span>
-        <span class="ethos-sub">One voice sharpens an edge; the other pushes back on an idea.</span>
-        <p class="lede">A questioning partner for design students. Name the edge you're trying to sharpen and the stone asks back, grounded in the real tensions of your discipline — or bring an idea to pressure-test, and it questions <em>that</em>, pointing to where the text quietly decided for you. It never hands you the answer; the thinking stays <b>yours</b>.</p>
+        <span class="ethos-sub">One voice helps you <em>develop</em> an idea; the other <em>stress-tests</em> it — to see if it holds.</span>
+        <p class="lede">A questioning partner for design students. Name the edge you're trying to <b>develop</b> and the stone asks back, grounded in the real tensions of your discipline — or bring an idea you want to <b>stress-test</b>, and it questions <em>that</em> to see whether it holds, pointing to where the text quietly decided for you. It never hands you the answer; the thinking stays <b>yours</b>.</p>
         <p class="nameline">The name doubles <em>zeti</em>, from the Greek <em>zetetic</em> — "proceeding by inquiry" — with an echo of the Sanskrit <em>neti neti</em>, "not this, not this". <a id="aboutLink" class="aboutlink">What the two voices are →</a></p>
         <div class="signin">
           <a class="btn-google" href="/auth/google" id="googleBtn">
@@ -454,7 +458,7 @@
       <h2 class="vh">Begin an enquiry</h2>
 
       <div id="enquiryUI">
-      <p class="vsub">Name the edge you're trying to sharpen and the stone asks back, grounded in the real tensions of design. The thinking stays yours. Nothing is saved — each enquiry lives only while this tab is open.</p>
+      <p class="vsub">Name the edge you're trying to <b>develop</b> and the stone asks back, grounded in the real tensions of design. The thinking stays yours. Nothing is saved — each enquiry lives only while this tab is open.</p>
       <div class="newq">
         <input id="newqName" placeholder="Name what you're trying to do — e.g. “onboarding for a meditation app”" />
         <button id="newqBtn">begin</button>
@@ -468,7 +472,7 @@
   <section class="view" id="view-conversation">
     <div class="wrap">
       <span class="backlink" id="convBack">‹ new enquiry</span>
-      <span class="dl-transcript" id="dlTranscript" hidden>↓ idea transcript · <a id="dlMd">.md</a> · <a id="dlPdf">.pdf</a></span>
+      <span class="dl-transcript" id="dlTranscript" hidden><span class="dl-lead">↓ save your transcript</span> <a id="dlMd">.md</a> <span class="dl-sep">·</span> <a id="dlPdf">.pdf</a></span>
       <div class="edge" id="edge" hidden>
         <div class="edge-label">the edge — what you're sharpening</div>
         <div class="edge-text" id="edgeText"></div>
@@ -506,17 +510,17 @@
     <div class="wrap short">
       <span class="backlink" id="aboutBack">‹ back</span>
       <h2 class="vh">The two voices</h2>
-      <p class="vsub">zetizeti is a whetstone. A whetstone does not cut for you; it is the stone you draw your own edge against. It asks; it does not answer. It has two voices — <b>one sharpens an edge, the other pushes back on an idea</b>; both ask questions in your own words, and neither hands you a conclusion.</p>
+      <p class="vsub">zetizeti is a whetstone. A whetstone does not cut for you; it is the stone you draw your own edge against. It asks; it does not answer. It has two voices — <b>one helps you develop an idea, the other stress-tests an idea to see if it holds</b>; both ask questions in your own words, and neither hands you a conclusion.</p>
 
       <div class="about-mode">
-        <div class="about-tag">first voice · to sharpen</div>
-        <h3>It questions your own thinking</h3>
+        <div class="about-tag">first voice · to develop</div>
+        <h3>It helps you develop your own idea</h3>
         <p>You name an edge — what you are trying to do, and where it resists you. The stone asks back, each question grounded in a real, unresolved tension of your discipline. It does not resolve the tension for you; it keeps you in the question long enough to think. This is the older harm it was built against: the answer dropped in too soon, before you have done the thinking that would make it yours. An <em>information</em> gap a sentence can close; an <em>understanding</em> gap only your own movement can close. The stone refuses to close the second one for you.</p>
       </div>
 
       <div class="about-mode crit">
-        <div class="about-tag">second voice · to push back</div>
-        <h3>It pushes back on an idea</h3>
+        <div class="about-tag">second voice · to stress-test</div>
+        <h3>It stress-tests an idea — does it hold?</h3>
         <p>Bring an idea you want to pressure-test — a conclusion you reached in an enquiry, an answer a machine handed you, a claim you found anywhere — and paste it in. The stone questions <em>that text</em> instead of you. A settled idea, wherever it came from, is a conclusion already sitting in your understanding; the question worth asking is whether you reached it, or it was simply deposited there. So the stone does to the text what it does to your own premature certainty — it locates the spots where the text quietly decided something <em>for</em> you (called a thing "intuitive", "best practice", "obviously" — a judgement worn as a description) and asks you about those spots.</p>
         <p class="about-want"><b>What this voice wants.</b> Not to tell you the idea is wrong. It never grades the text, never marks it right or wrong — that would only be a second deposited verdict, this time the tool's. It wants to give you back the act of judging. <b>It locates; you decide.</b> It is the <em>neti neti</em> of the name turned outward — "not this, not this" — subtracting the text's smuggled certainties until what is left is yours to weigh.</p>
         <p class="about-want"><b>Nothing is kept.</b> A critique lives only while this tab is open — the text you paste and the questions asked are never saved, never scored, never ranked, never compared against anything, never rolled into a profile. There is no list and no history; each reading stands alone and then it is gone. That refusal of the aggregate is the line the split-ratio practice this borrows from cares about most: a reading is a self-frame, never a benchmark — and here it cannot become a tally, because no record of it survives.</p>
@@ -535,6 +539,7 @@
         <h3>Questions only. The thinking stays yours.</h3>
         <p>The second voice is not a looser version of the first — it is the same discipline, held tighter. Both speak in questions and nothing else. Both reuse your exact words rather than paraphrasing them. Neither explains, advises, reassures, concludes, or scores. There are no grades here, no leaderboards, no percent-complete — only the edge getting sharper, which is private to you. <b>It asks the questions; you do the thinking — whether the premature answer came from you, or from a machine.</b></p>
         <p class="about-credit">All of this is open and checkable — the code, the corpus, the locating rules, and the full verification records (citation ledgers, adversarial passes, sign-off sheets): <a href="https://github.com/zetizeti/zetizeti" target="_blank" rel="noopener">github.com/zetizeti/zetizeti</a> (AGPL-3.0). Nothing here asks to be trusted; it asks to be read.</p>
+        <p class="about-credit">Made by <b><a href="https://prayasabhinav.net" target="_blank" rel="noopener">Prayas Abhinav</a></b>.</p>
       </div>
     </div>
   </section>
@@ -543,10 +548,10 @@
   <section class="view" id="view-criticism">
     <div class="wrap short">
       <span class="backlink" id="critBack">‹ back</span>
-      <h2 class="vh">Push back on an idea</h2>
-      <p class="vsub">Bring an idea you want to pressure-test — a conclusion you reached in an enquiry, an answer a machine gave you, a claim from anywhere — and the stone questions the <em>text</em>: pointing to where it quietly decided something, where a judgement was slipped in as fact. It never grades it, never says "this is wrong": it locates, you judge. Each critique lives only in this tab — <b>nothing is saved</b>, and it is <b>never scored, ranked, or compared</b>. Each stands alone, then it is gone.</p>
+      <h2 class="vh">Stress-test an idea — see if it holds</h2>
+      <p class="vsub">Bring an idea you want to <b>stress-test</b> — a conclusion you reached in an enquiry, an answer a machine gave you, a claim from anywhere — and the stone questions the <em>text</em> to find out whether it holds: pressing where it might not, pointing to where it quietly decided something, where a judgement was slipped in as fact. It never grades it, never says "this is wrong": it locates, you judge. Each critique lives only in this tab — <b>nothing is saved</b>, and it is <b>never scored, ranked, or compared</b>. Each stands alone, then it is gone.</p>
       <div class="newq">
-        <button id="critNew">push back on an idea →</button>
+        <button id="critNew">stress-test an idea →</button>
         <a id="critDemo" class="crit-demo">▷ see an example — no key needed</a>
       </div>
       <div class="crit-list-head" id="critListHead" hidden>your critiques</div>
@@ -568,7 +573,7 @@
     <div class="composer">
       <div class="inner">
         <div class="field">
-          <textarea id="critChatInput" rows="1" placeholder="Paste an idea, claim, or answer you want to push back on…"></textarea>
+          <textarea id="critChatInput" rows="1" placeholder="Paste an idea, claim, or answer you want to stress-test…"></textarea>
           <button class="send" id="critChatSend" title="Send">→</button>
         </div>
         <div class="hint">nothing saved · <b>never scored or compared</b></div>

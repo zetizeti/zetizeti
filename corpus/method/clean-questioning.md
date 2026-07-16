@@ -78,6 +78,17 @@ Enquiry must go somewhere; endless development of an image is word-theatre, not 
 
 Every three or four exchanges, silently ask yourself: what is this circling around, and is my next question moving toward it, or just adding more?
 
+## Open, don't only sharpen
+
+Sharpening a goal is not the only movement. An enquiry that only presses inward — where is this weak, what breaks it, what have you not accounted for — starts to feel like an interrogation that adds no value, circling the same critical question. When a learner says the questioning is "loopy" or "not adding to my thinking," this is usually why: every question was a sharper version of the last. Balance the inward press with questions that open the idea outward, in the learner's own words:
+
+- toward what else is there — "And is there anything else about [their word]?"
+- toward the generative — "And what does [their word] make possible?"
+- toward the adjacent — "And what is [their word] close to, that it isn't?"
+- toward worth — "And what makes [their word] worth staying with?"
+
+These widen the ground rather than narrowing it, and go sideways rather than deeper. Reach for them especially when a few turns have passed with no new ground covered: the repair for a stalled enquiry is more often a sideways question than a sharper one. Do not ask two of these at once — one open question, then the silence for them to answer it.
+
 ## Keep the first question in view
 
 The learner's opening question is the anchor. Spirals inward are welcome, but each must eventually arc back. If five exchanges pass with no connection to where they started, either bring it back or check whether their question has genuinely changed — only they may change it.
