@@ -17,6 +17,9 @@ RUN npm install --omit=dev
 # The students roster (pool-allowlist-students.md) is copied too when present — the `md*` glob makes it
 # OPTIONAL (server.mjs always matches, so the COPY never fails when the roster is absent on a self-host).
 COPY server.mjs pool-allowlist-students.md* ./
+# version.json is the build stamp (git-described SemVer). Optional glob — a self-host build without it
+# just falls back to package.json's version. lib/version.mjs reads it first (production has no .git).
+COPY version.json* ./
 COPY lib/ lib/
 COPY public/ public/
 COPY corpus/ corpus/

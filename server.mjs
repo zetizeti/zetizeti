@@ -38,6 +38,11 @@ import {
 import { streamQuestion } from './lib/llm.mjs';
 import { computeSignals } from './lib/signals.mjs';
 import { decideNudge } from './lib/nudge.mjs';
+import { resolveVersion } from './lib/version.mjs';
+
+// Build version (SemVer, aligned to git tags — see lib/version.mjs). Resolved once at boot: from the
+// image's version.json in production, live from `git describe` in dev.
+const BUILD = resolveVersion();
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3000;
@@ -193,7 +198,12 @@ app.post('/auth/logout', (req, res) => { logout(req, res); res.json({ ok: true }
 // Sibling AI Club app URLs for the footer strip (AI Club students only). Unset → shown as a label, no link.
 const STUDIO = { zetizeti: (process.env.STUDIO_URL_ZETIZETI || '').trim(), mindmaps: (process.env.STUDIO_URL_MINDMAPS || '').trim(), visualgen: (process.env.STUDIO_URL_VISUALGEN || '').trim(), dashboard: (process.env.STUDIO_URL_DASHBOARD || '').trim() };
 
+// Build version — the traceable SemVer build string (e.g. "0.9.0" or "0.9.0+3.g<sha>"), plus the raw
+// describe fields for tooling. No auth needed; carries nothing sensitive.
+app.get('/api/version', (req, res) => res.json(BUILD));
+
 app.get('/api/config', (req, res) => res.json({
+  version: BUILD.build,
   googleConfigured, guestAllowed, poolEnabled,
   poolUserTurns: studentsEnabled ? POOL_USER_TURNS : 0,   // the per-user turn cap is a STUDENTS-tier control
   cohorts: cohortSummary({ personalEnabled, studentsEnabled }),   // which tiers are wired + their sizes (no per-user data)
@@ -645,6 +655,6 @@ const studentsLog = studentsEnabled
 const aiClubLog = creditEngineConfigured
   ? `engine wired · cohort:${aiClubAllowlistConfigured ? `${aiClubAllowlistSize} students` : 'OFF (no allowlist)'}`
   : 'off (no engine)';
-app.listen(PORT, () => console.log(`[zetizeti] http://localhost:${PORT}  (google:${googleConfigured} · admin:${adminConfigured ? 'set' : 'unset'} · personal:${personalLog} · students:${studentsLog} · ai-club:${aiClubLog})`));
+app.listen(PORT, () => console.log(`[zetizeti] v${BUILD.build} · http://localhost:${PORT}  (google:${googleConfigured} · admin:${adminConfigured ? 'set' : 'unset'} · personal:${personalLog} · students:${studentsLog} · ai-club:${aiClubLog})`));
 // Fetch the live USD→INR rate at boot, then refresh every 12h (no-op if ZETIZETI_USD_INR pins it).
 if (poolEnabled && !USD_INR_OVERRIDE) { refreshUsdInr(); setInterval(refreshUsdInr, 12 * 60 * 60 * 1000).unref(); }

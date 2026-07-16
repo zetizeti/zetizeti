@@ -178,6 +178,7 @@
   .about-credit{position:relative; margin-top:16px; font-family:var(--mono); font-size:12px;
     line-height:1.72; color:var(--muted); max-width:64ch}
   .about-credit b{color:var(--goldtext); font-weight:400}
+  .build-ver{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--faint); opacity:.75}
   .about-credit a{color:var(--goldtext); text-decoration:none; border-bottom:1px solid rgba(240,212,154,.4)}
   .about-credit a:hover{color:var(--gold-bright); border-bottom-color:var(--gold-bright)}
   /* Criticism surface — the specimen under glass: pasted text on a cream sheet (photographic
@@ -449,7 +450,7 @@
         <p class="privacy-line"><a class="privacyOpen">Nothing is ever saved.</a></p>
       </header>
     </div>
-    <footer class="login-foot"><a id="aboutFoot" class="aboutlink">about</a></footer>
+    <footer class="login-foot"><a id="aboutFoot" class="aboutlink">about</a> <span class="build-ver" title="build version"></span></footer>
   </section>
 
   <!-- ===== START (a fresh, ephemeral enquiry) ===== -->
@@ -539,7 +540,7 @@
         <h3>Questions only. The thinking stays yours.</h3>
         <p>The second voice is not a looser version of the first — it is the same discipline, held tighter. Both speak in questions and nothing else. Both reuse your exact words rather than paraphrasing them. Neither explains, advises, reassures, concludes, or scores. There are no grades here, no leaderboards, no percent-complete — only the edge getting sharper, which is private to you. <b>It asks the questions; you do the thinking — whether the premature answer came from you, or from a machine.</b></p>
         <p class="about-credit">All of this is open and checkable — the code, the corpus, the locating rules, and the full verification records (citation ledgers, adversarial passes, sign-off sheets): <a href="https://github.com/zetizeti/zetizeti" target="_blank" rel="noopener">github.com/zetizeti/zetizeti</a> (AGPL-3.0). Nothing here asks to be trusted; it asks to be read.</p>
-        <p class="about-credit">Made by <b><a href="https://prayasabhinav.net" target="_blank" rel="noopener">Prayas Abhinav</a></b>.</p>
+        <p class="about-credit">Made by <b><a href="https://prayasabhinav.net" target="_blank" rel="noopener">Prayas Abhinav</a></b>. <span class="build-ver" title="build version"></span></p>
       </div>
     </div>
   </section>
@@ -745,6 +746,8 @@ let turnsSinceNudge=99;
     api('/api/me').catch(()=>({user:null})),
   ]);
   cfg.poolEnabled = !!c.poolEnabled; cfg.poolUserTurns = c.poolUserTurns || 0; cfg.guestAllowed = !!c.guestAllowed;
+  cfg.version = c.version || '';
+  if(cfg.version) document.querySelectorAll('.build-ver').forEach(e=>{ e.textContent='v'+cfg.version; });
   // Dev-only guest entry (the server only offers this off-production) — so the app is drivable
   // locally without Google OAuth configured. Hidden on the real, OAuth-only site.
   if(cfg.guestAllowed){
