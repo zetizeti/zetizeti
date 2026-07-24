@@ -38,7 +38,9 @@ import {
 import { streamQuestion } from './lib/llm.mjs';
 import { generateGuarded } from './lib/guard.mjs';           // the guard's ENFORCEMENT layer (invariant #3)
 import { computeSignals } from './lib/signals.mjs';
-import { decideNudge } from './lib/nudge.mjs';
+import { decideNudge, feltPosture } from './lib/nudge.mjs';
+import { embedNeural, neuralReady, warmEmbeddings } from './lib/embed.mjs';
+import { readFeltShifts, itemWords } from './lib/feltshift.mjs';   // the felt-shift event detector (v0.10.0)
 import { resolveVersion } from './lib/version.mjs';
 import { capture, labelCapture, captureEnabled } from './lib/capture.mjs';   // LOCAL operator-only test-chat capture (never in production)
 import { buildStudentSystemPrompt, pickSeed } from './lib/author.mjs';        // LOCAL "author mode" — the play-acted student
@@ -120,6 +122,8 @@ const guardStats = {
   enquiry:   { turns: 0, regenerated: 0, flagged: 0 },
   criticism: { turns: 0, regenerated: 0, flagged: 0 },
 };
+// Felt-shift telemetry — same discipline as guardStats: counts + a latency reading, never content.
+const feltStats = { computed: 0, sem: 0, lex: 0, skipped: 0, msLast: 0 };
 function noteGuard(surface, guarded) {
   const s = guardStats[surface];
   if (!s) return;
@@ -341,8 +345,50 @@ app.get('/api/admin/usage', requireUser, requireAdmin, (req, res) => {
     // no content (invariant #8). `regenerated` = the guard rejected a question and made the model ask
     // again; `flagged` = it broke the rule twice and the least-bad was delivered, marked, to the student.
     guard: guardStats,
+    // Felt-shift health — counts + the last compute's latency; no content (invariant #8). `neural`
+    // says whether the embedding backend is live (false = felt off entirely, the app unaffected).
+    felt: { ...feltStats, neural: neuralReady },
   });
 });
+
+// ---- felt-shift for one turn (v0.10.0) — the event detector over the learner's own words
+// (lib/feltshift.mjs), WATCH-SIDE + posture-steering only. Gated on the neural backend: the
+// deterministic fallback's geometry was proven inadequate for this measure (it ordered a related pair
+// below an unrelated one), so with no model there is NO felt — never a degraded felt. Any failure
+// returns null and the turn proceeds exactly as before the feature existed. Stateless like the route
+// itself: rebuilt per turn from the client-held transcript; embeds are memoised globally, so only
+// genuinely new strings cost inference (~tens of ms warm). The stone's turns enter the covered ground
+// but are never scored (an echo of the stone is not the learner shifting).
+async function feltForTurn({ goal, history, message }) {
+  if (!neuralReady) { feltStats.skipped++; return null; }
+  try {
+    const t0 = Date.now();
+    const itemsOf = async (text) => {
+      const out = [];
+      for (const w of itemWords(text)) out.push({ w, embed: await embedNeural(w) });
+      return out;
+    };
+    const goalEmbed = goal ? await embedNeural(goal) : null;
+    const goalItems = goal ? await itemsOf(goal) : [];
+    const sequence = [];
+    for (const h of history) {
+      const text = String(h.content || '');
+      sequence.push({ score: h.role === 'student', text, embed: await embedNeural(text), items: await itemsOf(text) });
+    }
+    sequence.push({ score: true, text: message, embed: await embedNeural(message), items: await itemsOf(message) });
+    const read = readFeltShifts({ goalEmbed, goalItems, sequence });
+    const fs = read.turns[read.turns.length - 1] || null;
+    feltStats.computed++;
+    feltStats.msLast = Date.now() - t0;
+    if (fs && fs.semEvent) feltStats.sem++;
+    if (fs && fs.lexEvent) feltStats.lex++;
+    console.log(`[felt] ${feltStats.msLast}ms · seq=${sequence.length}${fs && fs.semEvent ? ' · SEM' : ''}${fs && fs.lexEvent ? ' · LEX' : ''}`);   // timing only — no content (invariant #8)
+    return fs;
+  } catch {
+    feltStats.skipped++;
+    return null;
+  }
+}
 
 // ---- chat (SSE) — STATELESS / EPHEMERAL. The browser holds the enquiry and sends its whole transcript
 // (history[]) each turn; the server composes a question from it and persists NOTHING (no quest, no
@@ -365,6 +411,10 @@ app.post('/api/chat', requireUser, async (req, res) => {
   const studentTurns = [...history.filter((h) => h.role === 'student').map((h) => h.content), message];
   const stoneTurns = history.filter((h) => h.role !== 'student').map((h) => h.content);
   const sig = computeSignals({ goal, lineage, studentTurns, stoneTurns, exchanges });
+  // The felt-shift read for THIS turn (null unless the neural backend is live and an event structure
+  // computes cleanly). Costs ~tens of ms warm (memoised embeds); sits before the SSE stream opens so
+  // the signals event below can carry the reading.
+  const fs = await feltForTurn({ goal, history, message });
 
   // Retrieval, tuned against BLANDNESS (Siddhie, 15 Jul: "questions become bland / round-and-round as we
   // move forward") — the tail flattens when the SAME top tensions are retrieved turn after turn. Two
@@ -394,8 +444,11 @@ app.post('/api/chat', requireUser, async (req, res) => {
   const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
 
   // Curtain + signals stream regardless of key — even a keyless visitor sees the tensions + the edge.
+  // feltEvent/feltWhy are ADDITIVE fields on the existing signals event (the SSE contract's shape is
+  // extended, never changed): an observation about the ARTICULATION for the watch-side readout — never
+  // a score, never rendered as one (invariants #5/#6).
   send('curtain', { retrieved: curtain });
-  send('signals', sig);
+  send('signals', { ...sig, feltEvent: fs && fs.semEvent ? 'sem' : fs && fs.lexEvent ? 'lex' : null, feltWhy: (fs && fs.why) || null });
 
   // --- key resolution, by cohort tier (lib/cohorts.mjs — the single classifier):
   //   AI_CLUB      — resolve THIS student's OWN OpenRouter key from the credit engine (app #1) and spend
@@ -459,13 +512,17 @@ app.post('/api/chat', requireUser, async (req, res) => {
   const nudge = decideNudge(sig, {
     exchanges, reDrewThisTurn: kind === 'redraw', turnsSinceNudge,
   });
-  if (nudge.surface) send('nudge', { surface: nudge.surface });  // a read handed back to the learner
+  // Felt-shift postures OUTRANK the cadence-driven nudges: an event is exactly when to respond (the
+  // same standing the selfEcho break has). When one fires, the nudge's surface is suppressed too — a
+  // "we've circled, shall we move?" line would contradict a landing the detector just marked.
+  const felt = feltPosture(fs);            // (event counts were already taken in feltForTurn)
+  if (!felt && nudge.surface) send('nudge', { surface: nudge.surface });  // a read handed back to the learner
   // the posture steers the QUESTION's mode; the model receives the posture, never the diagnosis.
   // Stable system (cacheable prefix) + per-turn volatile material on the final turn. Keeping the
   // retrieved tensions and posture OUT of the system prompt is what lets prompt caching reuse the prefix
   // (cache: true below); only the live final turn is wrapped with this turn's domain material.
   const system = buildSystemPrompt(methodCore, goal);
-  const turnContent = buildTurnContext({ retrieved, posture: nudge.posture || '', message });
+  const turnContent = buildTurnContext({ retrieved, posture: (felt && felt.posture) || nudge.posture || '', message });
 
   const messages = [
     ...history.map((h) => ({ role: h.role === 'student' ? 'user' : 'assistant', content: h.content })),
@@ -781,7 +838,15 @@ const studentsLog = studentsEnabled
 const aiClubLog = creditEngineConfigured
   ? `engine wired · cohort:${aiClubAllowlistConfigured ? `${aiClubAllowlistSize} students` : 'OFF (no allowlist)'}`
   : 'off (no engine)';
-app.listen(PORT, () => console.log(`[zetizeti] v${BUILD.build} · http://localhost:${PORT}  (google:${googleConfigured} · admin:${adminConfigured ? 'set' : 'unset'} · personal:${personalLog} · students:${studentsLog} · ai-club:${aiClubLog})`));
+app.listen(PORT, () => {
+  console.log(`[zetizeti] v${BUILD.build} · http://localhost:${PORT}  (google:${googleConfigured} · admin:${adminConfigured ? 'set' : 'unset'} · personal:${personalLog} · students:${studentsLog} · ai-club:${aiClubLog})`);
+  // Listen-first, warm-async (24 Jul 2026): the app serves immediately; the embedding model loads in
+  // the background so no learner ever meets the cold path. Until it resolves, felt-shift turns are
+  // simply skipped (feltForTurn gates on neuralReady) — the dialogue is unaffected. A load failure
+  // leaves felt off for the process and harms nothing else.
+  const t0 = Date.now();
+  warmEmbeddings().then((ok) => console.log(`[felt] embedding backend ${ok ? `warm in ${Date.now() - t0}ms` : 'unavailable — felt-shift disabled for this process'}`));
+});
 // Capture status — loud when ON so it's never a surprise, silent otherwise. It CANNOT be on in
 // production (hard guard in lib/capture.mjs); this only ever prints on a local dev instance.
 if (captureEnabled) console.log(`[zetizeti] 🔴 TEST-CHAT CAPTURE ON → ${process.env.ZETIZETI_CAPTURE_DIR}/zetizeti-testchats.jsonl (local build tool; never in production)`);

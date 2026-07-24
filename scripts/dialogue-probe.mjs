@@ -19,7 +19,7 @@ import { dirname, join } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { buildIndex, retrieve } from '../lib/retrieval.mjs';
 import { computeSignals } from '../lib/signals.mjs';
-import { decideNudge } from '../lib/nudge.mjs';
+import { decideNudge, feltPosture } from '../lib/nudge.mjs';
 import { loadMethodCore, buildSystemPrompt, buildTurnContext, validateOutput } from '../lib/dialogue.mjs';
 import { generateGuarded } from '../lib/guard.mjs';
 import { streamQuestion } from '../lib/llm.mjs';
@@ -95,17 +95,11 @@ for (const message of scenario.turns) {
 
   const nudge = decideNudge(sig, { exchanges, reDrewThisTurn: false, turnsSinceNudge });
 
-  // felt-shift postures OUTRANK the generic nudges at an event turn — this is the nuance under test.
-  // Both are modes of asking about the ARTICULATION, never a verdict about the person (invariant #7).
-  let posture = nudge.posture || '', fsTag = null;
-  if (fs && fs.lexEvent) {
-    fsTag = 'felt:LEX';
-    posture = 'The learner has just named what matters, in their own words. Stay with that naming — do not change direction. Ask ONE SHORT, quiet question that tests the thing they named, reusing one or two of their exact words. Do NOT restate their sentence back to them, no preamble, no semicolon, no second question. The whole turn: one plain sentence, under 20 words.';
-  } else if (fs && fs.semEvent) {
-    const ws = fs.newWords.slice(0, 3).map((n) => `"${n.w}"`).join(', ');
-    fsTag = 'felt:SEM';
-    posture = `New material just entered the articulation — the learner's own new words: ${ws}. Ask ONE SHORT question that takes up exactly one of those words and opens it. One plain sentence, under 20 words, no preamble, no list of directions.`;
-  }
+  // felt-shift postures OUTRANK the generic nudges at an event turn — the SHARED wording from
+  // lib/nudge.mjs (single home; the probe carries no copy of its own, so probe and server never drift).
+  const feltP = feltPosture(fs);
+  const posture = (feltP && feltP.posture) || nudge.posture || '';
+  const fsTag = feltP ? (feltP.fired === 'felt-lex' ? 'felt:LEX' : 'felt:SEM') : null;
 
   const system = buildSystemPrompt(methodCore, goal);
   const turnContent = buildTurnContext({ retrieved, posture, message });

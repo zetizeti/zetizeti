@@ -21,6 +21,36 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.10.0] — 2026-07-24
+
+The felt-shift detector joins the live dialogue — the first working shard of Position 2 (*measure the
+inquiry, never the inquirer*) in the shipped tool. Every behaviour was signed off on real-route
+auth-less transcripts before shipping, per the working rule.
+
+### Added
+- **The felt-shift detector runs on every enquiry turn** (`server.mjs` ← `lib/feltshift.mjs`):
+  watch-side, over the learner's own words, stone turns entering coverage unscored. Two event channels —
+  SEM (a tethered cluster of new, edge-relevant material) and LEX (the words settling: an insight named
+  without hedging) — each driving a short, signed-off **felt posture** that outranks the cadence nudges
+  at the event moment (`lib/nudge.mjs feltPosture`, the single home; the probe imports it). Between
+  events, the ordinary nudge layer breathes unchanged.
+- **`feltEvent` / `feltWhy`** — additive fields on the `signals` SSE event: an observation about the
+  articulation, never a score (invariants #5/#6 hold; the SSE contract's shape is extended, not changed).
+- **Felt telemetry** on `/api/admin/usage` — counts + last-compute latency + backend liveness; no content.
+- **Listen-first, warm-async boot:** the app serves immediately; the embedding model warms in the
+  background (190 ms warm locally, ~4 s on a fresh container). Until warm — or if the model cannot load —
+  felt turns are simply skipped and the dialogue is untouched.
+- **`scripts/server-probe.mjs`** — the real-route auth-less driver (guest session → `/api/chat` SSE):
+  the sign-off artefact for server-side changes.
+
+### Fixed
+- **A loader race that could poison the embed memo:** concurrent first calls during the model load
+  previously fell back to 256-dim deterministic vectors and cached them beside 384-dim neural ones. The
+  loader is now promise-cached and only genuine neural vectors are memoised.
+
+### Measured
+- Felt compute 25–45 ms per turn on the real route — inside the guard's existing buffering beat.
+
 ## [0.9.4] — 2026-07-24
 
 The migration build: same behaviour as 0.9.3, new ground under it. Deployed to the `myplaceholder`
