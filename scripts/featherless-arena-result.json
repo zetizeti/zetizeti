@@ -1,0 +1,134 @@
+{
+  "n": 30,
+  "judges": [
+    {
+      "m": "microsoft/phi-4",
+      "prov": "f",
+      "tier": "mid"
+    },
+    {
+      "m": "Qwen/Qwen2.5-72B-Instruct",
+      "prov": "f",
+      "tier": "mid"
+    },
+    {
+      "m": "mistralai/Mistral-Small-24B-Instruct-2501",
+      "prov": "f",
+      "tier": "mid"
+    },
+    {
+      "m": "anthropic/claude-haiku-4.5",
+      "prov": "or",
+      "tier": "strong"
+    },
+    {
+      "m": "openai/gpt-5.4-mini",
+      "prov": "or",
+      "tier": "strong"
+    }
+  ],
+  "summary": [
+    {
+      "model": "qwen3-30b",
+      "W": 87,
+      "T": 0,
+      "L": 63,
+      "winRate": 0.58,
+      "ci": [
+        0.499983335113527,
+        0.656021282623158
+      ],
+      "midWr": 0.5555555555555556,
+      "strWr": 0.6166666666666667,
+      "verdict": "AT PARITY (as good as)"
+    },
+    {
+      "model": "mistral-24b",
+      "W": 63,
+      "T": 0,
+      "L": 87,
+      "winRate": 0.42,
+      "ci": [
+        0.34397871737684205,
+        0.5000166648864729
+      ],
+      "midWr": 0.3111111111111111,
+      "strWr": 0.5833333333333334,
+      "verdict": "MIXED (tiers disagree)"
+    },
+    {
+      "model": "deepseek31",
+      "W": 84,
+      "T": 0,
+      "L": 66,
+      "winRate": 0.56,
+      "ci": [
+        0.48004707281221837,
+        0.6369563904902955
+      ],
+      "midWr": 0.4888888888888889,
+      "strWr": 0.6666666666666666,
+      "verdict": "MIXED (tiers disagree)"
+    },
+    {
+      "model": "gemma-27b",
+      "W": 64,
+      "T": 0,
+      "L": 86,
+      "winRate": 0.4266666666666667,
+      "ci": [
+        0.35031956874051456,
+        0.5066761983341909
+      ],
+      "midWr": 0.3333333333333333,
+      "strWr": 0.5666666666666667,
+      "verdict": "MIXED (tiers disagree)"
+    },
+    {
+      "model": "llama-70b",
+      "W": 72,
+      "T": 0,
+      "L": 78,
+      "winRate": 0.48,
+      "ci": [
+        0.40154978216379894,
+        0.5594490634020298
+      ],
+      "midWr": 0.5777777777777777,
+      "strWr": 0.3333333333333333,
+      "verdict": "MIXED (tiers disagree)"
+    }
+  ],
+  "guard": {
+    "flash-lite": {
+      "pass": 29,
+      "n": 30,
+      "empty": 1
+    },
+    "qwen3-30b": {
+      "pass": 30,
+      "n": 30,
+      "empty": 0
+    },
+    "mistral-24b": {
+      "pass": 30,
+      "n": 30,
+      "empty": 0
+    },
+    "deepseek31": {
+      "pass": 30,
+      "n": 30,
+      "empty": 0
+    },
+    "gemma-27b": {
+      "pass": 30,
+      "n": 30,
+      "empty": 0
+    },
+    "llama-70b": {
+      "pass": 30,
+      "n": 30,
+      "empty": 0
+    }
+  }
+}

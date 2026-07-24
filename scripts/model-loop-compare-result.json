@@ -1,0 +1,62 @@
+[
+  {
+    "model": "google/gemini-3.1-flash-lite",
+    "guardPct": 100,
+    "empties": 0,
+    "dupOpen": 0.5,
+    "consec": 0.1289459850895544,
+    "selfEcho": 0.12102521590326468,
+    "nudges": 1.25,
+    "loopy": 0
+  },
+  {
+    "model": "qwen/qwen3-30b-a3b-instruct-2507",
+    "guardPct": 100,
+    "empties": 0,
+    "dupOpen": 4.25,
+    "consec": 0.2594982808990333,
+    "selfEcho": 0.24160344325215016,
+    "nudges": 2,
+    "loopy": 2
+  },
+  {
+    "model": "mistralai/mistral-small-3.2-24b-instruct",
+    "guardPct": 100,
+    "empties": 0,
+    "dupOpen": 5.25,
+    "consec": 0.32258569020787065,
+    "selfEcho": 0.33886599511599513,
+    "nudges": 1.5,
+    "loopy": 4
+  },
+  {
+    "model": "deepseek/deepseek-chat-v3.1",
+    "guardPct": 100,
+    "empties": 0,
+    "dupOpen": 2,
+    "consec": 0.15215814763334448,
+    "selfEcho": 0.08623504226251905,
+    "nudges": 1.75,
+    "loopy": 1
+  },
+  {
+    "model": "google/gemma-3-27b-it",
+    "guardPct": 100,
+    "empties": 0,
+    "dupOpen": 0.5,
+    "consec": 0.10785633950908732,
+    "selfEcho": 0.10989583333333333,
+    "nudges": 1.75,
+    "loopy": 0
+  },
+  {
+    "model": "meta-llama/llama-3.3-70b-instruct",
+    "guardPct": 100,
+    "empties": 0,
+    "dupOpen": 2.25,
+    "consec": 0.13417862803571412,
+    "selfEcho": 0.14764544930875576,
+    "nudges": 1.5,
+    "loopy": 1
+  }
+]

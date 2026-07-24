@@ -16,6 +16,29 @@ states of the tool's maturity, not feature milestones:
 
 Today's `0.9.x` is the pilot approaching stable.
 
+## [0.9.1] — 2026-07-24
+
+The never-answer guard now **holds** rather than merely reporting — invariant #3 made true.
+
+### Fixed
+- **The guard enforces (`lib/guard.mjs`).** `validateOutput` / `validateCriticismOutput` had computed a
+  verdict that no code acted on: the question streamed to the student first and was validated after, so a
+  breach was reported in a collapsed panel and never prevented — and on the criticism surface the client
+  assigned the verdict to a variable it never read. Now a turn is generated in full, **buffered**, checked,
+  and **regenerated once** with the guard's own reasons fed back; only an accepted question is sent, and a
+  breach surviving both attempts is delivered flagged, never silently.
+
+### Changed
+- **The question no longer streams token by token.** A question cannot be withheld after it has been read,
+  so it is delivered whole after a beat — the deliberate price of the guard actually holding.
+
+### Added
+- **Empty-response backstop** — an empty generation is a breach like any other, so the same retry covers a
+  provider blip or a cold local model; two empties end in a clear refusal, never a blank turn.
+- **Guard telemetry** at `/api/admin/usage` — turns / repaired / flagged per surface (counts only, no
+  content; invariant #8).
+- 12 deterministic tests (`test/guard.test.mjs`).
+
 ## [0.9.0] — 2026-07-16
 
 First formally versioned build. The post-pilot revision, from Siddhie's and Sourav's feedback.

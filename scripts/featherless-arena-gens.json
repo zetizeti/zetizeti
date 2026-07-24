@@ -1,0 +1,318 @@
+{
+  "inputs": [
+    {
+      "goal": "redesign a hospital discharge form so patients actually read it",
+      "msg": "My discharge form is complete but nobody reads it. I'm told to make it 'clearer', but I think it's written for the hospital's liability, not the patient's understanding."
+    },
+    {
+      "goal": "make a protest poster that still has bite",
+      "msg": "My protest poster keeps getting called 'striking' and 'beautiful', and that praise makes me feel like it's failed — it's become decorative, something to admire instead of act on."
+    },
+    {
+      "goal": "design a tutorial that respects the player",
+      "msg": "My game tutorial holds the player's hand through everything. It works — nobody gets stuck — but nobody discovers anything, and the game feels solved before it starts."
+    },
+    {
+      "goal": "design a memorial people actually stop at",
+      "msg": "I designed a memorial and watched people walk straight past it. It's dignified and tasteful, and I think that's exactly the problem — it's so respectful it's invisible."
+    },
+    {
+      "goal": "design a consent flow that is honest",
+      "msg": "My cookie consent flow is technically compliant, but I built it so people click 'accept all', and I know that's the point, and I feel like a fraud."
+    },
+    {
+      "goal": "edit a documentary fairly",
+      "msg": "In the edit, my subject keeps coming across as guilty. I'm not adding anything false — just the order of the cuts — but the truth of the footage and the feeling of the sequence are pulling apart."
+    },
+    {
+      "goal": "design honest sustainability labelling",
+      "msg": "The fabric is recycled, that part's real, but the big 'sustainable' label makes a whole-garment claim the garment can't back, and I'm the one designing the tag."
+    },
+    {
+      "goal": "design a smart speaker that does not feel like surveillance",
+      "msg": "Our smart speaker's always-on mic is genuinely useful, but in a home it feels like surveillance, and the little 'listening' light somehow makes it worse, not better."
+    },
+    {
+      "goal": "design a dashboard that surfaces what matters",
+      "msg": "My dashboard shows everything and the user sees nothing — I keep adding charts to look thorough, but it just buries the one number that actually matters."
+    },
+    {
+      "goal": "make a rebrand that is actually distinct",
+      "msg": "The rebrand brief says 'clean and modern', and that's killing me — every competitor says the same, and I can't tell if mine is actually different or just another sans-serif on white."
+    },
+    {
+      "goal": "design an onboarding that does not overwhelm",
+      "msg": "My fintech onboarding has twelve steps 'to be safe', and users drop off halfway — but every step is there because a stakeholder was scared of something."
+    },
+    {
+      "goal": "make a data visualisation that is honest",
+      "msg": "My chart is technically accurate, but the axis I chose makes a tiny change look enormous, and that dramatic version is exactly the story the team wants to tell."
+    },
+    {
+      "goal": "design a clinic queue that feels fair",
+      "msg": "My clinic token system is efficient, but people feel cheated when someone walks in and is seen first for a 'quick' thing, and the efficiency is somehow making the unfairness louder."
+    },
+    {
+      "goal": "design a notification that respects attention",
+      "msg": "My streak notifications boost retention, they really work — but I've built something that punishes people for having a life outside the app."
+    },
+    {
+      "goal": "make a form that does not misgender people",
+      "msg": "There's a required gender dropdown with two options because the database wants it that way, and I'm the one who has to design the thing that erases people."
+    },
+    {
+      "goal": "design a feed that does not trap people",
+      "msg": "The recommendation feed works — engagement is up — but I've built something that keeps people scrolling long past the point they actually wanted to stop."
+    },
+    {
+      "goal": "design packaging that is not wasteful theatre",
+      "msg": "The unboxing needs layers and tissue to feel premium, and it does feel premium — for about thirty seconds, and then it's all landfill."
+    },
+    {
+      "goal": "write an error message that does not blame the user",
+      "msg": "My error copy just says 'invalid input', and I keep writing it that way, as if it's the user's fault that the system decided to be strict."
+    },
+    {
+      "goal": "design a museum route that does not exhaust people",
+      "msg": "The layout forces everyone through every gallery for 'completeness', and by room eight nobody is looking at anything — they're just walking to the exit."
+    },
+    {
+      "goal": "make a pricing page that is not manipulative",
+      "msg": "The 'most popular' badge and the struck-through price work — conversions are up — but I designed them to steer people, not to inform them, and I know the difference."
+    },
+    {
+      "goal": "design a returns process that is not hostile",
+      "msg": "My returns flow is deliberately annoying to cut return rates, and it works — but I'm the one adding friction to punish honest customers for a policy decision."
+    },
+    {
+      "goal": "choose type that people can actually read",
+      "msg": "My low-contrast grey type looks elegant and the client loves it, but I know people with low vision can't read it, and I keep choosing the elegant version anyway."
+    },
+    {
+      "goal": "design an assistant that does not fake empathy",
+      "msg": "My chatbot says 'I understand how you feel' when it understands nothing, and users thank it warmly, and that gratitude is the part that unsettles me."
+    },
+    {
+      "goal": "design station signage for a multilingual city",
+      "msg": "My wayfinding assumes everyone reads English, in a city where half the people at the station don't, and 'clean' design is my excuse for not adding the other scripts."
+    },
+    {
+      "goal": "design a quiz app that rewards thinking not speed",
+      "msg": "My quiz app scores on speed, so students learn to answer fast instead of think, and the leaderboard is the thing they're actually playing, not the subject."
+    },
+    {
+      "goal": "photograph a community without reducing them",
+      "msg": "I shot the campaign for the NGO, and the images that raise the most money are the ones that show the community as most helpless, and those are the ones getting picked."
+    },
+    {
+      "goal": "design a trial that does not rely on forgetting",
+      "msg": "The free trial needs a card and auto-renews, and it converts because people forget to cancel, and I keep realising that forgetting IS the business model."
+    },
+    {
+      "goal": "design a shelf logo I am not embarrassed by",
+      "msg": "The logo has to shout to compete on a crowded shelf, and I've made something loud and aggressive that does the job and that I can't actually stand to look at."
+    },
+    {
+      "goal": "design a game economy that is not built on frustration",
+      "msg": "My mobile game's timers manufacture the urge to pay to skip the wait, and the 'fun' is really just friction I engineered so I can sell people relief from it."
+    },
+    {
+      "goal": "design a grievance form people can finish",
+      "msg": "The civic complaint form is so long that most people give up, and then the low number of complaints gets reported upward as 'high satisfaction'."
+    }
+  ],
+  "Q": {
+    "flash-lite": [
+      "When you look at the parts of the form written for the hospital's liability, what is it that they are trying to communicate to the patient?",
+      "When you hear the word 'striking' used to describe your poster, what is the specific quality in the work that you fear is being admired instead of acted upon?",
+      "When you consider the difference between a player being stuck and a player discovering something, what is the specific point where the tutorial stops being a guide and starts being a solution?",
+      "If the memorial is so respectful that it is invisible, what would it need to become to force someone to stop?",
+      "When you look at the 'accept all' button, what is the difference between the person who clicks it because it is easy and the person who clicks it because they have actually consented?",
+      "When you say the truth of the footage and the feeling of the sequence are pulling apart, what is the specific gap between what the footage shows and what the sequence implies?",
+      "When you look at the tag you are designing, what specific evidence does it provide to the wearer that justifies the \"sustainable\" claim for the whole garment?",
+      "If the 'listening' light is intended to signal transparency, what does it make the user feel they are being transparent about?",
+      "When you add a chart to look thorough, what is the one number that actually matters competing with?",
+      "When you look at your current design, what is the specific, non-generic thing that makes it \"actually distinct\" from the competitors who also claim to be \"clean and modern\"?",
+      "When you look at those twelve steps, which of them are there to protect the user, and which are there to protect the stakeholder from their own fear?",
+      "If a careful reader noticed the axis you chose, would they feel informed by the story or tricked by the scale?",
+      "When the efficiency makes the unfairness louder, what is the 'quick' thing actually costing the person who is waiting?",
+      "When you see that your streak notifications punish people for having a life outside the app, what does that tell you about whose ends those notifications are actually serving?",
+      "When you say you are the one who has to design the thing that erases people, what is the specific mechanism in the database that necessitates that erasure?",
+      "When you consider that people are scrolling long past the point they wanted to stop, what is the specific mechanism in your feed that is currently substituting for their own intention?",
+      "When you look at that thirty-second window of feeling premium, what is it about the tissue and layers that makes them necessary for that specific moment, rather than something else?",
+      "When you say the system decided to be strict, what is that strictness actually claiming about the user's role in the process?",
+      "If the layout forces everyone through every gallery, what is the difference between the experience of the first room and the eighth?",
+      "When you say you designed them to steer people rather than inform them, what is the difference between those two things for the person using your pricing page?",
+      "When you describe the friction as a way to punish honest customers, what is the difference between that and an unnecessary obstacle that players might actually choose to overcome?",
+      "When you choose the elegant version, what is the specific thing you are hoping that choice communicates to the person who cannot read it?",
+      "When you see that gratitude, what is it that you suspect the user is actually thanking?",
+      "When you use 'clean' design to justify excluding other scripts, what does that choice communicate to the person who cannot read English?",
+      "If you removed the leaderboard tomorrow, what would the students still do, and what would stop?",
+      "When you see those images being picked for their ability to raise money, what is the specific cost to the community in how they are being portrayed?",
+      "If you were to design a trial that does not rely on forgetting, what would the user have to remember instead?",
+      "If you were to design a logo that both competes on a crowded shelf and is something you could stand to look at, what would have to change?",
+      "",
+      "If the low number of complaints is being used as a measure of satisfaction, what part of the user's actual experience is being pushed out of the data?"
+    ],
+    "qwen3-30b": [
+      "And what does it mean that the form is written for the hospital’s liability, not the patient’s understanding — and how does that shape what the patient might actually do with it?",
+      "And when you say the poster has become decorative, what kind of thing does that make it feel like it’s no longer doing?",
+      "And what kind of learning is lost when the player never has to figure anything out for themselves?",
+      "And what kind of presence would this memorial have if it didn’t need to be so respectful?",
+      "And what does it feel like, to be the kind of person who builds something that feels like a fraud — even when it works?",
+      "And what does the sequence do to the truth of the footage — and how does that shift the feeling of guilt?",
+      "And what part of the garment’s life — from making to wearing to letting go — is the label pretending to cover, when it can’t?",
+      "And what kind of listening does that little light make feel like — not just seen, but watched?",
+      "And what happens to the one number that actually matters when it’s buried under all the charts you’re adding?",
+      "And what does \"clean and modern\" actually hold up in your rebrand — and what happens if you remove it?",
+      "And what does the fear behind each step cost the user in attention, trust, or sense of control — and is that cost being paid by the user, or by the system’s promise of safety?",
+      "And what kind of story is it that the team wants to tell — and is the dramatic version you’ve made truly that story, or a different one?",
+      "And when the system is efficient but people feel cheated — what does that feeling reveal about what they were expecting the efficiency to serve?",
+      "And when the streak notification appears, whose life — theirs or yours — is it interrupting?",
+      "And what kind of erasure is that dropdown enacting — and whose shape does it preserve, even as it claims to remove?",
+      "And when the feed keeps people scrolling past their own wanting — what does that moment of wanting reveal about what the feed is actually serving?",
+      "And what happens in the thirty seconds after the premium feeling fades?",
+      "And what does the system’s strictness make possible — and what does it quietly forbid?",
+      "And what does the act of walking through every gallery — without choice, without pause — do to the experience of the work, and to the visitor’s attention, at room eight?",
+      "And what does it mean about the kind of trust you're building — when the tools that work best are the ones that steer, not inform?",
+      "And what kind of friction is this — the kind that makes the game worth playing, or the kind that makes the customer feel punished?",
+      "And when you choose the elegant grey type despite knowing it’s hard for people with low vision, what kind of reading experience are you saying matters more — the one they can have, or the one you want them to see?",
+      "And what does the gratitude from the user reveal about what they were hoping to receive — not from the words, but from the act of being heard?",
+      "And what does \"clean\" design mean when the people who need to read it don’t see their own script reflected in it?",
+      "And what would happen to the thinking if the leaderboard disappeared tomorrow?",
+      "And what kind of help does that image of helplessness actually offer — and whose voice is being heard, or silenced, in that moment?",
+      "And what kind of company are you building when the business model depends on people forgetting?",
+      "And what does it mean that the logo has to shout to compete — and what part of you is resisting that, even as you make it?",
+      "And what kind of game is it when the only thing worth doing is paying to avoid the thing you were meant to do?",
+      "And what does the length of the form *make visible* as a measure of satisfaction — and what part of the public’s real experience might it quietly push out because it can’t be captured in a checkbox?"
+    ],
+    "mistral-24b": [
+      "And when you say it's written for the hospital's liability, what does that look like on the page?",
+      "And when you say it's become decorative, what's missing that you wanted to be there?",
+      "And when the game feels \"solved before it starts,\" what is it that the player has already learned?",
+      "And when people walk past this memorial, what do you think they're not seeing?",
+      "And what kind of fraud is that?",
+      "And when the truth of the footage and the feeling of the sequence pull apart, what does that make possible?",
+      "And when you say the garment can't back the whole claim, what part of the claim is it actually not backing?",
+      "And what kind of listening is happening when the light is on?",
+      "And when you say \"the one number that actually matters,\" what does that number stand in for?",
+      "And when you say \"clean and modern,\" what is that actually holding up in your design?",
+      "And when a step is there because a stakeholder was scared, what is that step doing to the user's experience?",
+      "And when you say this tiny change looks enormous, is that making a real signal easier to see, or making a small effect look like a big one?",
+      "And when someone walks in and is seen first for a 'quick' thing, what is it that makes the efficiency feel unfair?",
+      "And when you say \"punishes people for having a life outside the app,\" what exactly is that like?",
+      "And when you say the database wants it that way, what does that mean for the people who don't fit into those two options?",
+      "And what kind of \"scrolling long past the point they actually wanted to stop\" is that?",
+      "And when you say \"it's all landfill,\" what is it about the layers and tissue that makes you say that?",
+      "And when the system decides to be strict, what is it deciding about the user's input?",
+      "And what kind of 'completeness' is that?",
+      "And when you know the difference, what difference does that make?",
+      "And when you say this flow is deliberately annoying, what kind of annoyance is that?",
+      "And when you choose the elegant version, what is it that you're holding onto?",
+      "And when users thank the chatbot for understanding, what does that gratitude seem to be for — the words it said, or something else?",
+      "And when you say 'clean' design is your excuse, what is that an excuse for not doing?",
+      "And when you say the leaderboard is the thing they're actually playing, what happens to the subject?",
+      "And when you say \"helpless,\" what kind of helplessness is that?",
+      "And when you say the free trial converts because people forget to cancel, what kind of forgetting is that?",
+      "And what kind of shouting is that shouting?",
+      "And when you say the fun is really friction you engineered, is that the obstacle players came to overcome, or friction they're putting up with to get to the game?",
+      "And when you say the form is so long that people give up, what part of the form is doing that giving-up?"
+    ],
+    "deepseek31": [
+      "And when you say it's written for the hospital's liability, what does that 'liability' form make impossible for the patient?",
+      "And what would you want the poster to make someone do, that beauty might be getting in the way of?",
+      "And when the tutorial feels solved before it starts, what is the player not getting to discover?",
+      "And when you say \"dignified and tasteful,\" what kind of invisibility is that?",
+      "And when you say you feel like a fraud, what kind of fraud is that fraud?",
+      "And when the truth of the footage and the feeling of the sequence pull apart, what does that gap ask of the viewer?",
+      "And when you design the tag that makes a whole-garment claim, what is the gap between the recycled fabric and the claim the garment cannot back?",
+      "And what kind of 'worse' is that little light making it?",
+      "And what happens to the one number that matters when you bury it?",
+      "And when you say \"clean and modern\" is killing you, what is it about that phrase that makes the work feel impossible?",
+      "And when a stakeholder's fear puts a step in the path, what is the user being protected from that they cannot see?",
+      "And when the team wants that dramatic story, what is the difference between making the signal clearer and making the signal bigger?",
+      "And when the efficiency makes the unfairness louder, what is the 'quick' thing confessing about the journey it skips?",
+      "And when you say it punishes people for having a life outside the app, what kind of punishment is that?",
+      "And when you say you \"have to design the thing that erases people,\" what kind of *have to* is that?",
+      "And when you say \"long past the point they actually wanted to stop,\" what kind of *wanted* is that?",
+      "And when the packaging is landfill after thirty seconds, what is the premium feeling actually buying?",
+      "And when the system decides to be strict, what does that strictness claim about the user?",
+      "And when the layout forces 'completeness,' what does that do to the work in room eight?",
+      "And when you say you designed them to steer, not inform, what is the difference that makes for the person being steered?",
+      "And when you say you are \"adding friction to punish honest customers,\" what kind of friction is that?",
+      "And when you choose the elegant version anyway, what happens to the part of you that knows people can't read it?",
+      "And when a user thanks the bot for that unearned empathy, what does that gratitude actually ask of the bot's design?",
+      "And when you say \"clean\" design, what kind of \"clean\" is that, that makes adding other scripts feel like an excuse?",
+      "And what would the quiz be if the leaderboard were removed and the only thing left was the thinking?",
+      "And when you say the images that \"show the community as most helpless\" are the ones that raise the most money, what does that success ask you to become as a photographer?",
+      "And when you say forgetting *is* the business model, what kind of forgetting is that?",
+      "And what is it about the loud and aggressive quality that makes it something you can't stand to look at?",
+      "And is that friction the obstacle players came for, or the one you’re selling relief from?",
+      "And what would a successful complaint form measure that would prove it’s working — and what would that measurement quietly stop you from noticing?"
+    ],
+    "gemma-27b": [
+      "And when you say it's written for the hospital's liability, not the patient's understanding, what makes you say that?",
+      "And when you hear it called ‘striking’ and ‘beautiful’, what is it about that response that makes you feel it’s failed?",
+      "And when you say the game feels solved before it starts, what is the player *not* discovering that you expected them to?",
+      "And when people walk past without stopping, what is it about the “tasteful” part that might be contributing to that?",
+      "And when you say you feel like a fraud, what is it about that feeling that stands out?",
+      "And when you say the “truth of the footage and the feeling of the sequence are pulling apart,” what is different about those two truths?",
+      "And when you say the garment can’t back the whole-garment claim, what specifically isn’t being backed up?",
+      "And when you say it feels like surveillance, what is it about the always-on mic that makes it feel that way?",
+      "And when you add those charts to look thorough, what happens to that one number?",
+      "And when you say “another sans-serif on white,” what specifically makes it feel like just another one?",
+      "And when you say users are dropping off halfway, what is the earliest of those stakeholder fears that seems to be connected to that drop-off?",
+      "And what happens when a viewer notices the way the axis emphasizes that change?",
+      "And when people feel cheated by someone being seen first for a ‘quick’ thing, what is it about that situation that makes the efficiency louder?",
+      "And what makes you say this punishes people for having a life outside the app?",
+      "And when the database requires a gender, what happens to the people who don't fit those two options?",
+      "And when people are scrolling past the point they wanted to stop, what are they looking for?",
+      "And when you say \"landfill,\" what exactly is happening in that thirty seconds that makes that outcome feel inevitable?",
+      "And when you write “invalid input,” what is the user doing, that makes it feel like a fault?",
+      "And when you say nobody is looking at anything by room eight, what is happening *in* room eight that contributes to that?",
+      "And when you say you *know* the difference between steering and informing, what is different about how that feels?",
+      "And when you say it's \"deliberately annoying,\" what kind of annoyance is that?",
+      "And when you choose the elegant version, what is most important about what you are communicating?",
+      "And when users thank it for that warmth, what are they thanking it *for*?",
+      "And when you say 'clean' design is your excuse, what is being excused?",
+      "And when students are focused on the leaderboard, what are they *not* focused on?",
+      "And when the images that raise the most money show the community as most helpless, what is lost in that exchange?",
+      "And what kind of forgetting is this business model relying on?",
+      "And when you say it's loud and aggressive, what is it about that quality that you can't stand to look at?",
+      "And when players pay to skip the wait, what experience are they actually buying?",
+      "And when you imagine someone starting to fill out this form, what happens *before* they actually begin to write anything?"
+    ],
+    "llama-70b": [
+      "And what would need to happen for the discharge form to be written for the patient's understanding, rather than the hospital's liability?",
+      "When you imagine someone stopping to admire your poster, rather than being moved to act, what do you think they're responding to in the image that's holding them at that distance?",
+      "And when you say the game feels \"solved before it starts,\" is that because the player has already learned everything the game has to offer, or is it because they haven't had a chance to learn it for themselves?",
+      "And what would it take for your memorial to be noticed, without losing the dignity and respect you intended for it to convey?",
+      "And what would it feel like to design a consent flow where the point is not to get people to click 'accept all', but to actually inform them about what they're consenting to?",
+      "And what is it about the order of the cuts that is making the truth of the footage and the feeling of the sequence pull apart in this way?",
+      "And what is the one thing that the big 'sustainable' label on the tag is actually verifying, given that the fabric is recycled but the whole-garment claim may not hold?",
+      "And what would need to change about the way the smart speaker shows it's listening for you to feel like you're being helped, rather than watched?",
+      "And what is the one number that actually matters being a proxy for, in this dashboard you're designing?",
+      "And what would make your \"clean and modern\" actually different, rather than just another version of what everyone else is doing?",
+      "And what would be the first step you could remove, and whose fear would that most directly challenge?",
+      "If a careful reader noticed you had truncated the axis to make the change look that large, would they feel like they're seeing the real story or a version of it that's been exaggerated for effect?",
+      "And what is it about the efficiency of your clinic token system that you think is making the unfairness of someone being seen first for a 'quick' thing louder, rather than quieter?",
+      "And when you say your streak notifications \"punish people for having a life outside the app\", what is it about having a life outside the app that your notifications are interrupting?",
+      "And what would happen if the design you're creating didn't erase people, but instead, made the database's requirement for a binary gender dropdown visible and questionable?",
+      "And what would be the first sign that someone using your feed has crossed from engaged to trapped?",
+      "And what is it about the unboxing experience that you want to last beyond those initial thirty seconds, if anything?",
+      "And when the system decides to be strict, what is it assuming about the user that leads it to blame them for the invalid input?",
+      "And what would happen if you designed the museum route so that visitors could exit or pause at any point, rather than being funneled through every gallery?",
+      "And what would you be trying to inform people about, if you removed the 'most popular' badge and the struck-through price, and designed those elements to genuinely inform rather than steer?",
+      "And is the friction you're adding to the returns flow intended to serve a purpose for the customer, or is it solely a means to enforce a policy decision?",
+      "And what would you want to happen when someone with low vision tries to read the text you've designed, given that you're drawn to the elegant version despite knowing its limitations?",
+      "And what is that gratitude thanking the chatbot for, exactly, when it says \"I understand how you feel\" and the user knows it doesn't?",
+      "And what would be the first step in designing station signage that assumes not everyone reads English, in a way that doesn't compromise the 'clean' design you're aiming for?",
+      "And what would happen to their engagement with the subject if you removed the leaderboard and the speed scoring, so the only thing left to \"play\" was the thinking itself?",
+      "And are the images that get picked the ones that most accurately represent the community, or are they the ones that most effectively evoke a certain response from the viewer?",
+      "And what would happen to your business if people didn't forget to cancel, and the conversion relied on them actively choosing to continue?",
+      "And what would be lost if you stripped this logo back to \"as little design as possible\", to the point where it was no longer loud and aggressive, but still served the product and its user honestly?",
+      "Is the friction you've engineered to encourage payments the kind of obstacle players would voluntarily accept as part of the game, or is it incidental friction they're tolerating to get to the rest of the experience?",
+      "And what would be the first thing to take out of this complaint form, to make it more likely that people will actually finish it and have their concerns heard?"
+    ]
+  }
+}

@@ -1,0 +1,198 @@
+{
+  "models": [
+    "gemini31lite",
+    "qwen3-30b",
+    "mistral-24b",
+    "deepseek31",
+    "gemma-27b",
+    "llama-70b"
+  ],
+  "inputs": [
+    {
+      "goal": "redesign a hospital discharge form so patients actually read it",
+      "msg": "My discharge form is complete but nobody reads it. I'm told to make it 'clearer', but I think it's written for the hospital's liability, not the patient's understanding."
+    },
+    {
+      "goal": "make a protest poster that still has bite",
+      "msg": "My protest poster keeps getting called 'striking' and 'beautiful', and that praise makes me feel like it's failed — it's become decorative, something to admire instead of act on."
+    },
+    {
+      "goal": "design a tutorial that respects the player",
+      "msg": "My game tutorial holds the player's hand through everything. It works — nobody gets stuck — but nobody discovers anything, and the game feels solved before it starts."
+    },
+    {
+      "goal": "design a memorial people actually stop at",
+      "msg": "I designed a memorial and watched people walk straight past it. It's dignified and tasteful, and I think that's exactly the problem — it's so respectful it's invisible."
+    },
+    {
+      "goal": "design a consent flow that is honest",
+      "msg": "My cookie consent flow is technically compliant, but I built it so people click 'accept all', and I know that's the point, and I feel like a fraud."
+    },
+    {
+      "goal": "edit a documentary fairly",
+      "msg": "In the edit, my subject keeps coming across as guilty. I'm not adding anything false — just the order of the cuts — but the truth of the footage and the feeling of the sequence are pulling apart."
+    },
+    {
+      "goal": "design honest sustainability labelling",
+      "msg": "The fabric is recycled, that part's real, but the big 'sustainable' label makes a whole-garment claim the garment can't back, and I'm the one designing the tag."
+    },
+    {
+      "goal": "design a smart speaker that does not feel like surveillance",
+      "msg": "Our smart speaker's always-on mic is genuinely useful, but in a home it feels like surveillance, and the little 'listening' light somehow makes it worse, not better."
+    },
+    {
+      "goal": "design a dashboard that surfaces what matters",
+      "msg": "My dashboard shows everything and the user sees nothing — I keep adding charts to look thorough, but it just buries the one number that actually matters."
+    },
+    {
+      "goal": "make a rebrand that is actually distinct",
+      "msg": "The rebrand brief says 'clean and modern', and that's killing me — every competitor says the same, and I can't tell if mine is actually different or just another sans-serif on white."
+    }
+  ],
+  "gens": {
+    "gemini31lite-a": [
+      "If the form is written for the hospital's liability, what does it communicate to the patient about who the document is actually for?",
+      "When you hear the word 'beautiful' used to describe your protest poster, what is the specific quality in the work that you fear is being anaesthetised?",
+      "When you consider the difference between a player being stuck and a player discovering something, what is the specific point where the tutorial stops being a guide and starts being the solution?",
+      "If the memorial is so respectful that it becomes invisible, what would it need to do to stop people from walking straight past it?",
+      "When you say you feel like a fraud, what is the difference between the consent you are designing and the consent you would feel honest about?",
+      "When you look at the sequence that makes your subject appear guilty, what is the specific relation between those shots that creates that feeling?",
+      "When you look at the gap between the recycled fabric and the whole-garment claim, what is the specific piece of the garment's life that the label is currently failing to account for?",
+      "When you see the 'listening' light, does it feel like a signal of transparency, or does it feel like a reminder that you are being watched?",
+      "When you add a chart to look thorough, what is the one number that actually matters competing with?",
+      "When you look at your work and the competitors' work, what is the specific, non-generic thing that makes yours \"actually distinct\" rather than just \"clean and modern\"?"
+    ],
+    "gemini31lite-b": [
+      "If the form is written for the hospital's liability, what does it communicate to the patient about who the document is actually for?",
+      "When you hear the word \"beautiful\" used to describe your protest poster, what is the specific quality in the work that you fear is being anaesthetised?",
+      "When the player is no longer discovering anything, what is the specific part of the tutorial that is preventing them from finding the pattern themselves?",
+      "When you say the memorial is so respectful it's invisible, what would it have to become to make someone stop?",
+      "When you look at the 'accept all' button, what is the difference between the person who clicks it because it is efficient and the person who clicks it because they feel they have no other choice?",
+      "When you look at the sequence that makes your subject appear guilty, what is the specific relationship between the shots that creates that feeling?",
+      "When you look at the tag you are designing, what specific evidence does it provide to the wearer that justifies the \"sustainable\" claim for the whole garment?",
+      "If the \"listening\" light is intended to signal transparency, what does it make the user feel they are being transparent about?",
+      "When you add a chart to look thorough, what is that chart doing to the one number that actually matters?",
+      "When you look at the \"clean and modern\" work of your competitors, what is the specific thing they are all doing that makes them look the same to you?"
+    ],
+    "qwen3-30b-a": [
+      "And when you say the form is written for the hospital’s liability, not the patient’s understanding — what does that mean, exactly, about the kind of message it’s actually sending?",
+      "And when you say the poster has become decorative, what kind of thing does that make the viewer’s action — or inaction — feel like?",
+      "And when the tutorial holds the player’s hand through everything, what kind of discovery — or what kind of learning — is being prevented from happening?",
+      "And what kind of presence would this memorial have if it didn’t need to be so respectful?",
+      "And what does it feel like, to be the kind of person who builds something that feels like a fraud — even when it works?",
+      "And what does the sequence make feel true, even if it isn’t in the footage?",
+      "And what part of the garment’s life — from making to wearing to letting go — is the label pretending to cover, when it can’t?",
+      "And when the listening light is on, what does that small signal make feel more present — the usefulness, or the sense of being watched?",
+      "And what happens to the one number that actually matters when it’s buried under all the charts you’re adding?",
+      "And what does \"clean and modern\" actually hold up in your rebrand — and what happens if you take that away?"
+    ],
+    "qwen3-30b-b": [
+      "And when you say it's written for the hospital's liability, not the patient's understanding — what does that difference make visible about what the form is really for?",
+      "And when you say the poster has become decorative, what kind of thing does that make it feel like it’s no longer doing?",
+      "And what kind of learning is lost when the player never has to figure anything out for themselves?",
+      "And what kind of presence would this memorial have if it didn’t need to be so respectful?",
+      "And what does it feel like, to be the kind of person who builds something that feels like a fraud — even when it works?",
+      "And when the truth of the footage and the feeling of the sequence pull apart — what is the cut doing to the space between them?",
+      "And what part of the garment’s life — from making to wearing to letting go — is the label pretending to cover, when it can’t?",
+      "And when the listening light is on, what does it make you feel — seen, watched, or something else?",
+      "And what happens to the one number that actually matters when it’s buried under all the charts you’re adding?",
+      "And what does \"clean and modern\" actually hold up in your rebrand — and what happens if you remove it?"
+    ],
+    "mistral-24b-a": [
+      "And when you say it's written for the hospital's liability, what does that look like in the form?",
+      "And when you say it's become something to admire instead of act on, what's the difference for the viewer?",
+      "And when the player follows the tutorial's hand, what is it that they are not discovering?",
+      "And when people walk past it, what is that walk-past saying about what the memorial is for?",
+      "And is there anything else about the feeling of fraud?",
+      "And when the truth of the footage and the feeling of the sequence pull apart, what happens to the viewer's sense of what is real?",
+      "And when you say the garment can't back the whole claim, what part of the claim is it *not* backing?",
+      "And when the light is on, what does that make you notice about the speaker?",
+      "And when you say it buries the one number that matters — what happens then?",
+      "And when you say \"clean and modern,\" what is that actually holding up in your design?"
+    ],
+    "mistral-24b-b": [
+      "And when you say the form is written for the hospital's liability, what does that look like in the form itself?",
+      "And when you say it's become decorative, what does that do to the bite you wanted it to have?",
+      "And when the game feels solved before it starts, what is that like for the player?",
+      "And when you say it's \"invisible,\" what kind of invisibility is that?",
+      "And when you say you feel like a fraud, what kind of fraud is that?",
+      "And when the truth of the footage and the feeling of the sequence pull apart, what happens to the viewer's sense of what is real?",
+      "And when you say the label makes a claim the garment can't back, what exactly is it claiming that isn't true?",
+      "And when the listening light makes it worse, what exactly is it making worse?",
+      "And what is that one number that actually matters?",
+      "And when you say \"clean and modern,\" what is that actually holding up in your design that you don't want to lose?"
+    ],
+    "deepseek31-a": [
+      "And when you say it's written for the hospital's liability, what does that meaning communicate to the patient that the function of clarity does not?",
+      "And when you hear \"striking\" and \"beautiful,\" what does that praise make you feel the poster is *not* doing?",
+      "And when the tutorial feels solved before it starts, what is the player no longer learning?",
+      "And what kind of invisible is that dignified and tasteful?",
+      "And what does 'fraud' feel like, in the moment you see someone click 'accept all'?",
+      "And when the truth of the footage and the feeling of the sequence pull apart, what does that gap ask the viewer to believe?",
+      "And what does that 'sustainable' label promise about the whole garment that the recycled fabric alone cannot deliver?",
+      "And what kind of 'worse' is that, when the light makes it feel more like surveillance?",
+      "And when you add charts to look thorough, what happens to the one number that actually matters?",
+      "And when you say 'clean and modern', what is that actually holding up for you — and what happens to the rebrand if you remove it?"
+    ],
+    "deepseek31-b": [
+      "And if you redesigned it for the patient's understanding instead of the hospital's liability, what would be the first thing to change?",
+      "And when you hear 'striking' and 'beautiful', what does that praise make the poster *stop* doing?",
+      "And when the tutorial feels solved before it starts, what kind of discovery is it that the player is missing?",
+      "And when you say dignified and tasteful, what kind of respectful is that respectful that makes it invisible?",
+      "And what kind of fraud is that fraud?",
+      "When you say the truth of the footage and the feeling of the sequence are pulling apart, what does that pulling apart make possible?",
+      "And when you say the garment \"can't back\" the whole-garment claim, what is it that the garment is missing?",
+      "And what kind of 'worse' is that 'listening' light making it?",
+      "And when you say \"the one number that actually matters,\" what is that number standing in for — and what does it stop you seeing?",
+      "When you say \"clean and modern,\" what is that actually holding up in the rebrand that a competitor's version would not?"
+    ],
+    "gemma-27b-a": [
+      "And when you say it’s written for the hospital’s liability, not the patient’s understanding, what makes you say that?",
+      "And when you hear it described as 'striking' and 'beautiful', what is it about that description that makes you feel it's failed?",
+      "And when you say nobody discovers anything, what exactly isn’t being discovered?",
+      "And when people walk straight past it, what is it about the way it is that allows that to happen?",
+      "And when you say you feel like a fraud, what is happening for you in that moment?",
+      "And when you say the “truth of the footage and the feeling of the sequence are pulling apart,” what is different about those two truths?",
+      "And when you say the garment can’t back the whole-garment claim, what specifically isn’t being backed up?",
+      "And when you say it feels like surveillance, what specifically makes it feel that way?",
+      "And when you add those charts to look thorough, what happens to that one number that actually matters?",
+      "And when you say 'different', what specifically would need to be true for the rebrand to feel that way to you?"
+    ],
+    "gemma-27b-b": [
+      "And when you say nobody reads it, what makes you say that?",
+      "And when you hear it called ‘striking’ and ‘beautiful’, what is it about those words that makes you feel it’s failed?",
+      "And when you say the game feels solved before it starts, what is the player *not* discovering that you expected them to?",
+      "And when people walk straight past it, what is it about the way it is that allows that to happen?",
+      "And when you say you feel like a fraud, what is it about building it that way that makes it feel like that?",
+      "And when you say the “truth of the footage and the feeling of the sequence are pulling apart,” what is different about those two truths?",
+      "And when you say the garment can’t back the whole-garment claim, what specifically isn’t being backed up?",
+      "And when you say it feels like surveillance, what is it about the always-on mic that makes it feel that way?",
+      "And when you add those charts to look thorough, what happens to that one number?",
+      "And when you say “another sans-serif on white,” what specifically makes it feel that way?"
+    ],
+    "llama-70b-a": [
+      "And what would need to happen for the discharge form to be written for the patient's understanding, rather than the hospital's liability?",
+      "And when someone calls your poster 'striking' and 'beautiful', what do you think they are responding to, the issue it's meant to protest or the image itself?",
+      "And when the game feels solved before it starts, is that because the player has already learned everything the tutorial is teaching, or because the tutorial itself is preventing them from discovering anything on their own?",
+      "And what would it have to become, for people to actually stop at it, rather than just walking past something dignified and tasteful?",
+      "And what would it mean for your cookie consent flow to be honest, if \"technically compliant\" is not the same as honest to you?",
+      "And what is it about the order of the cuts that is making the truth of the footage and the feeling of the sequence pull apart in this way?",
+      "And what is the one part of the garment's whole life, from use to disposal, that the big 'sustainable' label on your tag is actually referencing, if not the fabric alone?",
+      "And what would need to happen for that 'listening' light to make the speaker feel more like a helpful tool, rather than surveillance, to someone in the home?",
+      "And what is that one number that actually matters, that you feel is getting buried under all the other charts?",
+      "And what would make your \"clean and modern\" actually distinct, rather than just another version of what the competitors are already doing?"
+    ],
+    "llama-70b-b": [
+      "And what would need to change in the discharge form so that it is written for the patient's understanding, rather than just the hospital's liability?",
+      "And when someone calls your poster 'striking' and 'beautiful', what do you think they are responding to, the issue it's meant to address or the image itself?",
+      "And when the game feels solved before it starts, is that because the player has already learned everything the tutorial is teaching, or because the tutorial itself is preventing them from discovering anything on their own?",
+      "And what would it have to become, for people to actually stop at it, rather than just walking past something dignified and tasteful?",
+      "And what would it mean for your cookie consent flow to be honest, if \"technically compliant\" is not the same as honest to you?",
+      "And what is it about the order of the cuts that is making the truth of the footage and the feeling of the sequence pull apart in this way?",
+      "And what is the one thing that the big 'sustainable' label on the tag is actually verifying, versus what it implies about the whole garment?",
+      "And what would need to happen for that 'listening' light to make the speaker feel more like a helpful tool, rather than a surveillance device, in your home?",
+      "And what is the one number that actually matters, that you feel is getting buried under all the other charts?",
+      "And what would make your \"clean and modern\" actually distinct, rather than just another iteration of the same?"
+    ]
+  }
+}

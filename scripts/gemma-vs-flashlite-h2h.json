@@ -1,0 +1,247 @@
+{
+  "total": {
+    "w": 9,
+    "t": 0,
+    "l": 15
+  },
+  "perJudge": {
+    "anthropic/claude-haiku-4.5": {
+      "w": 4,
+      "t": 0,
+      "l": 4
+    },
+    "openai/gpt-5.4-mini": {
+      "w": 1,
+      "t": 0,
+      "l": 7
+    },
+    "deepseek/deepseek-chat-v3.1": {
+      "w": 4,
+      "t": 0,
+      "l": 4
+    }
+  },
+  "winRate": 0.375,
+  "ci": [
+    0.21159133433631455,
+    0.5729038096209293
+  ],
+  "seeds": [
+    {
+      "seed": "making onboarding feel calmer for a meditation app, without losing sign-ups",
+      "gemma": [
+        "And what would need to happen for someone to feel calm *while* still committing to signing up?",
+        "And what would it mean to find out whether delaying the data capture actually *does* lose them?",
+        "You got more specific just now about what would make you scrap the idea — and what would happen if you focused on time spent in the app instead?",
+        "And what would change if you allowed yourself to be okay with having no data?",
+        "And what would it look like to design the soundscape *as* the invitation?",
+        "And what would be different if that \"gentle chime\" felt less like an invitation and more like a request?",
+        "And what would happen if \"keeping their silence safe\" still felt like a transaction, even with different words?",
+        "And what would it mean to truly let the session end, with no expectation of a return?",
+        "And what would it mean to trust that their way back would be different than the way you imagined?",
+        "And what would be lost if they only remembered the color of the background?"
+      ],
+      "flash": [
+        "When you watch those soft, slow-fading transitions, how do you distinguish between a sense of calm intentionality and the feeling of a lagging interface?",
+        "When you consider that gentle pulse as a deliberate breath, what is it about that specific movement that prevents it from becoming just another distraction?",
+        "You’ve identified that the pulse needs to match the rhythm of a breath to avoid becoming a distraction; when you test that rhythm against the time a user actually needs to read the personal interest questions, how do you decide when the transition has become a wait rather than a guide?",
+        "If the transition only completes upon the user's selection, how might that shift the experience from a passive wait to an active choice?",
+        "When you imagine the screen waiting for a command, what is it about that interaction that feels at odds with the calm atmosphere you are trying to create?",
+        "If the transition is a conversation rather than a command, what does the interface do to signal that it is listening to the user's touch?",
+        "You’ve moved from a mechanical trigger to a ripple that acts like a nod; when you imagine that ripple, what is the difference between a gesture that says \"I heard you\" and one that says \"tap here\"?",
+        "When you imagine the text yielding to the touch, how does that physical sense of yielding communicate the \"nod\" you are looking for without becoming a visual distraction?",
+        "When you think of the interface having mass like a book page, what does that physical quality allow the user to do that a cold, digital wall prevents?",
+        "If the app’s value lies in this physical sense of weight, how does that weight change the way a user experiences the transition from the sign-up flow into the meditation itself?"
+      ]
+    },
+    {
+      "seed": "a campus wayfinding app students actually trust over Google Maps",
+      "gemma": [
+        "And when students choose those unofficial routes, what are they prioritizing over following the official paths?",
+        "And if the app *did* show both the official paths and the shortcuts, but clearly marked the shortcuts as “unofficial,” how might that change how a student perceives their choice?",
+        "You’ve named a tension between feeling empowered by a deliberate choice and feeling scolded by the administration—and what would it look like if the app amplified *both* of those feelings?",
+        "And what might be the consequence of a student consistently choosing the route that frames rule-breaking as a shared joke with the app?",
+        "And if someone *did* get in trouble after following the app’s suggestion, what would be the difference between that and simply getting lost because of a faulty map?",
+        "And what would need to be true for the app to suggest a route *and* maintain that trust, even if it meant a slower route?",
+        "You got more specific just now about building a reputation for reliability—and what would that reputation need to withstand?",
+        "And what would need to be true for a student to trust that voice, even when they’re already running late?",
+        "And what would it look like to *demonstrate* that bigger picture to a student who is already late?",
+        "And if that visual overlay consistently proves accurate, what might a student begin to expect from the app?"
+      ],
+      "flash": [
+        "When you consider the difference between an unofficial shortcut and an unreliable path, what is the specific evidence that makes a route worth trusting?",
+        "You’ve distinguished between a path being well-trodden and it being well-maintained; when you consider tagging these as \"community paths,\" are you protecting the student from the mud pit, or are you protecting the app from the reality of the route?",
+        "If you include a warning icon to account for the mud, are you designing a tool that helps students navigate the reality of the campus, or are you designing a way to shift the responsibility for that reality onto them?",
+        "If the app changes based on the rain, what does that shift in the interface communicate to the student about the relationship between the map and the campus?",
+        "If the map becomes a conversation about whether a path is worth the effort, what is the primary signal that tells the student you are still the one in control of that conversation?",
+        "You’ve identified that you are still the one steering the experience; if you were to remove the \"best\" backup path entirely, what would that change about the conversation between the student and the campus?",
+        "If the app describes the terrain instead of solving the transit problem, what is the specific moment when the student stops being a user and starts being an explorer?",
+        "When you remove the colored line and leave the student with the terrain, what is the specific obstacle that makes the choice of path an activity worth doing?",
+        "If the student is tasked with reading the campus symptoms for themselves, what is the difference between an app that provides the data to help them read those symptoms and an app that simply performs the reading for them?",
+        "You’ve distinguished between providing a binary judgment and giving the student the vocabulary to synthesize their own decision; when you provide that vocabulary, how do you ensure the student feels empowered to read the symptoms rather than just feeling abandoned by the lack of a clear answer?"
+      ]
+    },
+    {
+      "seed": "redesigning a hospital discharge letter so patients understand it",
+      "gemma": [
+        "And what specific detail, if removed, do you anticipate would most concern the doctors regarding liability?",
+        "thought\nAnd what would it take for you to know that a \"pill\" icon is a safe replacement for the clinical instruction?",
+        "thought\nAnd what happens to the patient's understanding of their \"daily rhythm\" if they have to engage with the \"messy clinical note\" to find out if a medication needs to be taken with food?",
+        "thought\nAnd what does a \"dinner plate symbol\" assume the patient already knows about the relationship between that symbol and their medication?",
+        "thought\nAnd what does the patient lose in their \"daily rhythm\" when the visual timeline is replaced by text prompts at the top?",
+        "And what would it look like to preserve that \"intuitive grasp\" while also ensuring the patient understands *how* that grasp is formed?",
+        "thought\nAnd if the patient remembers the color of the medication but forgets the meaning of that color, what happens to their recovery plan?",
+        "thought\nAnd what happens to the \"intuitive grasp\" of the recovery plan when the clarity of a tethered text prompt takes precedence over the aesthetic of the timeline?",
+        "thought\nYou just shifted the focus from the screen to the physical world.\n\nAnd what does the visual timeline let the patient see that the physical pill bottle and water glass cannot tell them?",
+        "thought\nAnd what has been thrown away from the \"map of their progress\" to make that progression visible?"
+      ],
+      "flash": [
+        "When you move the \"what happens next\" section to the top, what is it that you fear the medical history page might lose if it no longer comes first?",
+        "If the medical history is the \"why\" that provides context for the \"what happens next,\" what would happen if the \"what happens next\" were designed to explicitly point back to that history?",
+        "If you use these call-outs to force that connection, what happens to the patient's journey when they are no longer required to read the medical history in its entirety?",
+        "If you prioritize efficiency by only providing context when an instruction calls for it, what is the patient losing the opportunity to notice on their own?",
+        "You have identified a tension between making the information easy to digest and allowing the patient to see the forest for the trees.\n\nIf you want the patient to reconcile their current state with where they started, what would the discharge summary need to show that a task-by-task view currently hides?",
+        "When you consider adding a visual timeline to show that transformation, what makes you confident that this is the right way to help them see the forest, rather than just another piece of information they might feel overwhelmed by?",
+        "When you imagine Sarah stopping to look at that single slope, what is the specific signal you want her to take away from it that the current wall of noise obscures?",
+        "If you use a visual slope to signal that she is a person who is successfully recovering, what happens to the \"wall of noise\" that remains in the rest of the document?",
+        "You have identified that the medication table needs to function as a tool of recovery rather than a list of demands.\n\nIf you were to design the medication table to be the supporting evidence for the recovery story, what would you have to take out of it to ensure it no longer feels like a bureaucratic chore?",
+        "If you replace the rigid, multi-column dosing schedules with human-readable labels, what is the risk that Sarah might misunderstand the precision required for her recovery?"
+      ]
+    },
+    {
+      "seed": "a museum label system for objects with contested histories",
+      "gemma": [
+        "And when you imagine the visitor *not* staring at their phone, what is happening instead?",
+        "And what would need to be true for the rotating blocks to feel like a confrontation, rather than a toy?",
+        "And if the friction *didn't* stop it from feeling like a game, what would be the consequence?",
+        "You named the risk as detaching from the weight of what the text says—and what would make that weight *felt*?",
+        "And what would be lost if that silence were broken?",
+        "And what would need to be *different* about that \"check off\" for it to become an encounter?",
+        "And what would change if the discomfort of holding the block *didn’t* relate to the narrative itself?",
+        "You named the need for the resistance to feel intentional—and if it doesn’t, what is the visitor likely to assume about *you*?",
+        "And if you were a visitor encountering this design and feeling that way, what would you need to see to believe you *weren’t* being used?",
+        "And what would be risked by leaving the conversation unresolved?"
+      ],
+      "flash": [
+        "If the user must physically manipulate the label to reveal the colonial context, what does that act of revealing suggest about the status of the primary historical account?",
+        "If the primary account is slightly obscured by the weight of what has been omitted, what does that initial lack of clarity invite the user to do?",
+        "If the primary account is designed to look eroded to signal that it is incomplete, how do you ensure the user perceives that erosion as a deliberate invitation to decode rather than a failure of legibility?",
+        "If the erosion is designed to look like structural decay, how does that visual choice distinguish between the \"official\" history being incomplete and the label itself being damaged?",
+        "If the brittle foil flakes away to reveal the colonial context, what does that physical transformation communicate about the permanence of the \"official\" history?",
+        "If the label becomes a living, shifting record that changes throughout the day, how does that affect the museum's role as the authority that anchors the meaning of the object?",
+        "You identified that the museum's authority is actually quite brittle. If the museum allows this label to exist, what does that reveal about their willingness to share the power to define the object's history?",
+        "If the museum is using this label as a safety valve to co-opt the critique, what would the label need to do to ensure the power to define the object's history genuinely shifts away from the institution?",
+        "If the museum shifts from being the narrator to being the infrastructure, what happens to the label when the visitors' contributions begin to conflict with one another?",
+        "If the label becomes a chaotic, layered archive of disagreement, what does that transformation suggest about the museum's original intent to provide a definitive historical account?"
+      ]
+    },
+    {
+      "seed": "a board game that teaches monsoon water-harvesting to school kids",
+      "gemma": [
+        "And when the board gets cluttered with tokens, what part of the feeling of a storm gets lost?",
+        "And what would need to change for it to feel more like a downpour passing through?",
+        "thought\nYou moved from counting tokens to the idea of water actively escaping.\n\nAnd if the water is actively escaping, what happens to the \"filtration\" mechanic?",
+        "And if the game becomes more frantic, what about learning about water quality gets lost?",
+        "And if the players aren’t thinking about *why* they’re filtering, what is the game actually teaching them?",
+        "thought\nAnd if the purification process feels like a chore that gets in the way of winning, what is the system claiming about the relationship between the storm and the science?",
+        "thought\nYou've named a tension between the storm as the \"real\" game and the water quality as a \"bookkeeping tax.\"\n\nAnd if the safety of the water is the ultimate goal, what would it look like for the science to be the way the player wins?",
+        "thought\nThe learner has shifted the win condition from volume (raw capture) to quality (treated water).\nThe \"filtration\" is now the \"engine\" of the game.\nThe \"dirty\" water doesn't help you win.\n\nI need to sharpen this.\nThe domain material mentions the \"magic circle\" (what is inside the game vs. what is outside).\nThe learner is designing a game to teach school kids about water harvesting.\nThe tension is: if the \"dirty\" water doesn't count toward the win, does that make the \"dirty\" water invisible or irrelevant once it's captured? Or does it create a new tension?\n\nWait, the prompt asks to sharpen the goal.",
+        "And if letting dirty water slide by causes you to lose progress, what does that say about the relationship between speed and safety in the game?",
+        "thought\nAnd when the player has to wait for the right moment to intervene, what does that wait do for their understanding of the filtration process?"
+      ],
+      "flash": [
+        "If you were to adjust the overflow mechanic so that it no longer causes the whole thing to collapse, what would the players be left to overcome instead?",
+        "If you were to remove the instant-loss penalty, what would be the specific social friction that forces players to negotiate who takes on the water?",
+        "As you decide which player gets the fertility boost and which player deals with the mud, what specific rules or mechanics are you authoring to ensure that this negotiation remains a social choice rather than a predetermined outcome?",
+        "When a player holds a limited number of sluice tokens, does the uncertainty of the game arise from the physical scarcity of the tokens or from the unpredictability of their neighbor's choice?",
+        "If the sluice tokens are held in a communal pool rather than personal hands, what prevents a player from simply refusing to participate in the social gamble?",
+        "If the water defaults to the most vulnerable player, does that shift the game from a shared social gamble to a system where the players are simply competing to avoid being the one who loses?",
+        "That shift from a target to a collective cost makes the consequence of stalling shared, but what does that system claim about the nature of cooperation when the flood level rises?",
+        "If the rising cost of the game is what forces players to talk, what does that imply about the difference between a community built on shared goals and a community built on shared survival?",
+        "If the communal harvest bonus requires everyone’s sluice tokens to be active at once, what happens to the players who are not yet ready to commit their tokens to that shared success?",
+        "When you shift the focus from managing a crisis to unlocking a communal harvest, how does the uncertainty of whether a player will commit their token change the way the group views its own members?"
+      ]
+    },
+    {
+      "seed": "getting people to actually read the terms before they tick the box",
+      "gemma": [
+        "And what would have to happen for someone to actually *read* the terms, even with the red highlighting?",
+        "And what would need to be true for clicking \"next\" to feel like engagement, rather than just another step to bypass?",
+        "And what would need to be true for a user to perceive that trade-off as *their* concern, rather than just another term they're agreeing to?",
+        "And what might make those specific permission toggles feel less like hurdles and more like genuine choices?",
+        "And if you were a user signing up, what feeling would make you *want* to click those benefit-framed toggles on?",
+        "And what would need to be true for that “something tangible” to feel worth the trade?",
+        "You named a feeling of investment – and what would be missing if that feeling *didn’t* arise?",
+        "And what would be lost if that confirmation was *too* obvious or persistent?",
+        "And what would be different if the user *expected* that confirmation to appear?",
+        "And if they were already expecting to be consulted, what would the very first moment of the sign-up flow *look* like?"
+      ],
+      "flash": [
+        "When the contract re-writes itself into plain English, what is the specific point at which you fear the user might experience it as condescending rather than helpful?",
+        "If the amount of text is the primary barrier, what happens to the user's experience if you change the visual register of that text rather than the complexity of the language itself?",
+        "You’ve moved from trying to simplify the language to presenting the weight of the agreement as a reference document.\n\nWhen you present the agreement as a document to be scanned rather than a narrative to be read, what happens to the user's responsibility for what they are ticking?",
+        "If the system is designed to be opaque, what would happen if the procedure you built forced the user to physically interact with the weight of that agreement before they could tick the box?",
+        "When you describe the slider as a \"literal physical chore,\" what is the difference between that sensation of resistance and the kind of engagement that would actually make the terms feel transparent?",
+        "If you choose to turn on the lights only for the clauses they are worried about, who is deciding which corners of the room are the ones that matter?",
+        "You’ve identified that the designer’s bias is the source of the shadow, and that adding user-selected topics creates a new kind of friction.\n\nIf you prioritize the user’s ability to define what matters over the speed of the process, what does that change about the purpose of the agreement itself?",
+        "If the agreement becomes an informational tool for the user to interrogate the company, what is the specific signal that tells them they have found enough information to trust you?",
+        "If the progress bar provides a sense of completion, what is the difference between that feeling of being \"done\" and the actual state of having understood the implications?",
+        "If the progress bar is a metric that risks replacing the user's critical thinking with a false sense of completion, what would happen if you designed the interface to leave the user feeling intentionally \"incomplete\" instead?"
+      ]
+    },
+    {
+      "seed": "making a government form for a widow’s pension humane",
+      "gemma": [
+        "And when you say it feels colder as it gets clearer, what specifically is changing in that experience?",
+        "And what would it look like to treat the user’s loss *as* the context, rather than something separate from the data being collected?",
+        "And when you imagine grouping questions by life tasks, what shift do you anticipate in the user’s experience of providing that information?",
+        "And if the interface is guiding them through a checklist of things they probably have to do anyway, what might be lost in that experience?",
+        "And if the interface acknowledged the possibility of needing to stop and breathe, how might that change the feeling of being “processed”?",
+        "And what might be the consequence of explicitly acknowledging that emotional state within the interface itself?",
+        "And if the system *is* flexible enough to accommodate exhaustion without labeling it, what feeling might that flexibility unintentionally communicate?",
+        "And how would a feeling of *reliability* differ from a feeling of simply being *allowed* to step away?",
+        "And if the system communicates care through security, what might be lost in that communication?",
+        "And if \"secure\" isn't compassionate, what would a compassionate system *feel* like to navigate?"
+      ],
+      "flash": [
+        "When you look at the \"reason for death\" field, what is the specific information the government requires that makes the current tone feel like an interrogation rather than a help?",
+        "If you were to replace the drop-down menu with a request for the death certificate reference number, what specific bureaucratic need would remain unaddressed?",
+        "If you were to move the \"reason for death\" question to a later stage in the process, what would the user experience while they wait for the system to cross-check the certificate number?",
+        "If you use a progress tracker to highlight bereavement resources while the system verifies the certificate, what does that interaction make visible to the user about the purpose of the wait?",
+        "You got more specific about the difference between a mechanical glitch and a system preparing to help just now.\n\nIf the system is not yet certain of the user's eligibility, what is the risk of showing them that the system is \"connecting\" them to those services?",
+        "If you shift the focus to resources available to everyone, what does that change about the role the system plays while it verifies the certificate?",
+        "If the system is simultaneously verifying the certificate and offering universal resources, what does the user need to understand about the relationship between those two activities?",
+        "If you use that micro-copy to separate the resources from the claim status, what does that reveal about the extent to which you are designing a service versus designing a conversation?",
+        "That named the real tension between a transaction and a conversation.\n\nIf you are designing a conversation that holds space for someone, what does the system need to be able to do when the user responds to those resources?",
+        "If the system allows the user to \"park\" the application in a drawer while they explore resources, what does that interaction imply about the user's control over the pace of the conversation?"
+      ]
+    },
+    {
+      "seed": "a critical-design piece about how much data a loyalty card really takes",
+      "gemma": [
+        "And what feeling are you trying to create with this piece?",
+        "And what would need to happen for someone to *not* treat the receipt as abstract art?",
+        "And what feeling would *that* physicality—being physically trapped—most directly evoke?",
+        "You got more specific just now—what would need to happen for it to read as a critique, rather than a prank?",
+        "And what would make those specific timestamps feel terrifyingly accurate, rather than just detailed?",
+        "And what feeling would that silence—just the clicking—create, compared to any other sound?",
+        "And if the data *felt* inevitable, what would be left to critique?",
+        "And what would be different if the user *believed* the \"Cancel\" button could work?",
+        "And what would be different if *you* felt more comfortable with them being angry at the machine?",
+        "And if their anger *is* the point, what would need to be different about the experience to make that clear?"
+      ],
+      "flash": [
+        "If the miles of thermal paper were to feel like a boring, bureaucratic administrative error, what would that reveal about the nature of the data itself?",
+        "If the machine is filling space to avoid admitting it doesn't have a \"life history,\" what does that indifference do to the user's relationship with the loyalty card they just swiped?",
+        "If the card becomes a punchline that you want to throw in the bin, what does that act of disposal say about the \"life history\" the machine just printed for you?",
+        "That named the real tension: if the card and the receipt are both disposable, what is the value of the \"life history\" that the machine is pretending to print?",
+        "If the value is found in the effort wasted rather than the data itself, what does that make the kiosk: a mirror of the system, or a participant in the performance?",
+        "If you are the lead actor with no lines in a play where the kiosk is the stage manager, what is the audience actually watching?",
+        "If the audience is watching you perform a search for meaning in junk mail, what does the kiosk need to do to ensure they see the performance rather than just the junk?",
+        "You just moved from the kiosk as a stage manager to the kiosk as a physical force that crowds you; if the kiosk is forcing the audience to watch you being buried, what is the specific sound or movement that makes that burial feel like a performance rather than a malfunction?",
+        "If that rhythmic, artificial heartbeat is what keeps you trapped in the performance, what happens to the experience the moment the printing finally stops?",
+        "If the sudden silence leaves you standing in a pile of your own history, is that moment of exposure the point where the performance ends, or is it where the real work of the piece begins?"
+      ]
+    }
+  ]
+}

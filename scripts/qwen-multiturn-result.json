@@ -1,0 +1,205 @@
+{
+  "stone": "google/gemma-3-27b-it-qat-q4_0-unquantized",
+  "convos": [
+    {
+      "seed": "making onboarding feel calmer for a meditation app, without losing sign-ups",
+      "guardPass": 10,
+      "avgConsec": 0.15263583547897272,
+      "maxPair": 0.3333333333333333,
+      "dupOpen": 1,
+      "nudgesFired": 2,
+      "questions": [
+        "And when you say the conversion flow feels too hidden or accidental, what specifically makes you say that?",
+        "And when Sarah closed the app, what part of the experience was she trying to continue?",
+        "And what makes you say the transition feels like \"slamming the door shut\"?",
+        "And what would fading in the text field with the same rhythm accomplish, specifically?",
+        "And if the text field *did* appear with the same rhythm as the breath, would that change how Sarah might have responded?",
+        "You got more specific just now about how Sarah might respond—and what makes you suspect that even a calmer intrusion is still a problem?",
+        "And if you removed the request for a commitment entirely, what would happen?",
+        "And what would it mean for the app to be a \"disposable\" tool?",
+        "And what would it mean to be okay with the app being a fleeting comfort?",
+        "And what would \"success\" look like if it wasn't measured by user capture?"
+      ]
+    },
+    {
+      "seed": "a campus wayfinding app students actually trust over Google Maps",
+      "guardPass": 10,
+      "avgConsec": 0.12169900058788949,
+      "maxPair": 0.35714285714285715,
+      "dupOpen": 3,
+      "nudgesFired": 3,
+      "questions": [
+        "And when you say \"cluttered,\" what specifically makes it feel that way to someone rushing to class?",
+        "You got more specific just now about where the clutter feels most urgent—and if someone only needs the \"next\" move, what information is actually fighting for attention?",
+        "And when you say \"irrelevant,\" what makes that building data irrelevant to someone who is already navigating?",
+        "And when you say \"accuracy,\" what does that accuracy actually *do* for someone who's already late?",
+        "And what would change if you thought of the app less as a map and more as a compass?",
+        "You got more specific just now about stripping away the basemap—and if the user *does* get confused about which corridor they’re in, what would be the consequence?",
+        "And if you dim the walls back to full opacity at decision points, what would signal *which* decision points matter?",
+        "And if the building \"wakes up\" only at the threshold, what would that feel like for someone who is already anxious about being late?",
+        "And if it feels less like homework, what might someone *miss* by not scanning those four hallways?",
+        "And if they can't make their own judgment calls, what does that mean for their trust in the app when something *does* unexpected happen?"
+      ]
+    },
+    {
+      "seed": "redesigning a hospital discharge letter so patients understand it",
+      "guardPass": 10,
+      "avgConsec": 0.15193948539994817,
+      "maxPair": 0.3181818181818182,
+      "dupOpen": 6,
+      "nudgesFired": 0,
+      "questions": [
+        "And when you say both seem equally critical depending on the patient’s anxiety level, what is happening then?",
+        "And when you picture them feeling shaky at the kitchen table, what specifically makes you think they would panic at the volume of pills first?",
+        "And when you say it feels like a job to perform, what part of that feeling comes from the checkboxes themselves?",
+        "And when you say it feels lonely, like you’re doing the doctor’s work, what specifically makes you feel that way?",
+        "And when you say the responsibility feels dumped entirely onto you, what is different about that feeling than when you were in the hospital?",
+        "And when you say that piece of paper becomes the only thing standing between you and another trip to the ER, what specifically makes it feel that way?",
+        "And what would need to be different about that paper for it to feel less like a test?",
+        "And when you say it needs to sound like someone is actually talking to you, what specifically is missing from the current language that makes it feel impersonal?",
+        "And what specifically about the language suggests it’s designed to protect the hospital from liability?",
+        "And when you say it makes you want to put the document in a drawer, what is it about that feeling that tells you it’s about creating a boundary of fault?"
+      ]
+    },
+    {
+      "seed": "a critical-design piece about how much data a loyalty card really takes",
+      "guardPass": 10,
+      "avgConsec": 0.1663912641079824,
+      "maxPair": 0.375,
+      "dupOpen": 1,
+      "nudgesFired": 1,
+      "questions": [
+        "And when you imagine that ten-foot scroll, what feeling are you hoping to create in the person reading it?",
+        "And if someone *isn’t* shamed by it, but just shrugs it off, what does that tell you about the piece?",
+        "And if the piece *does* feel like a joke, what does that say about how easily surveillance is absorbed into everyday life?",
+        "And if the receipt were actively unpleasant to read, what would that change about the experience of being watched?",
+        "And if the feeling is one of interrogation, what specifically about the experience of reading is doing that work?",
+        "And if the eye *can't* find sense in it, what does that suggest about the store's attempt to communicate through data?",
+        "And if the ritual feels hollow, what does that suggest about what the store is trying to hide?",
+        "And if the store is performing a pantomime of knowing you, what is it afraid of finding out?",
+        "And if the data is garbage, what does that suggest about who is really being observed?",
+        "And if the receipt showed the system’s failure, rather than the customer’s movements, what feeling would that create?"
+      ]
+    },
+    {
+      "seed": "a museum label system for objects with contested histories",
+      "guardPass": 10,
+      "avgConsec": 0.11526003713826213,
+      "maxPair": 0.25,
+      "dupOpen": 1,
+      "nudgesFired": 3,
+      "questions": [
+        "And when you imagine people playing with the mechanics instead of reading, what is it about that interaction that feels like a distraction from the history?",
+        "You got more specific just now about the history becoming a backdrop — and what makes that feel like a loss?",
+        "And what would it look like for the interaction to feel less \"light\" in relation to the subject matter?",
+        "And when you say \"loaded\" in that way, what is being carried by that weight?",
+        "And what is different about *you* deciding which narrative is visible, compared to someone simply clicking a slider?",
+        "And what is lost when *you* become so clearly the agent of that erasure?",
+        "And when you say \"complicit,\" what is the history you feel responsible for distorting?",
+        "And what would happen if the visitor didn't have a choice?",
+        "And if the messiness *is* the point, what kind of visitor does that design invite?",
+        "And if the visitor is essentially an investigator, what are they investigating?"
+      ]
+    },
+    {
+      "seed": "a board game that teaches monsoon water-harvesting to school kids",
+      "guardPass": 10,
+      "avgConsec": 0.2310976571974015,
+      "maxPair": 0.5,
+      "dupOpen": 4,
+      "nudgesFired": 2,
+      "questions": [
+        "And when the players are moving those little blue tokens, what are they actually focused on doing?",
+        "And when they're obsessing over the grid alignment, what are they trying to achieve with that precision?",
+        "And what happens when they *do* lose a token?",
+        "And what would need to be different for losing a token to feel like a drought?",
+        "And what would need to be true for a patch of dry, brown crop tiles to feel like a real consequence for the players?",
+        "You got more specific just now about what a loss would mean—and what else would need to be true for that hurt to feel fair?",
+        "And if they could see the water's path beforehand, what would that change about how they experience losing a token?",
+        "And what would need to be true for that realization to feel like a strategic insight, rather than just a correction?",
+        "And what would need to be true for that \"dry run\" phase to feel like a meaningful design decision, rather than just an extra step?",
+        "You got more specific just now about what would make the design decision feel meaningful—and what would happen if they ran out of those survey stakes?"
+      ]
+    },
+    {
+      "seed": "getting people to actually read the terms before they tick the box",
+      "guardPass": 10,
+      "avgConsec": 0.17299208913244002,
+      "maxPair": 0.2727272727272727,
+      "dupOpen": 1,
+      "nudgesFired": 3,
+      "questions": [
+        "And when you see people hitting those sections and the cards popping up, what are you noticing about *how* they're hitting them?",
+        "You got more specific just now about the speed of the interaction—and when you watch people move like that, what does that rhythm tell you about what they’re *not* attending to?",
+        "And when you say you’ve made the interaction “too frictionless,” what specific part of the experience is doing that work?",
+        "And when you designed it for accessibility, what specific problem were you trying to solve with that placement?",
+        "And when you prioritized the physical ease of the tap, what assumption were you making about what would prevent someone from quitting the signup?",
+        "You got more specific just now about equating reading with a roadblock—and what would have to be true for that equation to hold?",
+        "And if they *did* care more about the privacy side than you're giving them credit for, what would they be slowing down to look at?",
+        "And if you were to highlight those two or three \"high-stakes\" points, what would you be signalling about what you believe *matters* to them?",
+        "And if you framed it as a “fair trade,” what would have to be true about how users currently perceive the value they’re getting from the app?",
+        "And if the app itself proved its value first, what would have to change about how you’re currently framing the Terms of Service?"
+      ]
+    },
+    {
+      "seed": "a slow, once-a-day journalling app that resists the urge to notify",
+      "guardPass": 10,
+      "avgConsec": 0.19620913133454077,
+      "maxPair": 0.42105263157894735,
+      "dupOpen": 6,
+      "nudgesFired": 2,
+      "questions": [
+        "And when you say people might just forget it exists, what would make that forgetting feel like a failure?",
+        "And when you say it becomes “another pile of abandoned digital clutter,” what makes this app different from the others in that pile?",
+        "And when you say it feels “empty” rather than “peaceful,” what is missing from the emptiness that would make it peaceful?",
+        "And when you say a “sense of place,” what would that place feel like to be *in*?",
+        "You got more specific just now about wanting it to feel like a place—and what about that feeling of being “watched” makes it clinical?",
+        "And what would make the interface feel less like a “document” and more like a “space”?",
+        "And if the text floated or appeared like fog, what would that change about the feeling of being “watched”?",
+        "And what would make the feeling of “whispering into the room” feel safe enough to be honest?",
+        "You got more specific just now about wanting it to be a release—and what would make that release feel complete?",
+        "And what would make the act of closing the app feel like blowing out a candle?"
+      ]
+    },
+    {
+      "seed": "making a government form for a widow’s pension humane",
+      "guardPass": 10,
+      "avgConsec": 0.16422172200204238,
+      "maxPair": 0.4,
+      "dupOpen": 3,
+      "nudgesFired": 3,
+      "questions": [
+        "And when you say it feels cold and bureaucratic, what specifically makes it feel that way?",
+        "You got more specific just now about the typeface and the heading — and what difference would a different kind of acknowledgement make to what happens next?",
+        "And what is it about expecting them to have the certificate ready that feels transactional and rushed?",
+        "And what would a design that acknowledged that physical, tactile moment *feel* like?",
+        "And what would that quiet conversation actually *say*?",
+        "You got more specific just now about wanting to sound \"present\"—and what would that sound like, concretely?",
+        "And what would happen if the user *isn't* ready?",
+        "And what would it feel like for the user if closing the tab *didn't* feel like losing their place?",
+        "And what would it mean for the interface to feel like a companion, rather than a barrier?",
+        "You got more specific just now about the interface adapting to a bad day versus a productive one—and what would that adaptation actually *look* like on the screen?"
+      ]
+    },
+    {
+      "seed": "a public transport app for a city where the buses have no timetable",
+      "guardPass": 10,
+      "avgConsec": 0.18713494394608948,
+      "maxPair": 0.3076923076923077,
+      "dupOpen": 6,
+      "nudgesFired": 2,
+      "questions": [
+        "And when you say \"high-probability estimation,\" what kind of feeling does that estimation give the person waiting for the bus?",
+        "And when you say \"anxious,\" what is the person anxious *about*?",
+        "And when you say \"feel like they have a buffer,\" what would that feeling allow them to do?",
+        "And what does that \"constant scanning\" cost them, beyond just their attention?",
+        "And when you say \"trap,\" what is it about the bus stop that makes it feel that way?",
+        "And when you say \"serving the bus,\" what is it about the current interface that creates that feeling of obligation?",
+        "And what would happen if the interface didn’t demand that attention at all?",
+        "And what would happen if the app took on that chore, instead of handing it to the user?",
+        "And what would make someone trust an app to tell them when it’s time to move?",
+        "And what would happen if showing that \"messy data\" actually made them *more* anxious?"
+      ]
+    }
+  ]
+}

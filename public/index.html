@@ -104,7 +104,7 @@
   /* composer clearance ONLY where a fixed composer floats over the text — the conversation and
      critique-chat views. Anywhere else 230px of phantom bottom space forces a scrollbar on
      views that would otherwise fit the screen. */
-  #view-conversation .wrap, #view-criticism-chat .wrap{padding-bottom:230px}
+  #view-conversation .wrap, #view-criticism-chat .wrap, #view-author .wrap{padding-bottom:230px}
   .wrap.short{padding-bottom:90px}
   /* the landing is ONE screen — topbar is hidden here, so use the full viewport and centre the
      content; never inherit the composer-clearance bottom padding that would force a scroll. */
@@ -179,6 +179,21 @@
     line-height:1.72; color:var(--muted); max-width:64ch}
   .about-credit b{color:var(--goldtext); font-weight:400}
   .build-ver{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--faint); opacity:.75}
+  /* LOCAL capture only — the on-voice/off-voice mark under each stone question. Machinery: mono, hard-edged. */
+  .capmark{margin-top:10px; font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--faint); display:flex; gap:8px; align-items:center}
+  .capmark .q{opacity:.6}
+  .capmark button{font-family:var(--mono); font-size:11px; letter-spacing:.06em; background:none; border:1px solid rgba(240,212,154,.25); color:var(--goldtext); padding:2px 9px; cursor:pointer; border-radius:0; transition:.15s}
+  .capmark button:hover{border-color:var(--gold-bright); color:var(--gold-bright)}
+  .capmark button.me.on{background:rgba(216,192,72,.18); border-color:var(--gold-bright); color:var(--gold-bright)}
+  .capmark button.not.on{background:rgba(216,72,48,.16); border-color:var(--vermilion); color:var(--vermilion)}
+  body.capturing::after{content:"\25CF capturing"; position:fixed; right:12px; bottom:10px; z-index:40; font-family:var(--mono); font-size:10px; letter-spacing:.1em; color:var(--vermilion); opacity:.7; pointer-events:none}
+  .nav-author{color:var(--vermilion) !important}
+  .author-head{margin:6px 0 18px}
+  .author-tag{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--vermilion); opacity:.85}
+  .author-sub{font-family:var(--text); color:var(--bone-dim); max-width:60ch; line-height:1.7; margin:8px 0 0; font-size:15px}
+  .author-sub b{color:var(--goldtext); font-weight:400; font-family:var(--mono); font-size:13px}
+  #authorStream .turn .who{color:var(--vermilion)}
+  #authorStream .turn.you .who{color:var(--goldtext)}
   .about-credit a{color:var(--goldtext); text-decoration:none; border-bottom:1px solid rgba(240,212,154,.4)}
   .about-credit a:hover{color:var(--gold-bright); border-bottom-color:var(--gold-bright)}
   /* Criticism surface — the specimen under glass: pasted text on a cream sheet (photographic
@@ -407,6 +422,7 @@
     <nav>
       <a id="navQuests">new enquiry</a>
       <a id="navCrit">critique</a>
+      <a id="navAuthor" class="nav-author" hidden>author</a>
       <a id="navAbout">about</a>
       <a id="navAdmin" class="nav-admin" hidden>review</a>
       <span class="poolcount" id="poolCount" hidden></span>
@@ -492,6 +508,28 @@
           <button class="send" id="send" title="Send">→</button>
         </div>
         <div class="hint" id="hint">grounded in <b>design</b> · name the edge, then it sharpens</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== AUTHOR MODE — LOCAL BUILD ONLY (role-flipped: you question, a student is play-acted, your
+       questions are captured for 2.0). Reachable only on a capturing instance (cfg.capture). ===== -->
+  <section class="view" id="view-author">
+    <div class="wrap">
+      <span class="backlink" id="authorNew">‹ new student</span>
+      <div class="author-head">
+        <span class="author-tag">author mode · building 2.0 · captured locally</span>
+        <p class="author-sub">You are the stone. A student is play-acted — question it as only you do. Your questions fill <b>.capture/zetizeti-testchats.jsonl</b>.</p>
+      </div>
+      <main id="authorStream"></main>
+    </div>
+    <div class="composer">
+      <div class="inner">
+        <div class="field">
+          <textarea id="authorInput" rows="1" placeholder="Ask the student a question…"></textarea>
+          <button class="send" id="authorSend" title="Ask">→</button>
+        </div>
+        <div class="hint">you question · a student is play-acted · <b>your questions are captured</b></div>
       </div>
     </div>
   </section>
@@ -652,7 +690,7 @@ async function loadStudioFooter(){
   if(typeof u.questions==='number'){ $('fsAff').innerHTML='that buys about <b>'+plus(u.questions)+' questions</b>'; }
   $('studioFooter').hidden=false;
 }
-const views = { login:$('view-login'), quests:$('view-quests'), conversation:$('view-conversation'), progress:$('view-progress'), about:$('view-about'), criticism:$('view-criticism'), 'criticism-chat':$('view-criticism-chat'), admin:$('view-admin') };
+const views = { login:$('view-login'), quests:$('view-quests'), conversation:$('view-conversation'), progress:$('view-progress'), about:$('view-about'), criticism:$('view-criticism'), 'criticism-chat':$('view-criticism-chat'), admin:$('view-admin'), author:$('view-author') };
 function showView(name){
   for(const k in views) views[k].classList.toggle('active', k===name);
   // topbar hidden on the landing, and on About when reached before sign-in (nav links would 404).
@@ -696,6 +734,7 @@ async function route(path){
   switch(path){
     case '/about':    showView('about'); break;
     case '/critique': openNewCritique(); break;
+    case '/author':   openAuthor(); break;
     case '/admin':    openAdmin(); break;
     case '/enquiry':  startFreshEnquiry(); break;
     case '/':
@@ -748,6 +787,8 @@ let turnsSinceNudge=99;
   cfg.poolEnabled = !!c.poolEnabled; cfg.poolUserTurns = c.poolUserTurns || 0; cfg.guestAllowed = !!c.guestAllowed;
   cfg.version = c.version || '';
   if(cfg.version) document.querySelectorAll('.build-ver').forEach(e=>{ e.textContent='v'+cfg.version; });
+  cfg.capture = !!c.capture;   // LOCAL capturing instance only — enables the on-voice/off-voice marks + author mode
+  if(cfg.capture){ document.body.classList.add('capturing'); const na=$('navAuthor'); if(na) na.hidden=false; }
   // Dev-only guest entry (the server only offers this off-production) — so the app is drivable
   // locally without Google OAuth configured. Hidden on the real, OAuth-only site.
   if(cfg.guestAllowed){
@@ -889,6 +930,30 @@ function attachCritReading(node, reading){
   return {toggle, panel};
 }
 
+// LOCAL capture only — attach the "sounds like you?" mark to a stone question. Fires on the 'capture'
+// SSE event (server sends it only on a capturing dev instance). Posts the operator's verdict, keyed by
+// the turn's capture id, to /api/capture/label so the harness can sort the hundred into on/off voice.
+let lastCap=null;   // the most-recent markable question, for the m/n keyboard shortcuts
+function captureLabelUI(node, id){
+  if(!cfg.capture || !id || !node || node.querySelector('.capmark')) return;
+  const row=el(`<div class="capmark"><span class="q">sounds like you?</span><button class="me" title="mark: press m">✓ me</button><button class="not" title="mark: press n">✕ not</button></div>`);
+  const meBtn=row.querySelector('.me'), notBtn=row.querySelector('.not');
+  const mark=(rating)=>{
+    meBtn.classList.toggle('on', rating==='me'); notBtn.classList.toggle('on', rating==='not');
+    fetch('/api/capture/label',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ id, rating }) }).catch(()=>{});
+  };
+  meBtn.addEventListener('click', ()=>mark('me'));
+  notBtn.addEventListener('click', ()=>mark('not'));
+  node.appendChild(row);
+  lastCap={ mark };
+}
+// m / n mark the most-recent question — but never while typing in the composer.
+document.addEventListener('keydown', (e)=>{
+  if(!cfg.capture || !lastCap) return;
+  const t=(e.target && e.target.tagName)||''; if(t==='TEXTAREA'||t==='INPUT') return;
+  if(e.key==='m') lastCap.mark('me'); else if(e.key==='n') lastCap.mark('not');
+});
+
 // the shared SSE reader for both create + turn. `node` is the stone turn whose body streams the question.
 async function critStream(url, payload, node, onReading, retry){
   const body=node.querySelector('.body'); let full='', guard=null, reading=null, errored=false;
@@ -906,6 +971,7 @@ async function critStream(url, payload, node, onReading, retry){
         else if(type==='status'){ if(!full) body.innerHTML=`<span class="thinking"><span class="bead"></span> ${esc(data.t)}</span>`; }
         else if(type==='token'){ if(!full) body.textContent=''; full+=data.t; body.textContent=full; scroll(); }
         else if(type==='validation'){ guard=data; }
+        else if(type==='capture'){ captureLabelUI(node, data.id); }
         else if(type==='pool'){ poolTurnsLeft=data.turnsLeft; if(data.budget) poolBudget=data.budget; renderPoolCount(); renderPoolBudget(); }
         else if(type==='error'){ errored=true;
           if(data.code && data.code.indexOf('POOL_')===0){ poolTurnsLeft=0; renderPoolCount(); }
@@ -916,6 +982,11 @@ async function critStream(url, payload, node, onReading, retry){
   }catch(err){ errored=true; body.innerHTML=`<span style="color:var(--muted);font-style:italic">connection lost — ${esc(String(err))}</span>`; }
   // the stream ended with no question and no surfaced error → don't leave a silent spinner.
   if(!full && !errored) body.innerHTML=`<span style="color:var(--muted);font-style:italic">the model didn't return a question — try again.</span>`;
+  // The guard's verdict, shown rather than discarded (until 24 Jul 2026 this variable was assigned and
+  // never read — the verdict-drift guard ran and nothing surfaced it). The server now repairs a breach
+  // before sending, so a flag here means it broke the rule twice: rare, and worth seeing when it happens.
+  if(full && !errored && guard && !guard.ok)
+    node.appendChild(el(`<div class="guard">guard: <b>flagged</b> — ${esc((guard.reasons||[]).join('; '))}</div>`));
   // the tab holds the transcript: append the stone's question so the next /turn carries it as context.
   if(full && !errored) critHistory.push({role:'stone', content:full});
   if(reading && onReading && !errored) onReading(reading);
@@ -1139,6 +1210,7 @@ async function streamStone(message, kind, reuseNode){
         else if(type==='signals') setVizSignals(data);
         else if(type==='nudge'){ showNudge(data.surface); nudgedThisTurn=true; }
         else if(type==='validation') guard=data;
+        else if(type==='capture') captureLabelUI(node, data.id);
         else if(type==='pool'){ poolTurnsLeft=data.turnsLeft; if(data.budget) poolBudget=data.budget; renderPoolCount(); renderPoolBudget(); }
         else if(type==='error'){ errored=true;
           if(data.code && data.code.indexOf('POOL_')===0){ poolTurnsLeft=0; renderPoolCount(); }
@@ -1152,6 +1224,40 @@ async function streamStone(message, kind, reuseNode){
   turnsSinceNudge = nudgedThisTurn ? 0 : turnsSinceNudge+1;
   if(!errored) attachCurtain(node, retrieved, guard);
 }
+
+// ---------- AUTHOR MODE (LOCAL BUILD ONLY) — role-flipped: YOU question, a play-acted student answers,
+// and your questions are captured as the 2.0 voice corpus. Reachable only on a capturing instance. ----------
+let authorState = { seed:'', transcript:[], busy:false };
+function authorBubble(who, text, cls){ const n=el(`<div class="turn ${cls||''}"><div class="who">${esc(who)}</div><div class="body">${esc(text)}</div></div>`); $('authorStream').appendChild(n); scroll(); return n; }
+function authorThinking(){ const n=el(`<div class="turn"><div class="who">student</div><div class="body"><span class="thinking"><span class="bead"></span> thinking…</span></div></div>`); $('authorStream').appendChild(n); scroll(); return n; }
+async function openAuthor(){
+  if(!cfg.capture){ go('/'); return; }                 // guard: local build only
+  showView('author'); $('authorStream').innerHTML=''; authorState={ seed:'', transcript:[], busy:true };
+  const n=authorThinking();
+  try{
+    const r=await api('/api/author/open',{ method:'POST', body:JSON.stringify({ discipline:'all' }) });
+    n.remove(); authorState.seed=r.seed||''; authorState.transcript=[{role:'student',content:r.student}];
+    authorBubble('student', r.student);
+  }catch(e){ n.querySelector('.body').innerHTML=`<span style="color:var(--muted);font-style:italic">couldn't reach the student — ${esc(String(e))}</span>`; }
+  authorState.busy=false; $('authorInput').focus();
+}
+async function authorAsk(){
+  const q=$('authorInput').value.trim(); if(!q || authorState.busy) return;
+  authorState.busy=true; $('authorSend').disabled=true; $('authorInput').value=''; $('authorInput').style.height='auto';
+  authorBubble('you · asking', q, 'you');
+  const n=authorThinking();
+  try{
+    const r=await api('/api/author/turn',{ method:'POST', body:JSON.stringify({ seed:authorState.seed, discipline:'all', transcript:authorState.transcript, question:q }) });
+    n.remove(); authorState.transcript.push({role:'stone',content:q}, {role:'student',content:r.student});
+    authorBubble('student', r.student);
+  }catch(e){ n.querySelector('.body').innerHTML=`<span style="color:var(--muted);font-style:italic">${esc(String(e))}</span>`; }
+  authorState.busy=false; $('authorSend').disabled=false; $('authorInput').focus();
+}
+$('navAuthor').addEventListener('click', ()=>go('/author'));
+$('authorNew').addEventListener('click', openAuthor);
+$('authorSend').addEventListener('click', authorAsk);
+$('authorInput').addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); authorAsk(); } });
+$('authorInput').addEventListener('input', ()=>{ const i=$('authorInput'); i.style.height='auto'; i.style.height=Math.min(i.scrollHeight,170)+'px'; });
 
 // ---------- admin: usage monitor (operator only) ----------
 function openAdmin(){
@@ -1172,6 +1278,13 @@ function renderUsage(d){
   const poolFig = (d&&d.maxBudgetInr!=null) ? `${rupee(totalInr)} of ${rupee(d.maxBudgetInr)} pool` : `${rupee(totalInr)} pool`;
   const budgetLine = `<b>${poolFig}</b> <span>· ${rupee(personalInr)} personal · ${usersTag} · @ ₹${rate}/$</span>`;
   list.appendChild(el(`<div class="usage-summary">${budgetLine}</div>`));
+  // How hard the never-answer guard is working — counts only, since this process started (they reset on
+  // restart, and nothing about any turn's content is recorded). A rising `flagged` is the reading that
+  // matters: a question broke the rule twice and still went out.
+  if(d&&d.guard){
+    const g=d.guard, part=(name,s)=>`${name} ${s.turns||0} turns · ${s.regenerated||0} repaired · ${s.flagged||0} flagged`;
+    list.appendChild(el(`<div class="usage-summary"><span>guard (this run): ${esc(part('enquiry',g.enquiry||{}))} · ${esc(part('critique',g.criticism||{}))}</span></div>`));
+  }
   if(!users.length){ list.appendChild(el(`<div class="qempty">No usage yet.</div>`)); return; }
   list.appendChild(el(`<div class="usage-headrow"><span class="u-who">user</span><span class="u-spent">spent</span><span class="u-turns">turns</span><span class="u-days">days</span><span class="u-last">last active</span></div>`));
   for(const u of users){

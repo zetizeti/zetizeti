@@ -36,9 +36,12 @@ import {
   poolSpendToday, poolSpendAllTime, poolSpendUser, poolSpendUserAllTime, poolTurnsUser, addPoolSpend,
 } from './lib/db.mjs';
 import { streamQuestion } from './lib/llm.mjs';
+import { generateGuarded } from './lib/guard.mjs';           // the guard's ENFORCEMENT layer (invariant #3)
 import { computeSignals } from './lib/signals.mjs';
 import { decideNudge } from './lib/nudge.mjs';
 import { resolveVersion } from './lib/version.mjs';
+import { capture, labelCapture, captureEnabled } from './lib/capture.mjs';   // LOCAL operator-only test-chat capture (never in production)
+import { buildStudentSystemPrompt, pickSeed } from './lib/author.mjs';        // LOCAL "author mode" — the play-acted student
 
 // Build version (SemVer, aligned to git tags — see lib/version.mjs). Resolved once at boot: from the
 // image's version.json in production, live from `git describe` in dev.
@@ -108,6 +111,22 @@ const HAIKU_IN = 1 / 1e6, HAIKU_OUT = 5 / 1e6;                  // $/token fallb
 const usageCost = (u) => (u && typeof u.cost === 'number' && u.cost > 0)
   ? u.cost
   : ((u?.prompt_tokens || 0) * HAIKU_IN + (u?.completion_tokens || 0) * HAIKU_OUT);
+
+// Guard telemetry — IN-MEMORY, per process, three integers per surface. It records how often the
+// never-answer guard had to act, and NOTHING about any turn's content (invariant #8: no request body, no
+// question, no reasons text). Resets on restart by design: this is a live health reading for the operator
+// (/api/admin/usage), not a stored record, and zetizeti stores no conversation.
+const guardStats = {
+  enquiry:   { turns: 0, regenerated: 0, flagged: 0 },
+  criticism: { turns: 0, regenerated: 0, flagged: 0 },
+};
+function noteGuard(surface, guarded) {
+  const s = guardStats[surface];
+  if (!s) return;
+  s.turns++;
+  if (guarded.regenerated) s.regenerated++;      // the guard rejected an attempt and made the model ask again
+  if (!guarded.check.ok) s.flagged++;            // it broke the rule twice; the least-bad was delivered, flagged
+}
 // Total-budget helpers. budgetSpentINR — cumulative real billed spend across all days, in rupees.
 // budgetExhausted — true once the rupee ceiling is reached (false when no ceiling is configured).
 const budgetSpentINR = () => poolSpendAllTime() * usdInr();
@@ -128,6 +147,9 @@ const USER_TURNS_MSG = `You've used today's ${POOL_USER_TURNS} messages — plea
 const USER_BUDGET_MSG = "You've used your share of today's budget — please come back tomorrow.";
 // Per-user LIFETIME cap: distinct from the daily one — this is final, not "come back tomorrow".
 const USER_LIFETIME_MSG = "You've used your full share of the shared budget — please contact the person running it.";
+// Both attempts came back empty (a provider blip, or a local model that had not warmed up). The turn is
+// refused honestly rather than delivered as a blank stone bubble — see lib/guard.mjs.
+const EMPTY_MSG = "The interlocutor didn't answer that time — send that again.";
 // AI Club path (credit engine). An AI Club student runs on their OWN key, not the pool, so their refusals
 // are distinct from the pool caps: the credit exhausted at OpenRouter, the student not yet provisioned,
 // their access withdrawn, or the credit service itself being unreachable (an operator-side problem).
@@ -204,6 +226,7 @@ app.get('/api/version', (req, res) => res.json(BUILD));
 
 app.get('/api/config', (req, res) => res.json({
   version: BUILD.build,
+  capture: captureEnabled,          // LOCAL build only — true only on a capturing dev instance, drives the on-voice/off-voice UI
   googleConfigured, guestAllowed, poolEnabled,
   poolUserTurns: studentsEnabled ? POOL_USER_TURNS : 0,   // the per-user turn cap is a STUDENTS-tier control
   cohorts: cohortSummary({ personalEnabled, studentsEnabled }),   // which tiers are wired + their sizes (no per-user data)
@@ -314,6 +337,10 @@ app.get('/api/admin/usage', requireUser, requireAdmin, (req, res) => {
     personalInr,
     maxBudgetInr: MAX_BUDGET_INR || null,
     usdInr: usdInr(),
+    // How hard the never-answer guard is working, per surface, since this process started. Counts only —
+    // no content (invariant #8). `regenerated` = the guard rejected a question and made the model ask
+    // again; `flagged` = it broke the rule twice and the least-bad was delivered, marked, to the student.
+    guard: guardStats,
   });
 });
 
@@ -448,20 +475,52 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // Metered paths (shared pool AND the personal key) capture usage during the stream, then count the turn
   // ONCE on success (so the counter is exact even if OpenRouter omits the cost figure). AI-club keys are
   // billed at OpenRouter against the student's own credit, so they are not metered here.
-  let poolUsage = null;
-  const onUsage = meter ? (u) => { poolUsage = u; } : null;
+  // Cost accumulates ACROSS attempts: a guard-rejected generation was still billed, so summing (rather
+  // than overwriting) keeps the ₹ ceiling honest when the guard has to make the model ask again.
+  let poolCost = 0;
+  const onUsage = meter ? (u) => { poolCost += usageCost(u); } : null;
   try {
-    // cache: true — reuse the stable prefix (system + prior history) at ~1/10th input price; only the
-    // volatile final turn is recomputed. maxTokens 150 — one short Clean-Language question fits easily; a
-    // tight ceiling is a secondary brake on rambling. reasoning off — gemini-lite defaults to a thinking
-    // budget; zetizeti is a thin composer, so disable it (answer, don't burn tokens).
-    const full = await streamQuestion({ system, messages, cache: true, maxTokens: 150, reasoning: { enabled: false }, onToken: (t) => send('token', { t }), apiKey, onUsage });
-    const check = validateOutput(full);
-    send('validation', check);
+    // BUFFERED + GUARDED (invariant #3 — the guard now HOLDS rather than merely reporting). The question
+    // is generated in full, checked by validateOutput, and regenerated ONCE with the guard's own reasons
+    // if it breaches; only an accepted question is sent. It is deliberately NOT streamed token by token
+    // any more: a question cannot be withheld after the student has read it, which is exactly why the
+    // guard was inert until 24 Jul 2026. maxTokens 150 keeps one short question a beat, not a wait.
+    // cache: true — reuse the stable prefix (system + prior history) at ~1/10th input price. reasoning
+    // off — gemini-lite defaults to a thinking budget; zetizeti is a thin composer.
+    const guarded = await generateGuarded({
+      validate: validateOutput,
+      generate: (correction) => streamQuestion({
+        system,
+        // On a repair attempt the rejected question and the correction are appended as a normal turn pair,
+        // so the model sees what it did and what the rule is. Neither reaches the student.
+        messages: (correction && correction.previous)
+          ? [...messages, { role: 'assistant', content: correction.previous }, { role: 'user', content: correction.instruction }]
+          : messages,
+        cache: true, maxTokens: 150, reasoning: { enabled: false },
+        onToken: () => {},                       // buffered — nothing reaches the student until it passes
+        apiKey, onUsage,
+      }),
+    });
+    noteGuard('enquiry', guarded);
+    const full = guarded.text;
+    // Both attempts empty (provider blip / cold local model) — refuse honestly rather than deliver a blank.
+    if (!full.trim()) {
+      if (meter) addPoolSpend(utcDay(), req.user.id, poolCost, poolFlag);    // it still cost money
+      send('error', { code: 'EMPTY_GENERATION', message: EMPTY_MSG });
+      return res.end();
+    }
+    send('token', { t: full });                  // the ACCEPTED question, delivered whole
+    send('validation', { ...guarded.check, attempts: guarded.attempts, regenerated: guarded.regenerated });
+    // LOCAL, operator-only capture (no-op in production and unless ZETIZETI_CAPTURE_DIR is set) — the
+    // situation → the question, so a chat can be replayed by the 2.0 "sounds-like-Prayas" harness. The
+    // returned id lets the local UI attach an on-voice/off-voice label to this exact question. The guard's
+    // work is captured too (a repaired question is a different kind of specimen from a first-pass one).
+    const capId = capture({ mode: 'enquiry', chatKey: studentTurns[0] || goal, goal, discipline, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, question: full, guard: guarded.check.ok, attempts: guarded.attempts, rejected: guarded.rejected });
+    if (capId) send('capture', { id: capId });
     // Nothing persisted — the client keeps the turn in its own transcript.
     if (meter) {
-      addPoolSpend(utcDay(), req.user.id, usageCost(poolUsage), poolFlag);   // count this turn + add its real cost (poolFlag: 1 shared, 0 personal)
-      if (usingPool) send('pool', poolEvent(req.user.id));                   // budget-header event only for the shared pool
+      addPoolSpend(utcDay(), req.user.id, poolCost, poolFlag);   // count this turn + its real cost, all attempts (poolFlag: 1 shared, 0 personal)
+      if (usingPool) send('pool', poolEvent(req.user.id));       // budget-header event only for the shared pool
     }
     send('done', {});
   } catch (err) {
@@ -545,18 +604,36 @@ async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocat
     ...priorMessages.map((m) => ({ role: m.role === 'stone' ? 'assistant' : 'user', content: m.content })),
     { role: 'user', content: studentTurn || (located ? `Point me at this spot: "${located.text}"` : '(continue questioning the text)') },
   ];
+  // BUFFERED + GUARDED, exactly as the enquiry path (invariant #3's sibling). This surface needed it
+  // most: until 24 Jul 2026 the verdict-drift guard ran every turn and the client assigned its result to
+  // a variable it never read — a drifted verdict about the text reached the student with nothing to stop
+  // it and nothing to show it. Now a breach is repaired once, and a surviving breach is surfaced.
+  // Cost sums across attempts so a repaired turn is metered honestly.
   let qCost = 0;
-  const full = await streamQuestion({
-    system, messages,
-    onToken: (t) => send('token', { t }),
-    onUsage: meter ? (u) => { qCost = usageCost(u); } : null,
-    // reasoning off — same cheap default model as the dialogue path; don't burn a thinking budget.
-    // (No cache: the criticism prefix carries the per-critique artefact + located span, so it isn't stable across turns.)
-    maxTokens: 400, temperature: 0.3, reasoning: { enabled: false }, apiKey,
+  const guarded = await generateGuarded({
+    mode: 'criticism',
+    validate: validateCriticismOutput,                       // verdict-drift guard EVERY turn
+    generate: (correction) => streamQuestion({
+      system,
+      messages: (correction && correction.previous)
+        ? [...messages, { role: 'assistant', content: correction.previous }, { role: 'user', content: correction.instruction }]
+        : messages,
+      onToken: () => {},                                     // buffered — a verdict cannot be unread
+      onUsage: meter ? (u) => { qCost += usageCost(u); } : null,
+      // reasoning off — same cheap default model as the dialogue path; don't burn a thinking budget.
+      // (No cache: the criticism prefix carries the per-critique artefact + located span, so it isn't stable across turns.)
+      maxTokens: 400, temperature: 0.3, reasoning: { enabled: false }, apiKey,
+    }),
   });
-  const guard = validateCriticismOutput(full);               // verdict-drift guard EVERY turn
-  send('validation', guard);
-  return { qCost };                                          // nothing persisted; client keeps the turn
+  noteGuard('criticism', guarded);
+  const full = guarded.text;
+  if (!full.trim()) { send('error', { code: 'EMPTY_GENERATION', message: EMPTY_MSG }); return { qCost, empty: true }; }
+  send('token', { t: full });                                // the ACCEPTED question, delivered whole
+  send('validation', { ...guarded.check, attempts: guarded.attempts, regenerated: guarded.regenerated });
+  // LOCAL, operator-only capture (no-op in production and unless ZETIZETI_CAPTURE_DIR is set).
+  const capId = capture({ mode: 'criticism', chatKey: artefact, goal, discipline, turn: stoneTurns.length, artefact, student: studentTurn || null, pointer: pointer.key, located: located ? located.text : null, retrieved: retrieved.map((r) => r.id), question: full, guard: guarded.check.ok, attempts: guarded.attempts, rejected: guarded.rejected });
+  if (capId) send('capture', { id: capId });
+  return { qCost };                                          // nothing persisted server-side; client keeps the turn
 }
 
 // POST /api/criticism/open — STATELESS. Paste a text → qualify → locate → ask the first question about
@@ -612,6 +689,7 @@ app.post('/api/criticism/turn', requireUser, async (req, res) => {
   const key = await resolveKeyForCriticism(req, res, send); if (!key) return;
   try {
     const located = seg ? { text: seg.text, why: describeLocated(seg) } : null;
+    send('status', { t: 'composing a question…' });          // the question is buffered until it passes the guard
     const { qCost } = await askCriticismQuestion({
       send, apiKey: key.apiKey, meter: key.meter,
       artefact, forcedLocated: located, discipline, goal,
@@ -621,6 +699,54 @@ app.post('/api/criticism/turn', requireUser, async (req, res) => {
     send('done', {});
   } catch (err) { sendGenerationError(send, err, key.usingPool ? null : req.user.email); }
   res.end();
+});
+
+// LOCAL "author mode" (build 2.0) — role-flipped: PRAYAS is the stone, this LLM play-acts a design
+// student, and HIS questions are captured as the first-hand voice corpus. Both endpoints 404 unless this
+// is a capturing dev instance (captureEnabled is hard-guarded off in production), so author mode cannot
+// exist on the live site. Runs on the local operator key (POOL_KEY); not metered — this is building, not
+// serving. JSON (not SSE) — the student's turns are short.
+async function studentReply({ discipline, messages }) {
+  const system = buildStudentSystemPrompt({ discipline });
+  return (await streamQuestion({ system, messages, maxTokens: 240, temperature: 0.9, reasoning: { enabled: false }, onToken: () => {}, apiKey: POOL_KEY })).trim();
+}
+app.post('/api/author/open', requireUser, async (req, res) => {
+  if (!captureEnabled) { res.status(404).json({ error: 'not a capturing instance' }); return; }
+  if (!POOL_KEY) { res.status(503).json({ error: 'no local key (set OPENROUTER_API_KEY)' }); return; }
+  const seed = (typeof req.body?.seed === 'string' && req.body.seed.trim()) || pickSeed();
+  const discipline = typeof req.body?.discipline === 'string' ? req.body.discipline : 'all';
+  try {
+    const student = await studentReply({ discipline, messages: [{ role: 'user', content: `(Tutorial begins. Your project: "${seed}". Introduce it in your own words in a sentence or two — what you're trying to do, a bit unresolved — as your opening. Do not ask anything.)` }] });
+    res.json({ seed, student });
+  } catch (err) { res.status(500).json({ error: String(err?.message || err) }); }
+});
+app.post('/api/author/turn', requireUser, async (req, res) => {
+  if (!captureEnabled) { res.status(404).json({ error: 'not a capturing instance' }); return; }
+  const b = req.body || {};
+  const seed = typeof b.seed === 'string' ? b.seed : '';
+  const discipline = typeof b.discipline === 'string' ? b.discipline : 'all';
+  const transcript = Array.isArray(b.transcript) ? b.transcript : [];   // [{role:'student'|'stone', content}]
+  const question = typeof b.question === 'string' ? b.question.trim() : '';
+  if (!question) { res.status(400).json({ error: 'no question' }); return; }
+  // CAPTURE Prayas's question — the gold — with the student turn that prompted it (the situation → his ask).
+  const lastStudent = [...transcript].reverse().find((m) => m.role === 'student')?.content || '';
+  capture({ mode: 'author', chatKey: seed || transcript[0]?.content || question, turn: transcript.filter((m) => m.role === 'stone').length, discipline, student: lastStudent, question });
+  try {
+    const messages = [
+      ...transcript.map((m) => ({ role: m.role === 'student' ? 'assistant' : 'user', content: m.content })),
+      { role: 'user', content: question },
+    ];
+    res.json({ student: await studentReply({ discipline, messages }) });
+  } catch (err) { res.status(500).json({ error: String(err?.message || err) }); }
+});
+
+// LOCAL capture labelling — the operator's "sounds like me / not" verdict on a captured question.
+// 404s unless this is a capturing dev instance (captureEnabled is hard-guarded off in production), so it
+// cannot exist on the live site. Body: { id, rating:'me'|'not' }.
+app.post('/api/capture/label', requireUser, (req, res) => {
+  if (!captureEnabled) { res.status(404).json({ error: 'not a capturing instance' }); return; }
+  const { id, rating } = req.body || {};
+  res.json({ ok: labelCapture(id, rating) });
 });
 
 // Debug retrieval (no API key needed).
@@ -638,7 +764,7 @@ app.use(express.static(join(__dirname, 'public'), {
 // SPA deep links — serve the app shell for the client routes so /critique, /about, /enquiry/:id
 // etc. resolve on a direct load or refresh (real shareable URLs, not hash links). The API routes
 // and static assets are matched first above; only genuine client paths fall through to here.
-app.get(['/about', '/critique', '/critique/:id', '/progress', '/enquiries', '/enquiry/:id', '/admin'], (req, res) => {
+app.get(['/about', '/critique', '/critique/:id', '/progress', '/enquiries', '/enquiry/:id', '/admin', '/author'], (req, res) => {
   res.setHeader('Cache-Control', 'no-cache');
   res.sendFile(join(__dirname, 'public', 'index.html'));
 });
@@ -656,5 +782,9 @@ const aiClubLog = creditEngineConfigured
   ? `engine wired · cohort:${aiClubAllowlistConfigured ? `${aiClubAllowlistSize} students` : 'OFF (no allowlist)'}`
   : 'off (no engine)';
 app.listen(PORT, () => console.log(`[zetizeti] v${BUILD.build} · http://localhost:${PORT}  (google:${googleConfigured} · admin:${adminConfigured ? 'set' : 'unset'} · personal:${personalLog} · students:${studentsLog} · ai-club:${aiClubLog})`));
+// Capture status — loud when ON so it's never a surprise, silent otherwise. It CANNOT be on in
+// production (hard guard in lib/capture.mjs); this only ever prints on a local dev instance.
+if (captureEnabled) console.log(`[zetizeti] 🔴 TEST-CHAT CAPTURE ON → ${process.env.ZETIZETI_CAPTURE_DIR}/zetizeti-testchats.jsonl (local build tool; never in production)`);
+
 // Fetch the live USD→INR rate at boot, then refresh every 12h (no-op if ZETIZETI_USD_INR pins it).
 if (poolEnabled && !USD_INR_OVERRIDE) { refreshUsdInr(); setInterval(refreshUsdInr, 12 * 60 * 60 * 1000).unref(); }

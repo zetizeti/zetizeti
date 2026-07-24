@@ -154,7 +154,9 @@ could be satisfied by a different, slacker tool is decoration. The test is wheth
 - **The never-answer guard is deterministic code, not a polite request.** A model asked nicely to
   "withhold" will drift toward helpfulness, because helpfulness is what it was trained to perform.
   Code does not drift. The refusal is structural, which is what makes it a commitment rather than
-  an aspiration.
+  an aspiration. *(And structural means acted on, not merely noticed: from 24 July 2026 the turn is
+  held back, checked, and asked again if it breaches — `lib/guard.mjs`. A guard that only reported
+  a breach after the student had read it was still an aspiration, wearing the word "guard".)*
 - **The goal-honing loop makes the question the thing that progresses.** Progress is the edge
   getting sharper across a session — owned by the learner, never scored by the machine. The unit
   of advancement is the question, not the answer count.
