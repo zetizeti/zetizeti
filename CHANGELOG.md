@@ -21,6 +21,26 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.9.4] — 2026-07-24
+
+The migration build: same behaviour as 0.9.3, new ground under it. Deployed to the `myplaceholder`
+server (4 GB / 2 vCPU) ahead of the domain cut-over; blevn (2 GB / 1 vCPU, five apps, already swapping)
+was measured and found too thin for the neural stack's resident footprint and per-deploy build cost.
+
+### Changed
+- **Base image `node:20-alpine` → `node:20-slim` (glibc).** Required: `onnxruntime-node` ships no musl
+  binary and DLOPEN-crashes the process at runtime on alpine — the build succeeds, the breakage only
+  appears live (caught in a local Docker gate, not in production). Never revert while these deps exist.
+
+### Added
+- **The felt-shift event detector** (`lib/feltshift.mjs` + 10 model-free tests incl. a log-det parity
+  proof; calibration harness `scripts/feltshift-test.mjs`) — the measure behind Position 2, cracked in
+  three formulations (the failures documented in-file): per-word coverage novelty (neural MiniLM,
+  synonym-aware) × per-turn tether gate × SEM/LEX event channels. **Shipped UNWIRED** — nothing in the
+  server calls it yet; it joins the dialogue as v0.10.0 after its own auth-less sign-off.
+- `@huggingface/transformers` (pinned MiniLM, WASM-safe loader with deterministic fallback, memoised) —
+  installed, inert until the wiring.
+
 ## [0.9.3] — 2026-07-24
 
 ### Added

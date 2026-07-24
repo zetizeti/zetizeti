@@ -1,6 +1,6 @@
 {
   "name": "zetizeti",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "private": true,
   "type": "module",
   "description": "zetizeti — a Socratic inquiry toolkit for design students. It won't answer; it sharpens.",
@@ -12,6 +12,7 @@
     "retrieve-test": "node -e \"import('./lib/retrieval.mjs').then(async m=>{const D=(await import('better-sqlite3')).default;const db=new D(':memory:');const n=m.buildIndex(db,'./corpus/domain');console.log('indexed',n,'entries');console.log(JSON.stringify(m.retrieve(db,process.argv[1]||'I want to make the checkout faster and more frictionless',{limit:3}).map(r=>({id:r.id,snippet:r.snippet})),null,2));})\""
   },
   "dependencies": {
+    "@huggingface/transformers": "^4.2.0",
     "better-sqlite3": "^11.8.1",
     "compromise": "^14.15.1",
     "express": "^4.21.2"
