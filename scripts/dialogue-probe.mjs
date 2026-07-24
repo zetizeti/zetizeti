@@ -93,7 +93,7 @@ for (const message of scenario.turns) {
   const flags = `${result.regenerated ? ' \x1b[31m⟳guard-repaired\x1b[0m' : ''}${result.check?.ok ? '' : ' \x1b[31m⚑flagged\x1b[0m'}`;
   console.log(`\x1b[2m─────────────────────────────────────────────────────────────\x1b[0m`);
   console.log(`\x1b[33mstudent:\x1b[0m ${message}`);
-  console.log(`  \x1b[2msignals\x1b[0m selfEcho ${sig.selfEcho.toFixed(2)} · cycling ${sig.cycling.toFixed(2)} · advancement ${sig.advancement.toFixed(2)} · specificity ${sig.specificity.toFixed(2)}  ${fired}${flags}`);
+  console.log(`  \x1b[2msignals\x1b[0m selfEcho ${sig.selfEcho.toFixed(2)} · cycling ${sig.cycling.toFixed(2)} · advancement ${sig.advancement.toFixed(2)} · specificity ${sig.specificity.toFixed(2)} · \x1b[35mfeltShift ${sig.feltShift.toFixed(2)}\x1b[0m  ${fired}${flags}`);
   if (nudge.surface) console.log(`  \x1b[2msurface\x1b[0m ${nudge.surface}`);
   console.log(`\x1b[36mstone:\x1b[0m ${result.text.trim()}`);
 

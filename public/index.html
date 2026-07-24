@@ -217,6 +217,12 @@
   .crit-seg.blur:hover{background:rgba(232,67,31,.5)}
   .crit-ratio{margin-top:14px; font-family:var(--mono); font-size:12px; line-height:1.74; color:var(--muted)}
   .crit-ratio b{color:var(--gold-bright)} .crit-ratio em{color:var(--goldtext); font-style:italic}
+  .crit-read-sep{color:var(--goldtext); padding:0 1px}
+  .crit-read{display:grid; grid-template-columns:5.4em auto 1fr; gap:0 12px; align-items:baseline; margin-top:8px}
+  .crit-read-k{color:var(--bone-dim); text-transform:lowercase; letter-spacing:.07em}
+  .crit-read-r{color:var(--gold-bright); font-size:15px; letter-spacing:.05em}
+  .crit-read-w{color:var(--muted); font-size:11px; line-height:1.55}
+  .crit-read-foot{margin-top:13px}
   .crit-list-head{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
     color:var(--faint); margin:34px 0 2px; padding-top:20px; border-top:1px solid rgba(244,231,200,.12)}
   /* the artefact under question — on the dark ground (consistent with the enquiries edge panel),
@@ -924,7 +930,12 @@ function attachCritReading(node, reading){
     segWrap.appendChild(seg);
   });
   panel.appendChild(segWrap);
-  if(reading.strict) panel.appendChild(el(`<div class="crit-ratio"><b>sensed reading — not a score.</b> ${esc(reading.strict.ratio)} held to conflated · ${esc(reading.strict.why)} The blurs are highlighted; click one to question it. Whether a blur is a smuggled verdict is <em>your</em> call.</div>`));
+  if(reading.strict){
+    // three readings, never a single number (split-ratio canon §153 — "sensed reading", not "the split
+    // ratio"; the maker adjudicates the range). held : conflated, strict → generous.
+    const row=(k,rd)=> rd ? `<div class="crit-read"><span class="crit-read-k">${k}</span><span class="crit-read-r">${esc(rd.ratio)}</span><span class="crit-read-w">${esc(rd.why)}</span></div>` : '';
+    panel.appendChild(el(`<div class="crit-ratio"><b>a sensed reading — not a score.</b> three readings of held<span class="crit-read-sep">:</span>conflated, strict through generous — you decide which is fair.${row('strict',reading.strict)}${row('balanced',reading.balanced)}${row('generous',reading.generous)}<div class="crit-read-foot">The blurs are highlighted; click one to question it. Whether a blur is a smuggled verdict is <em>your</em> call.</div></div>`));
+  }
   toggle.addEventListener('click',()=>{ const open=panel.classList.toggle('open'); toggle.setAttribute('aria-expanded',open); });
   node.appendChild(toggle); node.appendChild(panel);
   return {toggle, panel};
