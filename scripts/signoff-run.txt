@@ -1,0 +1,38 @@
+zetizeti — quick Gate-4 sign-off tool
+======================================
+Run these in your own terminal (Terminal / iTerm), from the app directory, so the
+tool can read your keystrokes. It only edits local files on the `next-inquiry-maths`
+branch — every change is git-tracked and revertable.
+
+cd ~/Dropbox/personal_projects/zetizeti.com/app
+
+# 1. See the lay of the land — how many pending, per file (changes nothing):
+node scripts/signoff.mjs --count
+
+# 2. Fastest burn-down — only the high-confidence entries (179 of the 231):
+node scripts/signoff.mjs --only-high
+
+# 3. One discipline at a time (recommended — review a field you know well in one sitting):
+node scripts/signoff.mjs --file communication-design.md
+node scripts/signoff.mjs --file photography.md
+#   (any file from the --count list)
+
+# 4. A quiet read of every pending card, NO prompts, nothing edited (for reviewing on screen):
+node scripts/signoff.mjs --list --file game-design.md
+
+Keys while signing off (one keystroke + Enter):
+   y  = sign off this entry            (pending → verified, with a timestamp)
+   n  = skip it (stays pending)
+   a  = sign off ALL remaining in this file   (only after you've read enough to trust it)
+   s  = skip the rest of this file
+   q  = save what you've done and quit
+
+Notes
+-----
+- Resumable: re-run any time; only still-pending entries appear.
+- Every sign-off is logged with a timestamp to docs/corpus-build/signoff-log.md
+- Review what you signed:   git diff -- app/corpus/domain
+- Undo everything unsaved:  git checkout -- app/corpus/domain
+- Scope: domain corpus only (the 231 bulk). The 5 criticism notes are a different
+  shape and are left untouched — we'll do those separately.
+- The tool never signs anything off on its own — invariant #0: the call is yours.
