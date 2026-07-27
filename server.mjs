@@ -38,7 +38,9 @@ import {
 import { streamQuestion } from './lib/llm.mjs';
 import { generateGuarded } from './lib/guard.mjs';           // the guard's ENFORCEMENT layer (invariant #3)
 import { computeSignals } from './lib/signals.mjs';
-import { decideNudge, feltPosture } from './lib/nudge.mjs';
+import { readArc, aimBlock } from './lib/arc.mjs';
+import { semanticFreshness, refineFresh } from './lib/novelty.mjs';   // SHADOW ONLY — measured, not wired (see novelty.mjs)           // the enquiry surface's dynamic arc (line of questioning)
+import { decideNudge, feltPosture, formShape } from './lib/nudge.mjs';
 import { embedNeural, neuralReady, warmEmbeddings } from './lib/embed.mjs';
 import { readFeltShifts, itemWords } from './lib/feltshift.mjs';   // the felt-shift event detector (v0.10.0)
 import { resolveVersion } from './lib/version.mjs';
@@ -378,6 +380,10 @@ async function feltForTurn({ goal, history, message }) {
     sequence.push({ score: true, text: message, embed: await embedNeural(message), items: await itemsOf(message) });
     const read = readFeltShifts({ goalEmbed, goalItems, sequence });
     const fs = read.turns[read.turns.length - 1] || null;
+    // v0.10.2 — the semantic freshness series, read off THIS pass (no extra embedding, no extra
+    // latency): per-turn mean item novelty, which is the level at which circling separates from
+    // sharpening. Whole-utterance similarity was measured and does not separate them (lib/novelty.mjs).
+    if (fs) fs.semFresh = semanticFreshness(read.turns);
     feltStats.computed++;
     feltStats.msLast = Date.now() - t0;
     if (fs && fs.semEvent) feltStats.sem++;
@@ -410,11 +416,12 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // learner-side signals cannot see. (Stateless: the client sends the whole transcript each turn.)
   const studentTurns = [...history.filter((h) => h.role === 'student').map((h) => h.content), message];
   const stoneTurns = history.filter((h) => h.role !== 'student').map((h) => h.content);
-  const sig = computeSignals({ goal, lineage, studentTurns, stoneTurns, exchanges });
   // The felt-shift read for THIS turn (null unless the neural backend is live and an event structure
   // computes cleanly). Costs ~tens of ms warm (memoised embeds); sits before the SSE stream opens so
   // the signals event below can carry the reading.
   const fs = await feltForTurn({ goal, history, message });
+  // Signals AFTER the felt pass, so `advancement` can be refined by the semantic channel it produces.
+  const sig = computeSignals({ goal, lineage, studentTurns, stoneTurns, exchanges });
 
   // Retrieval, tuned against BLANDNESS (Siddhie, 15 Jul: "questions become bland / round-and-round as we
   // move forward") — the tail flattens when the SAME top tensions are retrieved turn after turn. Two
@@ -426,11 +433,20 @@ app.post('/api/chat', requireUser, async (req, res) => {
   //       detected), so each turn is pushed onto fresh ground. Graceful cycle-back: if rotation starves
   //       this turn (small corpus, everything excluded), retry without the exclusion so it degrades to
   //       "rotate", never "empty".
+  //   (c) WIDER EXCLUSION (27 Jul 2026) — drop what the last THREE turns served, not just the previous
+  //       one. With a discipline selected a student draws on a few dozen entries at three per turn, so
+  //       across a twenty-turn arc a one-turn exclusion lets the same tensions return every other turn:
+  //       the aims rotate while the grounding underneath them repeats. Still degrades to "rotate" via
+  //       the cycle-back below, never to "empty".
   const prev = studentTurns[studentTurns.length - 2] || '';
   const windowText = [prev, message, message].join(' ').trim() || message;
-  const prevWindow = [studentTurns[studentTurns.length - 3] || '', prev, prev].join(' ').trim() || prev;
-  const excludeIds = (studentTurns.length >= 2 && prevWindow)
-    ? retrieve(corpus, prevWindow, { limit: 3, extraTerms: goalTerms, discipline }).map((r) => r.id)
+  const recentWindows = [
+    [studentTurns[studentTurns.length - 3] || '', prev, prev].join(' ').trim() || prev,
+    studentTurns[studentTurns.length - 4] || '',
+  ].filter(Boolean);
+  const excludeIds = studentTurns.length >= 2
+    ? [...new Set(recentWindows.flatMap((w) =>
+        retrieve(corpus, w, { limit: 3, extraTerms: goalTerms, discipline }).map((r) => r.id)))]
     : [];
   let retrieved = retrieve(corpus, windowText, { limit: 3, extraTerms: goalTerms, discipline, excludeIds });
   if (!retrieved.length && excludeIds.length) {   // cycle-back: rotation emptied the results → re-include
@@ -516,13 +532,26 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // same standing the selfEcho break has). When one fires, the nudge's surface is suppressed too — a
   // "we've circled, shall we move?" line would contradict a landing the detector just marked.
   const felt = feltPosture(fs);            // (event counts were already taken in feltForTurn)
-  if (!felt && nudge.surface) send('nudge', { surface: nudge.surface });  // a read handed back to the learner
+  // The ARC — which line of questioning this turn is on (lib/arc.mjs). Replayed from the transcript, so
+  // it needs no stored state; driven by the learner's own replies, so a short chat traverses it quickly
+  // and a long one dwells. A felt event HOLDS the current aim (the thread is demonstrably alive); a
+  // sustained self-echo releases it early. This is the enquiry surface's answer to the single-axis loop
+  // — the counterpart of pickCriticismPointer, which criticism has had since 16 July.
+  const arc = readArc({ studentTurns, lineage, feltEvent: !!(fs && (fs.semEvent || fs.lexEvent)) });
+  // Tell the client a posture fired even when there is nothing to SHOW. The refractory lives in the
+  // client (the service is stateless — it sends `turnsSinceNudge` back each turn), and it used to reset
+  // only on a nudge that carried a `surface` line. Most postures carry none, so the refractory was dead
+  // for all of them: whichever silent branch matched fired every single turn. That went unnoticed while
+  // the self-echo branch stood at the top of the policy returning first; removing it exposed the fault —
+  // `acknowledge` reached a learner on 15 turns of 20. The event is now sent whenever a posture fires,
+  // with `surface` null when there is nothing to display. (No content, invariant #8: a branch name only.)
+  if (!felt && nudge.fired) send('nudge', { surface: nudge.surface || null, fired: nudge.fired });
   // the posture steers the QUESTION's mode; the model receives the posture, never the diagnosis.
   // Stable system (cacheable prefix) + per-turn volatile material on the final turn. Keeping the
   // retrieved tensions and posture OUT of the system prompt is what lets prompt caching reuse the prefix
   // (cache: true below); only the live final turn is wrapped with this turn's domain material.
   const system = buildSystemPrompt(methodCore, goal);
-  const turnContent = buildTurnContext({ retrieved, posture: (felt && felt.posture) || nudge.posture || '', message });
+  const turnContent = buildTurnContext({ retrieved, posture: (felt && felt.posture) || nudge.posture || '', aim: aimBlock(arc), shape: formShape(exchanges), message });
 
   const messages = [
     ...history.map((h) => ({ role: h.role === 'student' ? 'user' : 'assistant', content: h.content })),
@@ -572,7 +601,12 @@ app.post('/api/chat', requireUser, async (req, res) => {
     // situation → the question, so a chat can be replayed by the 2.0 "sounds-like-Prayas" harness. The
     // returned id lets the local UI attach an on-voice/off-voice label to this exact question. The guard's
     // work is captured too (a repaired question is a different kind of specimen from a first-pass one).
-    const capId = capture({ mode: 'enquiry', chatKey: studentTurns[0] || goal, goal, discipline, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, question: full, guard: guarded.check.ok, attempts: guarded.attempts, rejected: guarded.rejected });
+    const capId = capture({ mode: 'enquiry', chatKey: studentTurns[0] || goal, goal, discipline, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, arc: `${arc.movement}/${arc.aimKey}#${arc.lap}`, shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
+      // Logged side by side so the comparison the todo doc asks for can be made on real transcripts
+      // before anything is wired again. Local capture only — never in production (capture.mjs).
+      sem: fs && fs.semFresh ? +fs.semFresh[fs.semFresh.length - 1].toFixed(3) : null,
+      advancement: +sig.advancement.toFixed(3),
+      advancementIfWired: +refineFresh(sig.advancement, fs && fs.semFresh, studentTurns.length - 1).toFixed(3), question: full, guard: guarded.check.ok, attempts: guarded.attempts, rejected: guarded.rejected });
     if (capId) send('capture', { id: capId });
     // Nothing persisted — the client keeps the turn in its own transcript.
     if (meter) {

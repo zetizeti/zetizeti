@@ -1219,7 +1219,7 @@ async function streamStone(message, kind, reuseNode){
         if(type==='curtain') retrieved=data.retrieved;
         else if(type==='token'){ if(!full) body.textContent=''; full+=data.t; body.textContent=full; scroll(); }
         else if(type==='signals') setVizSignals(data);
-        else if(type==='nudge'){ showNudge(data.surface); nudgedThisTurn=true; }
+        else if(type==='nudge'){ if(data.surface) showNudge(data.surface); nudgedThisTurn=true; }   // a silent posture still starts the refractory
         else if(type==='validation') guard=data;
         else if(type==='capture') captureLabelUI(node, data.id);
         else if(type==='pool'){ poolTurnsLeft=data.turnsLeft; if(data.budget) poolBudget=data.budget; renderPoolCount(); renderPoolBudget(); }

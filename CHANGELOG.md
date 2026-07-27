@@ -21,6 +21,147 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.10.2] — 2026-07-27
+
+Three purpose-built 20-round conversations — a fluent restater, a genuine developer, and a developer
+whose vocabulary circles — run against the real model on the auth-less build. They were meant to verify
+a semantic freshness channel. They killed it, and found three further faults underneath. The lesson the
+version turns on: **structure beats detection wherever the detector is weaker than the pattern it is
+chasing.**
+
+### Added
+- **A deterministic FORM rotation** (`lib/nudge.mjs` `formShape`, rendered as its own SHAPE block in
+  `buildTurnContext`). Four question shapes cycle by turn, each forbidding the construction the last one
+  invites, so no opener can survive two turns running. This is the arc's logic applied to the sentence:
+  the repetition is *prevented*, not detected. Measured across 60 questions after the change —
+  "If you were to" **0**, "the specific" **2** (was 11–13), 49 distinct three-word openers out of 60,
+  mean length 15.6 words.
+- **`lib/novelty.mjs` — the semantic freshness channel, SHADOW ONLY.** Computed and logged beside what it
+  *would* have done, so the comparison `docs/ops/todo-inquiry-maths.md` asks for can be made on real
+  transcripts. It does not steer, and the reason is in the module header at length.
+
+### Fixed
+- **The refractory was dead for every silent posture, and had been.** `turnsSinceNudge` only reset when a
+  nudge carried a `surface` line to display; most postures carry none, so whichever silent branch matched
+  fired every single turn. The old self-echo branch had been masking this by returning first. The server
+  now emits the nudge event whenever a posture fires, `surface` null when there is nothing to show, and
+  the client starts the refractory on it. `acknowledge` went from **15 turns of 20 to 6, properly spaced**;
+  the layer is quiet by default again, as designed.
+
+### Removed
+- **The self-echo branch** (`lib/nudge.mjs` §0). Measured across the three runs, `selfEcho` ran 0.44–0.76
+  with a mean of **0.58 in every one of them**, so it fired on 16 turns of 19 and its "escalation" on 17.
+  It was not detecting that the stone had repeated itself; it was detecting that two English questions
+  resemble each other in a hashed embedding space. Worse, standing above the refractory it pre-empted the
+  rest of the policy — `acknowledge` reached a learner 3 times in 60 turns, `widen` once. The signal stays
+  computed and watch-side.
+
+### Measured — and this is why the semantic channel does not steer
+Five candidate measures were built and tested against the fixtures. **None separates "the same idea in
+new words" from "a new idea."**
+
+| measure | restater | developer | verdict |
+|---|---|---|---|
+| whole-utterance nearest cosine | 0.430 | 0.394 | inverted |
+| per-item EdgeSpan novelty | 0.444 | 0.353 | inverted |
+| utterance-level EdgeSpan novelty | 0.713 | 0.751 | no separation |
+| similarity-to-goal | 0.133 | 0.236 | inverted |
+| goal-drift slope | −0.0055 | −0.0100 | too small, confounded by register |
+
+Every one tracks vocabulary and register; the restater simply paraphrases with fresh vocabulary. The
+per-item measure had looked right on the first fixture pair only because that student reused her *literal*
+words, which the exact-string shortcut caught — semantics never entered it. MiniLM-class embeddings do not
+carry propositional content, and word-level cosines sit on a ~0.2 anisotropy floor that `feltshift.mjs`
+had already documented. **What protects a learner from the fault is therefore structural, not a detector:
+no line of questioning may be held beyond four turns, so a restater still receives five different lines
+across twenty turns.** The reported fault — seven turns on one axis — cannot recur whether or not anything
+notices the restatement.
+
+### Process note
+`docs/ops/todo-inquiry-maths.md` already carried the rule this violated: *"Start as a shadow signal…
+Do not wire it to steering until it has been watched."* It was wired to steering on one pair of fixtures.
+The three runs that caught it are what the rule was asking for, done in the wrong order.
+
+## [0.10.1] — 2026-07-27
+
+A fix for the single-axis loop on the **enquiry** surface — the fault criticism mode had fixed on
+16 July and enquiry never did. Siddhie's 26 July session (13 turns, seven of them restating one
+question) is the fixture. The loop detector was not asleep: it fired on eleven of those turns and
+each time issued *"keep the thread, vary the FORM"*, because the branch that decides between varying
+the form and dropping the line reads **word novelty**, and a fluent student restating one idea in
+eight vocabularies scores high on it every time. Verified on the auth-less local build against the
+real model before commit, per the working rule.
+
+### Added
+- **`lib/arc.mjs` — the enquiry surface's dynamic arc.** Ten aims across three movements
+  (*locate* → *press* → *land*), replayed statelessly from the transcript each turn (nothing stored;
+  the ephemeral guarantee is untouched). The counterpart of `CRITICISM_POINTERS`, which enquiry never
+  had: until now its only rotation was prose in the system prompt asking the model to move the angle,
+  which is not a rotation but a request addressed to the party doing the circling.
+  **Dynamic, not scheduled** — the session's length is unknowable in advance, so aims are held while
+  they yield and released when they stop (2–4 turns), and movements advance on readiness in the
+  learner's own replies. The same eight turns land in different places depending on what the learner
+  is giving. **It does not end:** when *land* is spent the lap rises and the arc re-enters *locate*,
+  where an aim must take up material introduced since its last visit.
+- **`thinning`** (`lib/signals.mjs`) — the learner's replies contracting against the session's own
+  median. The earliest legible sign a line is spent: a bored student stops writing before they start
+  repeating. Releases the current aim; never surfaced, never scored.
+- **`sustainedEcho`** (`lib/signals.mjs`) — `selfEcho` across a six-turn window, which answers what
+  the three-turn reading cannot: whether the correction was already issued and refused.
+
+### Changed
+- **The arc owns the LINE; the nudge owns the FORM** (`lib/nudge.mjs` §0). Until the arc existed, the
+  echo branch had to move the line of questioning as well, and decided by `advancement` — new words,
+  which a fluent student produces while restating one idea. It now corrects wording only, and escalates:
+  `sustainedEcho` (the same echo across six turns rather than three) says the mild correction was already
+  sent and ignored, so the strong version names the actual tells and forbids them. Three 20-round runs
+  showed what `selfEcho` really tracks — the stock opener ("When you say…", "If you were to…", "what is
+  the specific…") recurring while the content moves — which is a fact about wording, not about whether a
+  line is spent. After the change, "If you were to" appears once across 60 questions; mean question
+  length 16.8 words. The old *"we've circled the same question — is this still the live thread?"* surface
+  is removed: with the arc moving the line it would no longer be true.
+- **A re-draw returns the arc to locating the new edge.** Only the learner changes the topic; carrying on
+  pressing the previous line after someone has just said what they are actually trying to do is the tool
+  not listening. Found in the 27 July run C, where a re-drawn edge was answered with a question about the
+  sentence before it.
+- **Retrieval exclusion widened from one turn to three** (`server.mjs`). With a discipline selected a
+  student draws on a few dozen entries at three per turn; a one-turn exclusion let the same tensions
+  return every other turn, so the aims rotated while the grounding beneath them repeated.
+- **`buildTurnContext` takes an `aim`** alongside the posture — the line of questioning and the mode of
+  asking are different things, and a felt event now holds the aim rather than competing with it.
+- **Invariant #0's framing corrected in `CLAUDE.md`.** It claimed pending entries stay out of the live
+  corpus and must not ground a learner's question. No code has ever performed that exclusion: all 265
+  domain entries are indexed and retrieved, 231 of them `pending`. What `pending` marks is the
+  **framing** awaiting sign-off; the citations under it are verified, which is what the curtain has
+  always told the learner. A doc asserting an enforcement nothing carries out is the failure shape the
+  corrections ledger names, so it is corrected rather than left standing.
+
+### Tests
+- `test/arc.test.mjs` — the first **sequence** tests in the suite. Every turn of the 26 July session
+  decided correctly by its own rule and the session still failed, so these assert what a whole
+  transcript produces: that the arc leaves its opening line, that no steer is reissued unchanged, that
+  a sustained echo escalates, that a long enquiry raises its lap, and — after the 20-round runs caught it
+  — that **the arc never runs backwards**. Two fixtures pull opposite ways: the loop that must be moved
+  off its line, and Prayas's 24 July probe, a sharpening thread that must be left alone. 86 tests pass.
+
+### Verified
+- **Three 20-round conversations on the auth-less local build against the real model** (60 turns, guard
+  clean throughout): a disengaging student, an elaborating one, and a mixed session with a re-draw at
+  turn 11. The pacing is visibly driven rather than timed — the disengaging session traverses the whole
+  arc and rolls into a second lap by turn 20; the elaborating one holds each line to its ceiling and is
+  only reaching the landing at turn 20; the mixed one re-draws and starts locating again.
+- **A non-monotone arc, found and fixed in that run.** `sustainedEcho` had been applied as a current-turn
+  override on top of a stateless replay, so an aim advanced on the turn it fired and reverted on the
+  next (press → locate → press). An override that is not part of the replayed history cannot survive a
+  replay. Nothing is overridden now; the one current-turn input, a felt-shift event, may only *hold*.
+
+### Known, not fixed here
+- `advancement` still counts new WORDS. The escalation catches its failure deterministically, but the
+  semantic measure that would fix it belongs with the Stalling Index work — **booked for 0.10.2**
+  (`docs/ops/todo-inquiry-maths.md`).
+- "the specific" survives as a wording tic: 11 occurrences across 60 questions, down from a heavier
+  pattern but not gone.
+
 ## [0.10.0] — 2026-07-24
 
 The felt-shift detector joins the live dialogue — the first working shard of Position 2 (*measure the
