@@ -152,6 +152,20 @@ last nudge. *The whetstone does not whisper a direction on every stroke.* Over-s
 directive each turn — is the subsystem's worst failure: the questioning turns jittery and the
 learner senses they are being managed.
 
+> **Two exceptions, both earned on evidence and both above the refractory (v0.10.0 and v0.11.0).**
+> A **felt-shift event** outranks the cadence: an event is exactly the moment to respond, so waiting
+> out a refractory would answer a landing three turns after it happened. And from v0.11.0 the
+> **warmth line** (`acknowledge`) is checked *before* the refractory rather than sixth after it.
+> Measured across 1,938 question→reply pairs, a turn that opens by naming what is working draws a
+> reply **15% above that conversation's own baseline** where a plain turn draws −5%, and is refused
+> **10%** of the time against **23%** — and it survives matching (on turns where the learner was
+> already warm it still gives +19% / 7% against −1% / 22%), so it is a lever rather than a selection
+> effect. Sitting behind the refractory, the best element in the layer was being silenced for three
+> turns by any other nudge. It keeps a one-turn gap of its own, so it can never run consecutively,
+> and it still requires real movement **and** fresh ground: warmth on new tokens alone is the hollow
+> praise a discerning student distrusts. The invariant it must not cross is *inquiry-not-inquirer*,
+> not warm-versus-cool — encouragement aimed at the thread is allowed; a grade of the person is not.
+
 **Joint firing, because stuck and dwelling look the same.** "Shift the angle" never fires on cycling
 (#5) alone — only on cycling **and** flat insight (#2) **and** flat specificity (#1) together. And
 even then, the more honest move is often to hand the read back to the learner rather than steer:
