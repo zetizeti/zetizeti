@@ -19,7 +19,7 @@
 //
 // REPLAY FIXTURES live OUTSIDE the published tree — a real student's tutorial transcript is theirs, was
 // shared for debugging, and `scripts/` is whitelisted wholesale by publish-public.sh:
-//   node --env-file=.env scripts/flow-probe.mjs --replay=../../docs/ops/fixtures/replay-nikhil.json --rounds=41
+//   node --env-file=.env scripts/flow-probe.mjs --replay=../../docs/ops/fixtures/replay-session-20260728.json --rounds=41
 
 import Database from 'better-sqlite3';
 import { fileURLToPath } from 'node:url';
