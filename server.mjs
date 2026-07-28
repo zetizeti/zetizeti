@@ -37,8 +37,9 @@ import {
 } from './lib/db.mjs';
 import { streamQuestion } from './lib/llm.mjs';
 import { generateGuarded } from './lib/guard.mjs';           // the guard's ENFORCEMENT layer (invariant #3)
-import { computeSignals } from './lib/signals.mjs';
-import { readArc, aimBlock } from './lib/arc.mjs';
+import { computeSignals, content as contentWords } from './lib/signals.mjs';
+import { readDwell, isDecline, isCorrection, lastSubstantive } from './lib/arc.mjs';
+import { readAssociation, associationBlock } from './lib/assoc.mjs';
 import { semanticFreshness, refineFresh } from './lib/novelty.mjs';   // SHADOW ONLY — measured, not wired (see novelty.mjs)           // the enquiry surface's dynamic arc (line of questioning)
 import { decideNudge, feltPosture, formShape } from './lib/nudge.mjs';
 import { embedNeural, neuralReady, warmEmbeddings } from './lib/embed.mjs';
@@ -423,7 +424,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // Signals AFTER the felt pass, so `advancement` can be refined by the semantic channel it produces.
   const sig = computeSignals({ goal, lineage, studentTurns, stoneTurns, exchanges });
 
-  // Retrieval, tuned against BLANDNESS (Siddhie, 15 Jul: "questions become bland / round-and-round as we
+  // Retrieval, tuned against BLANDNESS (Siddhi, 15 Jul: "questions become bland / round-and-round as we
   // move forward") — the tail flattens when the SAME top tensions are retrieved turn after turn. Two
   // invariant-#1-safe fixes (still exact-word FTS, only recency + more literal text — never semantics):
   //   (a) ROLLING WINDOW — key retrieval on the last ~2 learner turns + this message (message weighted
@@ -525,19 +526,58 @@ app.post('/api/chat', requireUser, async (req, res) => {
 
   // A usable key exists, so we commit to the turn. Nothing is persisted — the enquiry lives only in the
   // client. The nudge refractory uses the client-supplied turnsSinceNudge (no stored trajectory).
+  // warmth: true — promoted above the refractory (lib/nudge.mjs). Measured 29 Jul across 1,938
+  // question→reply pairs as the only element that moves BOTH axes the same way: +14 points of reply
+  // length against that conversation's own baseline, refusals 10% against 23%, and it holds when
+  // matched on turns where the learner was already warm (so it is a lever, not a selection effect).
+  // At variant level it recovers 9 of the 13 engrossment points the meaning machinery costs, for 7 of
+  // its 22 arc points — by a distance the cheapest trade available.
   const nudge = decideNudge(sig, {
     exchanges, reDrewThisTurn: kind === 'redraw', turnsSinceNudge,
-  });
+  }, { warmth: true });
   // Felt-shift postures OUTRANK the cadence-driven nudges: an event is exactly when to respond (the
   // same standing the selfEcho break has). When one fires, the nudge's surface is suppressed too — a
   // "we've circled, shall we move?" line would contradict a landing the detector just marked.
   const felt = feltPosture(fs);            // (event counts were already taken in feltForTurn)
-  // The ARC — which line of questioning this turn is on (lib/arc.mjs). Replayed from the transcript, so
-  // it needs no stored state; driven by the learner's own replies, so a short chat traverses it quickly
-  // and a long one dwells. A felt event HOLDS the current aim (the thread is demonstrably alive); a
-  // sustained self-echo releases it early. This is the enquiry surface's answer to the single-axis loop
-  // — the counterpart of pickCriticismPointer, which criticism has had since 16 July.
-  const arc = readArc({ studentTurns, lineage, feltEvent: !!(fs && (fs.semEvent || fs.lexEvent)) });
+  // ── THE FLOW TURN (28 Jul 2026, branch fix-enquiry-flow) — replaces the aim block ────────────────
+  // The aim block is NO LONGER INJECTED. Measured on the student's real 41 replies of 28 July (the session
+  // that prompted this: "it was just circling back the question and something some bs"), the arc did
+  // everything it was designed to do — all ten aims reached, both movements traversed, lap 2 — and the
+  // questions still asked him to name the one particular sound ten times out of forty. The aim arrives
+  // as a DIRECTION and the shape as a GRAMMAR, and neither displaces the move just made, so every aim
+  // executed faithfully in his own vocabulary produced another question about a sound at a threshold.
+  // Removing it and adding the two readers below took interrogation-shaped questions from 32% to 7-17%
+  // and questions that take up what the learner just said from 41% to 82-90%. Full record, every run:
+  // docs/ops/flow-probe-log.md. `readArc` stays exported and tested — it is the honest record of the
+  // 27 July attempt, and the dwell reader is built from the same material — but it no longer steers.
+  //
+  // What DID survive the measurement is the FORM rotation: stripping it did not make the stone
+  // friendlier, it made it ask "are you X, or are you Y?" on 61% of turns and let questions balloon to
+  // 38 words. The rotation now runs on FLOW_SHAPES, which is FORM_SHAPES with its fourth shape — "ask
+  // for a particular: a thing, a moment, a person, a number" — replaced. That shape contradicted the
+  // method core's own section "Never require the precise word", and it was the measurable source of the
+  // browbeating.
+  const dwell = readDwell({ studentTurns });
+  // The learner has declined this question. Outranks everything: nothing is built on words that carry no
+  // content, and the next question changes footing to material they themselves supplied earlier.
+  const declined = isDecline(message) ? { anchorText: lastSubstantive([...studentTurns]) } : null;
+  // The learner corrected a reading ("that's not what i meant", "you asked that twice") — Jung's
+  // disturbed-reproduction indicator, worn protectively: their correction is authoritative, so the
+  // steering that would press on is suppressed and the next question takes up what they re-stated.
+  const corrected = !declined && isCorrection(message);
+  // WIDENING BY ASSOCIATIVE VALUE (lib/assoc.mjs) — join two things the learner said at different times
+  // and has never been asked about together. Measured 28 Jul as the best single addition of the day:
+  // dry replies 30%→17%, uptake 83%→95%, and the only configuration whose student writes MORE as the
+  // conversation goes on. Internal only; the external flavour (model-proposed neighbours) measured worse
+  // on every meaning column and is not wired.
+  // selector 'open' — the measured synthesis (flow-probe round 4, 28 Jul): generous recurrence-valued
+  // joining (the charge-as-targeting selector maximised the meaning-arc but bounced ~30% of its joins
+  // on three successive runs — charged material is resistant material) behind the protective gates:
+  // corrections never quoted, refusals quotable only when they name the blockage, hedge words never
+  // material. Jung as tact, Cummings as manner, the join itself generous.
+  const assoc = (declined || corrected) ? null : readAssociation({ studentTurns, stoneTurns, selector: 'open' });
+  const earlierWords = new Set(studentTurns.slice(0, -1).flatMap((t) => contentWords(t)));
+  const newMaterial = [...new Set(contentWords(message))].filter((w) => !earlierWords.has(w)).slice(0, 4);
   // Tell the client a posture fired even when there is nothing to SHOW. The refractory lives in the
   // client (the service is stateless — it sends `turnsSinceNudge` back each turn), and it used to reset
   // only on a nudge that carried a `surface` line. Most postures carry none, so the refractory was dead
@@ -551,7 +591,17 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // retrieved tensions and posture OUT of the system prompt is what lets prompt caching reuse the prefix
   // (cache: true below); only the live final turn is wrapped with this turn's domain material.
   const system = buildSystemPrompt(methodCore, goal);
-  const turnContent = buildTurnContext({ retrieved, posture: (felt && felt.posture) || nudge.posture || '', aim: aimBlock(arc), shape: formShape(exchanges), message });
+  const turnContent = buildTurnContext({
+    retrieved,
+    posture: (felt && felt.posture) || nudge.posture || '',
+    shape: formShape(exchanges, { flow: true }),
+    dwell,
+    newMaterial: newMaterial.length ? newMaterial : null,
+    declined,
+    corrected,
+    assoc: assoc ? associationBlock(assoc) : '',
+    message,
+  });
 
   const messages = [
     ...history.map((h) => ({ role: h.role === 'student' ? 'user' : 'assistant', content: h.content })),
@@ -574,7 +624,10 @@ app.post('/api/chat', requireUser, async (req, res) => {
     // cache: true — reuse the stable prefix (system + prior history) at ~1/10th input price. reasoning
     // off — gemini-lite defaults to a thinking budget; zetizeti is a thin composer.
     const guarded = await generateGuarded({
-      validate: validateOutput,
+      // avoid: the repeat gate (round 4) — a question sharing a five-word frame with an earlier one is
+      // withheld and repaired (quoted learner text stripped first). Detection at the only place a repeat
+      // can actually be withheld: the guard.
+      validate: (t) => validateOutput(t, { avoid: stoneTurns }),
       generate: (correction) => streamQuestion({
         system,
         // On a repair attempt the rejected question and the correction are appended as a normal turn pair,
@@ -601,7 +654,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
     // situation → the question, so a chat can be replayed by the 2.0 "sounds-like-Prayas" harness. The
     // returned id lets the local UI attach an on-voice/off-voice label to this exact question. The guard's
     // work is captured too (a repaired question is a different kind of specimen from a first-pass one).
-    const capId = capture({ mode: 'enquiry', chatKey: studentTurns[0] || goal, goal, discipline, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, arc: `${arc.movement}/${arc.aimKey}#${arc.lap}`, shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
+    const capId = capture({ mode: 'enquiry', chatKey: studentTurns[0] || goal, goal, discipline, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, dwell: dwell ? `${dwell.anchor}×${dwell.returns}` : null, joined: assoc ? assoc.distance : null, declined: !!declined, corrected, newMaterial: newMaterial.slice(0, 3), shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
       // Logged side by side so the comparison the todo doc asks for can be made on real transcripts
       // before anything is wired again. Local capture only — never in production (capture.mjs).
       sem: fs && fs.semFresh ? +fs.semFresh[fs.semFresh.length - 1].toFixed(3) : null,
@@ -670,7 +723,7 @@ async function resolveKeyForCriticism(req, res, send) {
 // Shared by open + turn. Anchored to the artefact on every turn. Persists NOTHING — the client holds the
 // artefact, the reading, and the running transcript, and sends them back each turn.
 async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocated = null, discipline, goal, priorMessages, studentTurn }) {
-  // Anti-sameness on the criticism surface (Siddhie, 16 Jul: it "constantly framing 'is this a property
+  // Anti-sameness on the criticism surface (Siddhi, 16 Jul: it "constantly framing 'is this a property
   // or a verdict' to whatever answer I give"). This is the SAME machinery the enquiry path got on 13 Jul
   // and which this surface never had: watch the stone repeating ITSELF (selfEcho over its own prior
   // questions), ROTATE the line of questioning (the pointer — verdict/blur is one aim among several), and

@@ -21,6 +21,124 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.11.0] — 2026-07-29
+
+A student's session of 28 July — *"i worked with my idea but it was not much helpful / it was just
+circling back the question and something some bs / i guess it didnt get the project idea"* — ran on
+v0.10.2, the build shipped the previous day to fix exactly that complaint. Replaying `readArc` over his
+41 replies shows the arc did everything it was designed to do: all ten aims reached, both movements
+traversed in order, the lap rising to 2 at turn 35. Across those forty questions, twenty-four asked
+about *sound* and ten asked him to name the one particular sound at a threshold. The rotation and the
+sameness were running on different axes.
+
+The cause is that the aim arrives as a DIRECTION and the shape as a GRAMMAR, and neither displaces the
+move just made — while every aim closes by binding the question to the learner's own words (#1). His
+words were *sound, vacuum, trapped, silence, air*. Each aim, executed faithfully in his vocabulary,
+produced another question about a sound at a threshold. Two aims prove it: at turns 31–32 the arc was on
+`next` ("what would have to be made or tried FIRST") and produced *"What makes the person stop trying to
+escape?"*; at 33–34 it was on `redraw` ("say in one sentence what you are now trying to do") and produced
+*"what is the sound that finally makes them stay?"* Both were reached. Neither was executed.
+
+The method core was never the browbeater. `corpus/method/clean-questioning.md` already contains a section
+headed **"Never require the precise word"**, the question *"when you try to say it and the words don't
+quite fit — what's there, that the words are missing?"*, and a section **"Open, don't only sharpen"**.
+None were asked. `FORM_SHAPES[3]` — *"Ask for a particular: a thing, a moment, a person, a number"* —
+contradicts that method note directly, and a bracketed imperative next to the question beats ninety-four
+lines of resident prose on a cheap model.
+
+### Changed
+- **The aim block is no longer injected** (`server.mjs`). `readArc`/`aimBlock` stay exported and tested —
+  the honest record of the 27 July attempt, and the material the dwell reader is built from — but they no
+  longer steer the question.
+- **The form rotation stays, and runs on `FLOW_SHAPES`** (`lib/nudge.mjs`) — `FORM_SHAPES` with its
+  fourth shape replaced by one in the register Prayas set: *"not like talking to a judge but to a
+  friend"*. Removing the rotation altogether was measured and rejected: it did not make the stone
+  friendlier, it made it ask *"are you X, or are you Y?"* on 61% of turns and let questions grow to 38
+  words. One tic was replacing another.
+
+### Added
+- **Succession** (`buildTurnContext` → `newMaterial`) — the question is built from a word the learner has
+  just brought in for the first time. The student laid a trail of new material on nearly every turn (vacuum →
+  no air → background sounds → anxiety) and the stone followed none of it.
+- **Dwell** (`lib/arc.mjs` → `readDwell`, `APPROACHES`) — persistence is heat, not exhaustion. `arc.mjs`'s
+  `spent` reads a reply with few new content words as a line that has stopped yielding, so a learner
+  circling one thing is read as spent and rotated away from. Prayas, 28 July: *"the learner persisting
+  with the same thing multiple times should be a signal — I think the student was searching for a way out, a
+  breakthrough, not a browbeating."* What holds is the learner's most-returned-to word; what moves is the
+  approach, and the approaches are the moves already written in `corpus/method/` that the July steering
+  layer had no way to reach.
+- **`validateOutput(text, { maxWords })`** — brevity as a condition of delivery. Built, measured, and NOT
+  enabled: see below.
+- **`isRedirect()`** (`lib/arc.mjs`) — reads a learner's in-chat redirect. Built, measured as unproven,
+  NOT wired: see below.
+- **`app/scripts/flow-probe.mjs`** — variant comparison against a play-acted student who is permitted to
+  disengage, and a `--replay` mode that runs a variant against a real student's real replies. Every run
+  appends to `docs/ops/flow-probe-log.md` and writes full transcripts to `docs/ops/flow-probe-runs/`.
+
+### Measured, and rejected
+- **Vantage from the corpus** — promoting a retrieved tension to the dimension the question opens. It
+  removed particular-demands entirely (0%) but dropped uptake to 44%, below the control's 56%, and
+  produced non-sequiturs: told *"i don't know - unable to put that into words"* it asked whether the time
+  spent felt *"like a cost to be measured"*. The corpus-as-map idea is not dead, but standing in a tension
+  pulls away from the learner's own material, which is the opposite of what was being built.
+- **Brevity enforced in the guard** — at ≤20 words the guard passed 54% of turns, at ≤28 words 93%. It was
+  also unnecessary: the flow build already produces shorter questions (16–18 words, two-thirds under
+  twenty) than the baseline, for free.
+- **Learner redirect heard in-chat** — the reader fires correctly, but treating a redirect as a re-draw
+  re-anchors the enquiry to `locate`, and inside the winning combination it sat within run-to-run noise.
+  that transcript contains exactly one redirect in 41 turns, so this fixture cannot measure it. Kept
+  as an unwired function pending a fixture with several redirects.
+
+### Added later the same day (evening — the association rounds)
+- **Widening by associative value** (`lib/assoc.mjs`): the join — one question holding two things the
+  learner said far apart and never together. Selector `open` ships: generous recurrence-valued joining
+  behind protective gates. The Jung charge selector (`readCharges` — refusal, named articulation
+  failure, contraction, correction, perseveration, insight) is kept selectable as an instrument; as
+  targeting it was measured three times and bounced ~30% of its joins — charged material is resistant
+  material — so Jung ships as TACT (corrected footing, quotability, repeat gate), not as aim. The
+  spoken manner is gathered from Cummings (minimal connective, concrete handle, de-animation, oblique
+  entry; analysis private in docs/ops/, nothing in-copyright ships — invariant #2).
+- **Corrected footing** (`isCorrection`): a learner's "that's not what i meant" suppresses the steering
+  and the next question takes up their re-assertion. **Repeat gate** in the guard: a question sharing a
+  five-word frame with an earlier one is withheld and repaired (`validateOutput { avoid }`).
+- **Two-axis scoring** (`scripts/flow-score.mjs`): ENGROSSING and MEANING-ARC, with per-third arcs.
+  Full record: `docs/ops/flow-probe-log.md` rounds 1–4.
+
+### Warmth first (29 Jul — the both-axes pass)
+Analysing **1,938 question→reply pairs** across nine logged 20-round runs, rather than guessing another
+variant, found one element that moves engagement and meaning the same way: a turn opening with a brief
+line naming what is working draws a reply **15% above that conversation's own baseline** (plain turns:
+−5%) and is refused **10%** of the time against **23%**. It is a lever, not a selection effect — the
+reply *before* such a turn sits at +1%, and matched on turns where the learner was already warm it still
+gives +19% / 7%. `acknowledge` had been sitting sixth in `decideNudge`, **behind** the three-turn
+refractory, so any other nudge silenced the best element in the layer. Promoted above the refractory,
+thresholds 0.3→0.15/0.2, with a one-turn gap of its own. Three testers had asked for warmth
+independently; the measurement now agrees with them.
+
+Two further findings from the same analysis, both shipped:
+- **Brevity was the wrong instinct — there is a floor, not a ceiling.** Questions of ≤12 words are
+  refused **26%** of the time against **16%** at 20–24 words, and the gap survives excluding the decline
+  path (where short questions are correct) and excluding the warm preamble. A very short question is
+  usually an under-specified one. `FLOW_SHAPES[0]` had demanded "twelve words or fewer".
+- **Three of the six dwell approaches fail, in a pattern worth naming.** *What kind of* 43% refused,
+  *makes possible* 34%, *anything else about* 27% (and the lowest insight measured), against *what would
+  have to be true* at 15% with the best reply-lift and *what would you want* at 16% with the highest
+  insight. The losers are the classic Clean Language felt-sense moves; the winners treat the material as
+  a **design proposition**. Asked of a technical object, "what kind of X is that X?" produces *'what kind
+  of "avoid" is that?'* — measured, refused half the time. This is a finding about
+  `corpus/method/clean-questioning.md`, not only about that list.
+
+Held, implemented and runnable but NOT shipped: **join spacing** (a join may not follow a join). It buys
+a further 7 engrossment points for a further 8 arc points — a much worse rate than warmth's 9-for-7 —
+and the simulated engagement axis cannot adjudicate it, since the deployed v0.10.2 tops that axis while
+being precisely the build that student abandoned. `--variants=R` runs it.
+
+### Result
+On that student's own 41 replies, against the v0.10.2 baseline: interrogation-shaped questions (precision
+demands + either/or demands) **32% → 7–17%**; questions that take up what the learner just said
+**41% → 82–90%**; mean question length **21.0 → 17.9 words**; guard **100%**. With a play-acted student
+free to disengage, dry replies **15% → 5%**. Every run is logged in `docs/ops/flow-probe-log.md`.
+
 ## [0.10.2] — 2026-07-27
 
 Three purpose-built 20-round conversations — a fluent restater, a genuine developer, and a developer
@@ -85,7 +203,7 @@ The three runs that caught it are what the rule was asking for, done in the wron
 ## [0.10.1] — 2026-07-27
 
 A fix for the single-axis loop on the **enquiry** surface — the fault criticism mode had fixed on
-16 July and enquiry never did. Siddhie's 26 July session (13 turns, seven of them restating one
+16 July and enquiry never did. Siddhi's 26 July session (13 turns, seven of them restating one
 question) is the fixture. The loop detector was not asleep: it fired on eleven of those turns and
 each time issued *"keep the thread, vary the FORM"*, because the branch that decides between varying
 the form and dropping the line reads **word novelty**, and a fluent student restating one idea in
@@ -282,7 +400,7 @@ The never-answer guard now **holds** rather than merely reporting — invariant 
 
 ## [0.9.0] — 2026-07-16
 
-First formally versioned build. The post-pilot revision, from Siddhie's and Sourav's feedback.
+First formally versioned build. The post-pilot revision, from Siddhi's and Sourav's feedback.
 
 ### Changed
 - **Question sameness fixed across both surfaces.** The anti-sameness machinery (self-echo watch,

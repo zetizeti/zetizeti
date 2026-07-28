@@ -1,9 +1,9 @@
 {
   "name": "zetizeti",
-  "version": "0.10.2",
+  "version": "0.11.0",
   "private": true,
   "type": "module",
-  "description": "zetizeti — a Socratic inquiry toolkit for design students. It won't answer; it sharpens.",
+  "description": "zetizeti \u2014 a Socratic inquiry toolkit for design students. It won't answer; it sharpens.",
   "scripts": {
     "start": "node server.mjs",
     "dev": "node --env-file=.env server.mjs",
