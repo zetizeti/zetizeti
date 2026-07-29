@@ -87,6 +87,28 @@ The SSE data-flow contract is implemented in `server.mjs` and `public/index.html
 design rationale is in [`docs/concept/architecture.md`](docs/concept/architecture.md); the core commitment in
 [`docs/concept/position.md`](docs/concept/position.md).
 
+### What steers a question
+
+Between the retrieval and the guard sits a layer of deterministic steering, and it is the part most
+worth reading: **code owns the direction of the question, the model owns its language.** The next
+question is built from a word the learner has just introduced; what they keep returning to is treated as
+*heat rather than exhaustion* and held while the approach to it moves; the questioning walks the concrete
+parts of their idea by **coverage** rather than orbiting the hottest word; a refusal (*"I don't know"*)
+changes footing instead of becoming material; a correction (*"that's not what I meant"*) is authoritative;
+and one question may hold together two things the learner said far apart and never joined.
+
+None of it characterises the learner. All of it is replayed from the transcript, because nothing is
+stored. And the parts that matter are **enforced at the guard**, not requested in a prompt — a lesson
+paid for three times over:
+
+> A steering block the model may ignore is not steering — the same shape as *a guard that only reports is
+> not a guard*.
+
+Roughly half of what was built here was then measured and removed, and the negative results are kept
+rather than deleted. Both are documented in **[`docs/concept/dialogue.md`](docs/concept/dialogue.md)**;
+how such a change is judged at all is in
+[`docs/concept/evaluation.md`](docs/concept/evaluation.md).
+
 ## The corpus, and the verification protocol
 
 The questions are grounded in a **copyright-clean, synthetic, verified corpus** of design tensions —
@@ -156,9 +178,13 @@ database. Secrets enter only as environment variables; see the [`Dockerfile`](Do
 | | |
 |---|---|
 | [`docs/concept/position.md`](docs/concept/position.md) | the core commitment — read this first |
+| [`docs/concept/dialogue.md`](docs/concept/dialogue.md) | **how a question actually gets made** — every steering mechanism, its evidence, and the half that was rejected |
+| [`docs/concept/evaluation.md`](docs/concept/evaluation.md) | how a change to the questioning is judged — the probe, the two axes, four rules learned expensively |
+| [`docs/concept/self-hosting.md`](docs/concept/self-hosting.md) | running your own — configuration, access tiers, spend, deployment |
 | [`docs/concept/architecture.md`](docs/concept/architecture.md) | the design, incl. the verification system (§3a) and the idea/expression line (§2.1) |
 | [`docs/concept/spec.md`](docs/concept/spec.md) | the product spec and its history |
 | [`docs/concept/progress-signals.md`](docs/concept/progress-signals.md) | the signals subsystem — signals describe the *inquiry*, never the *inquirer* |
+| [`docs/concept/measuring-the-inquiry.md`](docs/concept/measuring-the-inquiry.md) | the second position — the measurement the tool would have to earn to be unique |
 | [`docs/corpus-build/`](docs/corpus-build/) | the verification protocol and the per-entry sign-off records |
 | [`brand.md`](brand.md) · [`brand/`](brand/) | the visual register and logo assets |
 

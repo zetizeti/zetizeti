@@ -64,6 +64,27 @@ correct it.
   Match the existing grammar; "modernising" the look toward generic SaaS will be declined.
 - British English in prose and comments.
 
+### Changing the questioning itself
+
+A change to *how the tool questions* carries a higher bar than a code change, because it cannot be
+verified by reasoning about it. Roughly half of what has been tried was measured and rejected, including
+several things that felt obviously right when written.
+
+1. **Read [`docs/concept/dialogue.md`](docs/concept/dialogue.md) first** — particularly *Built, measured,
+   removed*. Several natural-seeming ideas have already been tried and have transcripts against them.
+2. **Log the firing rate before interpreting anything.** An inert mechanism produces noise that reads
+   like a result — usually a *negative* one, which discards a good idea on evidence that was never about
+   it. This has happened three times.
+3. **Read the output cold, for meaning, separately from the metrics.** A question can be short,
+   non-interrogative, take up the learner's newest words, and be perfect nonsense — every one of those was
+   a column while the nonsense passed.
+4. **Replay both fixtures.** One student's feedback proposes; two students' transcripts dispose. The
+   fixtures are private (a student's session is theirs), but `scripts/flow-probe.mjs` runs on any
+   transcript in the same shape — and the most valuable thing you can send is one where the questioning
+   fails, with a note on what it should have asked.
+
+Full apparatus and its rules: [`docs/concept/evaluation.md`](docs/concept/evaluation.md).
+
 ## Decision rights, in one paragraph
 
 The maintainer (Prayas Abhinav) owns the invariants, the doctrine, and Gate-4 sign-off. Named stewards

@@ -142,6 +142,15 @@ So the architecture is a clean hybrid the original agent never had: **Part A beh
 - Embeddings are the documented fallback only if recall proves thin; not v1. ripgrep is dev/debug only, never the request path.
 
 ### 5.3 Dialogue engine
+> **🔵 SUPERSEDED IN PART (29 July 2026, v0.11.1).** Two claims below are historical: the engine runs on
+> **OpenRouter → `google/gemini-3.1-flash-lite`** by default, not the Anthropic SDK (the "Claude only"
+> convention was retired on cost, 22 June 2026); and "direction-recalibration every 3–4 exchanges" was
+> built as a counter-driven rotation, measured, and **removed** — an aim arrives as a direction and does
+> not displace the move the model just made. **The turn assembly as actually built is documented in
+> [`dialogue.md`](dialogue.md)**, including the mechanisms that replaced it and the ones that were
+> rejected. The paragraph is kept because the *shape* of the claim — a resident method core plus a
+> never-answer constraint — still holds.
+
 - Anthropic SDK, Claude only, temperature 0 on composition (matches diagnostics' narration step).
 - System prompt = Part A method core + never-answer constraint + clarity/confusion tracking + direction-recalibration (every 3–4 exchanges) — original work, carried from the existing agent, ships freely.
 
@@ -152,6 +161,15 @@ So the architecture is a clean hybrid the original agent never had: **Part A beh
 - **Citations live in Behind the Curtain, never inside the question.** "Plato, Theaetetus 152a" stuffed into a question reads badly; the question stays clean.
 
 ### 5.5 Sessions + privacy
+> **🔵 SUPERSEDED (11 July 2026 — the ephemeral pivot).** The open question below was settled far more
+> strictly than the default it proposed. **No conversation is stored at all** — not expiring, not
+> user-deletable, never written. Both surfaces are stateless: the client holds the transcript and sends
+> it each turn, which is also why every mechanism in [`dialogue.md`](dialogue.md) is *replayed* rather
+> than remembered. Quests, messages, signals and saved critiques were removed along with `/api/quests*`,
+> and the database boot-purges. What remains is operational only: accounts, sessions, and the per-user
+> spend ledger (turn counts + billed cost). Sign-in is Google OAuth only; the anonymous-cookie path is
+> dev-only and returns 404 in production. Operator config: [`self-hosting.md`](self-hosting.md).
+
 - SQLite + anonymous cookie (matches the three live demos' Turnstile + anonymous-cookie pattern). New / branch / resume preserved.
 - **Privacy:** Socratic sessions can be intimate. One-line policy needed — default: sessions expire after N days and are user-deletable; no account, no linkage. (Decide at build.)
 
