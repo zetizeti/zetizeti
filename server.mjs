@@ -12,7 +12,7 @@ import { buildIndex, retrieve } from './lib/retrieval.mjs';
 import {
   loadMethodCore, buildSystemPrompt, buildTurnContext, validateOutput,
   loadCriticismCore, buildCriticismSystemPrompt, validateCriticismOutput,
-  CRITICISM_POINTERS, pickCriticismPointer,
+  CRITICISM_POINTERS, pickCriticismPointer, questionOpener,
 } from './lib/dialogue.mjs';
 import { readSensed } from './lib/sensed.mjs';
 import { qualify, toCanonSegments } from './lib/qualify.mjs';   // DETERMINISTIC, no-LLM qualification (locating)
@@ -34,6 +34,7 @@ import {
   // and the questions asked back, are never written anywhere. See the login-screen assurance copy.
   usageByUser,
   poolSpendToday, poolSpendAllTime, poolSpendUser, poolSpendUserAllTime, poolTurnsUser, addPoolSpend,
+  adaptiveUserDailyInr,
 } from './lib/db.mjs';
 import { streamQuestion } from './lib/llm.mjs';
 import { generateGuarded } from './lib/guard.mjs';           // the guard's ENFORCEMENT layer (invariant #3)
@@ -69,7 +70,13 @@ const POOL_DAILY_USD = Number(process.env.ZETIZETI_POOL_DAILY_USD || 0) || 0;
 // header counter. So no single person eats the day's budget. Default 40 (≈ $0.20 of Haiku, so ≥5
 // users share a $1 day). Override with ZETIZETI_POOL_USER_TURNS. The $/day total above is the hard
 // money ceiling regardless.
-const POOL_USER_TURNS = Number(process.env.ZETIZETI_POOL_USER_TURNS || 0) || 40;
+// 🔵 "no turn cap. adaptive" (Prayas, 29 Jul 2026). Default 0 = DISABLED: the fixed daily turn count
+// bounded something that costs almost nothing (24 Jul: 28 users, ₹37 of ₹12,000) and cut off exactly
+// the students the pilot wants — a real tester hit 40 mid-thought and asked for her chats to be
+// renewed. The operative day control is now the ADAPTIVE ₹ allowance below (adaptiveUserDailyInr —
+// breathes with the pool's remaining budget); the lifetime ₹ ceiling stays absolute. A self-hoster who
+// wants a hard count back sets ZETIZETI_POOL_USER_TURNS explicitly.
+const POOL_USER_TURNS = Number(process.env.ZETIZETI_POOL_USER_TURNS || 0) || 0;
 // Total budget ceiling in RUPEES across the whole instance lifetime — all days, all users (the
 // pilot-grade cap, e.g. ₹12,000 for the Sem 7 cohort). 0/unset = no total cap. The pool ledger is in USD
 // (OpenRouter bills in USD), so it is converted at the live USD→INR rate (see usdInr below). When cumulative
@@ -151,6 +158,14 @@ const NO_ACCESS_MSG  = 'This tool is open to the course cohort. If you need acce
 const POOL_CAP_MSG   = "Today's shared budget is used up — please come back tomorrow, or contact the person running it.";
 const POOL_BUDGET_MSG = 'The shared budget for this run has been used up — please contact the person running it.';
 const USER_TURNS_MSG = `You've used today's ${POOL_USER_TURNS} messages — please come back tomorrow.`;
+// The adaptive day-share: a small fraction of the pool's REMAINING ₹, generous ceiling, session-sized
+// floor — effectively unlimited at healthy budget, shrinking only as the pool actually depletes.
+const remainingPoolInr = () => Math.max(0, MAX_BUDGET_INR - poolSpendAllTime() * usdInr());
+const effectiveUserDailyInr = () => (USER_DAILY_INR > 0 ? USER_DAILY_INR : (MAX_BUDGET_INR > 0 ? adaptiveUserDailyInr(remainingPoolInr()) : 0));
+const userAdaptiveCapReached = (day, userId) => {
+  const cap = effectiveUserDailyInr();
+  return cap > 0 && poolSpendUser(day, userId) * usdInr() >= cap;
+};
 const USER_BUDGET_MSG = "You've used your share of today's budget — please come back tomorrow.";
 // Per-user LIFETIME cap: distinct from the daily one — this is final, not "come back tomorrow".
 const USER_LIFETIME_MSG = "You've used your full share of the shared budget — please contact the person running it.";
@@ -193,8 +208,8 @@ function sendGenerationError(send, err, aiClubEmail = null) {
 const poolBudgetView = (day, userId) => ({
   totalInr: MAX_BUDGET_INR || null,
   spentInr: MAX_BUDGET_INR ? Math.round(budgetSpentINR()) : null,
-  userDailyInr: USER_DAILY_INR || null,
-  userSpentInr: USER_DAILY_INR ? Math.round(poolSpendUser(day, userId) * usdInr()) : null,
+  userDailyInr: effectiveUserDailyInr() ? Math.round(effectiveUserDailyInr()) : null,
+  userSpentInr: effectiveUserDailyInr() ? Math.round(poolSpendUser(day, userId) * usdInr() * 100) / 100 : null,
   // Per-user lifetime share (the memorability per-student guarantee). Null when uncapped. This is the
   // most personal figure — "how much of MY share is left" — so the chat header prefers it when set.
   userLifetimeInr: USER_BUDGET_INR || null,
@@ -203,7 +218,7 @@ const poolBudgetView = (day, userId) => ({
 // The live pool event payload sent after each metered turn: free turns left + the budget view.
 const poolEvent = (userId) => {
   const day = utcDay();
-  return { turnsLeft: Math.max(0, POOL_USER_TURNS - poolTurnsUser(day, userId)), budget: poolBudgetView(day, userId) };
+  return { turnsLeft: POOL_USER_TURNS > 0 ? Math.max(0, POOL_USER_TURNS - poolTurnsUser(day, userId)) : null, budget: poolBudgetView(day, userId) };
 };
 
 // In-memory corpus index, rebuilt from the markdown corpus at boot.
@@ -508,13 +523,14 @@ app.post('/api/chat', requireUser, async (req, res) => {
       send('error', { code: 'POOL_USER_LIFETIME_CAP', message: USER_LIFETIME_MSG });
       return res.end();
     }
-    // 3. Per-user daily ₹ budget — this user's share of the day's money (if configured).
-    if (userDayCapReached(day, req.user.id)) {
+    // 3. Per-user daily ₹ share — explicit (ZETIZETI_USER_DAILY_INR) or ADAPTIVE from the pool's
+    //    remaining budget. This replaced the fixed turn count as the operative day control (29 Jul).
+    if (userAdaptiveCapReached(day, req.user.id)) {
       send('error', { code: 'POOL_USER_BUDGET_CAP', message: USER_BUDGET_MSG });
       return res.end();
     }
-    // 4. Per-user daily turn allowance — a user's fair share of the day (default 40 exchanges).
-    if (userTurnsToday >= POOL_USER_TURNS) {
+    // 4. Per-user daily turn count — DISABLED unless a self-hoster sets it explicitly.
+    if (POOL_USER_TURNS > 0 && userTurnsToday >= POOL_USER_TURNS) {
       send('error', { code: 'POOL_USER_CAP', message: USER_TURNS_MSG });
       return res.end();
     }
@@ -532,8 +548,13 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // matched on turns where the learner was already warm (so it is a lever, not a selection effect).
   // At variant level it recovers 9 of the 13 engrossment points the meaning machinery costs, for 7 of
   // its 22 arc points — by a distance the cheapest trade available.
+  // lastMaterial — the substantive weight of THIS reply (content words minus hedges), for warmth's
+  // development route: an analytical learner who narrates no insight but keeps handing over dense
+  // material is developing, and the lexicon route cannot see them (measured 29 Jul: movement 0.00
+  // across a real 24-turn session; warmth fired zero times).
+  const lastMaterial = contentWords(message).length;
   const nudge = decideNudge(sig, {
-    exchanges, reDrewThisTurn: kind === 'redraw', turnsSinceNudge,
+    exchanges, reDrewThisTurn: kind === 'redraw', turnsSinceNudge, lastMaterial,
   }, { warmth: true });
   // Felt-shift postures OUTRANK the cadence-driven nudges: an event is exactly when to respond (the
   // same standing the selfEcho break has). When one fires, the nudge's surface is suppressed too — a
@@ -557,7 +578,9 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // for a particular: a thing, a moment, a person, a number" — replaced. That shape contradicted the
   // method core's own section "Never require the precise word", and it was the measurable source of the
   // browbeating.
-  const dwell = readDwell({ studentTurns });
+  const dwellRead = readDwell({ studentTurns, stoneTurns, goal });
+  const featureInvite = !!(dwellRead && dwellRead.invite);
+  const dwell = featureInvite ? null : dwellRead;
   // The learner has declined this question. Outranks everything: nothing is built on words that carry no
   // content, and the next question changes footing to material they themselves supplied earlier.
   const declined = isDecline(message) ? { anchorText: lastSubstantive([...studentTurns]) } : null;
@@ -576,6 +599,18 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // corrections never quoted, refusals quotable only when they name the blockage, hedge words never
   // material. Jung as tact, Cummings as manner, the join itself generous.
   const assoc = (declined || corrected) ? null : readAssociation({ studentTurns, stoneTurns, selector: 'open' });
+  // OPENER BAN — the question may not open with the word either of the last two questions opened with
+  // (proactive here; enforced in the guard). 22 of 24 questions in a real session opened "When…" while
+  // every sameness metric read clean.
+  const banOpeners = [...new Set(stoneTurns.slice(-2).map((q) => questionOpener(q)).filter(Boolean))];
+  // PRECISION CAPACITY — pointed asks ("which one?", "what exactly?") only for a learner whose recent
+  // replies show particulars ready to give: median material of the last three replies ≥ 10 content
+  // words and no refusal in the last two. Two real students, opposite needs; the register follows the
+  // session's own evidence.
+  const recent = studentTurns.slice(-3).map((t) => contentWords(t).length).sort((a, b) => a - b);
+  const precision = recent.length >= 2
+    && recent[Math.floor(recent.length / 2)] >= 10
+    && !studentTurns.slice(-2).some((t) => isDecline(t));
   const earlierWords = new Set(studentTurns.slice(0, -1).flatMap((t) => contentWords(t)));
   const newMaterial = [...new Set(contentWords(message))].filter((w) => !earlierWords.has(w)).slice(0, 4);
   // Tell the client a posture fired even when there is nothing to SHOW. The refractory lives in the
@@ -600,6 +635,9 @@ app.post('/api/chat', requireUser, async (req, res) => {
     declined,
     corrected,
     assoc: assoc ? associationBlock(assoc) : '',
+    banOpeners,
+    precision,
+    featureInvite,
     message,
   });
 
@@ -627,7 +665,14 @@ app.post('/api/chat', requireUser, async (req, res) => {
       // avoid: the repeat gate (round 4) — a question sharing a five-word frame with an earlier one is
       // withheld and repaired (quoted learner text stripped first). Detection at the only place a repeat
       // can actually be withheld: the guard.
-      validate: (t) => validateOutput(t, { avoid: stoneTurns }),
+      validate: (t) => validateOutput(t, {
+        avoid: stoneTurns,
+        banOpeners,
+        mustHold: assoc ? {
+          a: [...new Set(contentWords(assoc.earlyText))].slice(0, 8),
+          b: [...new Set(contentWords(assoc.liveText))].slice(0, 8),
+        } : null,
+      }),
       generate: (correction) => streamQuestion({
         system,
         // On a repair attempt the rejected question and the correction are appended as a normal turn pair,
@@ -654,7 +699,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
     // situation → the question, so a chat can be replayed by the 2.0 "sounds-like-Prayas" harness. The
     // returned id lets the local UI attach an on-voice/off-voice label to this exact question. The guard's
     // work is captured too (a repaired question is a different kind of specimen from a first-pass one).
-    const capId = capture({ mode: 'enquiry', chatKey: studentTurns[0] || goal, goal, discipline, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, dwell: dwell ? `${dwell.anchor}×${dwell.returns}` : null, joined: assoc ? assoc.distance : null, declined: !!declined, corrected, newMaterial: newMaterial.slice(0, 3), shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
+    const capId = capture({ mode: 'enquiry', chatKey: studentTurns[0] || goal, goal, discipline, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, dwell: featureInvite ? 'INVITE' : dwell ? `${dwell.anchor}×${dwell.returns}` : null, joined: assoc ? assoc.distance : null, declined: !!declined, corrected, newMaterial: newMaterial.slice(0, 3), shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
       // Logged side by side so the comparison the todo doc asks for can be made on real transcripts
       // before anything is wired again. Local capture only — never in production (capture.mjs).
       sem: fs && fs.semFresh ? +fs.semFresh[fs.semFresh.length - 1].toFixed(3) : null,

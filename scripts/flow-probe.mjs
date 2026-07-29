@@ -29,7 +29,7 @@ import { buildIndex, retrieve } from '../lib/retrieval.mjs';
 import { computeSignals } from '../lib/signals.mjs';
 import { decideNudge, formShape } from '../lib/nudge.mjs';
 import { readArc, aimBlock, readDwell, isRedirect, isDecline, isCorrection, lastSubstantive } from '../lib/arc.mjs';
-import { loadMethodCore, buildSystemPrompt, buildTurnContext, validateOutput, questionFrames } from '../lib/dialogue.mjs';
+import { loadMethodCore, buildSystemPrompt, buildTurnContext, validateOutput, questionFrames, questionOpener } from '../lib/dialogue.mjs';
 import { generateGuarded } from '../lib/guard.mjs';
 import { readAssociation, associationBlock, associatesPrompt, pickAssociate, widenBlock } from '../lib/assoc.mjs';
 import { streamQuestion } from '../lib/llm.mjs';
@@ -96,6 +96,9 @@ const VARIANTS = {
   // floor + APPROACHES re-pruned on measured evidence + joins spaced so they never run consecutively.
   R: { label: 'R — warmth first + length floor + evidence-pruned approaches + spacing', aim: false, shape: true, flowShapes: true, succession: true, dwell: true, decline: true, assocIn: true, open: true, corrected: true, noRepeat: true, warmth: true, spacing: true },
   RW: { label: 'RW — FIN + warmth only (isolates the one measured lever)', aim: false, shape: true, flowShapes: true, succession: true, dwell: true, decline: true, assocIn: true, open: true, corrected: true, noRepeat: true, warmth: true },
+  // ── round 6 (29 Jul, after Siddhi's v0.11.0 test) ─────────────────────────────────────────────────
+  LIVE: { label: 'LIVE — v0.11.0 as deployed', aim: false, shape: true, flowShapes: true, succession: true, dwell: true, decline: true, assocIn: true, open: true, corrected: true, noRepeat: true, warmth: true },
+  FIX: { label: 'FIX — opener ban + warmth routes + precision + hygiene + ledger + join-vis', aim: false, shape: true, flowShapes: true, succession: true, dwell: true, decline: true, assocIn: true, open: true, corrected: true, noRepeat: true, warmth: true, fixed: true },
 };
 
 // Seeds. The first is the student's real project (28 Jul), so one column is directly comparable with the
@@ -133,6 +136,23 @@ YOUR ENGAGEMENT IS OTHERWISE HONEST, and it moves both ways:
 const oneLine = (s) => (s || '').replace(/\s+/g, ' ').trim();
 const stripThink = (s) => (s || '').replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
 
+// ── the ANALYTICAL persona (29 Jul 2026) — modelled on a real tester's transcripts ──────────────────
+// The expressive persona narrates its own insight ("oh — actually, I hadn't thought of that"), which is
+// exactly what tripped the warmth gate in every probe while a real analytical student read movement 0.00
+// for 24 straight turns. This persona answers densely and never performs; it also notices FRAME
+// repetition (the "When…" tic) the way she did, which gives the opener metric a behavioural consequence.
+function studentSystemAnalytical() {
+  return `You are play-acting a DESIGN STUDENT in a one-to-one tutorial. Someone is questioning you about your project. You are the LEARNER — you answer; you never question back, never advise, never take over as the tutor.
+
+Your temperament is ANALYTICAL and SYSTEMS-MINDED:
+- You answer in dense, information-rich sentences — features, mechanisms, categories, trade-offs. Two to four sentences, no filler.
+- You NEVER narrate your own realisations. Never say "oh", "actually", "I realise", "I hadn't thought of that", "I see". If a question genuinely opens something, it shows ONLY as new substance in your answer, never as commentary.
+- You do not perform enthusiasm or gratitude. You are engaged but flat in tone.
+- When asked for a particular — "which one", "what exactly", "the exact moment" — you have one ready and give it with detail. You prefer such questions; soft "what makes / what happens" framings get shorter answers.
+- You NOTICE the questioner's habits. If several questions in a row open with the same word or carry the same frame, you get impatient and say so plainly: "you keep starting every question the same way", "this is circling the same theme". If a question drifts off your project (into your free time, your feelings, your studies), you pull it back: "that's not about the app".
+- Stay in character always. Never mention being an AI.`;
+}
+
 async function ask(model, system, messages, { maxTokens, temperature }) {
   for (let a = 0; a < 3; a++) {
     try {
@@ -146,12 +166,23 @@ async function ask(model, system, messages, { maxTokens, temperature }) {
   return '';
 }
 
+const PERSONA = (process.argv.find((a) => a.startsWith('--persona=')) || '--persona=expressive').split('=')[1];
 async function studentReply(seed, history, question) {
-  const messages = history.length
-    ? [...history.map((m) => ({ role: m.role === 'student' ? 'assistant' : 'user', content: m.content })),
+  // The question must appear ONCE in the student's view. This harness had, from its first version,
+  // pushed the stone's question into history AND passed it again as the new user message — so every
+  // simulated student saw every question twice. The expressive persona ignored it; the analytical
+  // persona (instructed to notice repetition) read it as the stone repeating itself verbatim, complained
+  // on every turn, and its complaints spuriously tripped the corrected footing. Caught 29 Jul only
+  // because a persona finally existed that cared. The real server never had this fault — the client
+  // sends history.slice(0,-1).
+  const prior = history.length && history[history.length - 1].content === question
+    ? history.slice(0, -1) : history;
+  const messages = prior.length || history.length
+    ? [...prior.map((m) => ({ role: m.role === 'student' ? 'assistant' : 'user', content: m.content })),
        { role: 'user', content: question }]
     : [{ role: 'user', content: `(Tutorial begins. Your project: "${seed}". Introduce it in your own words in a sentence or two — what you are trying to do, a bit unresolved — as your opening. Do not ask anything.)` }];
-  return oneLine(await ask(STUDENT_MODEL, studentSystem(), messages, { maxTokens: 240, temperature: 0.9 })) || '(quiet)';
+  const sys = PERSONA === 'analytical' ? studentSystemAnalytical() : studentSystem();
+  return oneLine(await ask(STUDENT_MODEL, sys, messages, { maxTokens: 240, temperature: 0.9 })) || '(quiet)';
 }
 
 // ── metrics ─────────────────────────────────────────────────────────────────────────────────────────
@@ -221,11 +252,13 @@ async function runConversation(V, seed, corpus, methodCore, replayTurns = null) 
     const redirected = !!V.steering && isRedirect(message);
     if (redirected) lineage.push(message);
 
-    const nudge = decideNudge(sig, { exchanges: r, reDrewThisTurn: redirected, turnsSinceNudge }, { warmth: !!V.warmth });
+    const nudge = decideNudge(sig, { exchanges: r, reDrewThisTurn: redirected, turnsSinceNudge, lastMaterial: contentWords(message).length }, { warmth: !!V.warmth });
     if (nudge.fired) turnsSinceNudge = 0; else turnsSinceNudge++;
 
     const arc = V.aim ? readArc({ studentTurns, lineage }) : null;
-    const dwell = V.dwell ? readDwell({ studentTurns, legacy: !!V.poetic }) : null;
+    const dwellRead = V.dwell ? readDwell({ studentTurns, legacy: !!V.poetic, ...(V.fixed ? { stoneTurns, goal } : {}) }) : null;
+    const featureInvite = !!(V.fixed && dwellRead && dwellRead.invite);
+    const dwell = dwellRead && !dwellRead.invite ? dwellRead : null;
 
     // change 1 — the words the learner has just brought in for the first time.
     let newMaterial = null;
@@ -253,6 +286,12 @@ async function runConversation(V, seed, corpus, methodCore, replayTurns = null) 
       if (chosen) widenPair = { anchor: dwell.anchor, associate: chosen };
     }
 
+    const banOpeners = V.fixed ? [...new Set(stoneTurns.slice(-2).map((q) => questionOpener(q)).filter(Boolean))] : [];
+    const recentLens = studentTurns.slice(-3).map((t) => contentWords(t).length).sort((a, b) => a - b);
+    const precision = !!V.fixed && recentLens.length >= 2
+      && recentLens[Math.floor(recentLens.length / 2)] >= 10
+      && !studentTurns.slice(-2).some((t) => isDecline(t));
+
     const turnContent = buildTurnContext({
       retrieved,
       posture: nudge.posture || '',
@@ -264,8 +303,12 @@ async function runConversation(V, seed, corpus, methodCore, replayTurns = null) 
       vantage: !!V.vantage,
       declined,
       corrected,
+      precision,
       assoc: assoc && !widenPair ? associationBlock(assoc) : '',
       widen: widenPair ? widenBlock(widenPair.anchor, widenPair.associate) : '',
+      banOpeners,
+      precision,
+      featureInvite,
     });
 
     const system = buildSystemPrompt(methodCore, goal);
@@ -278,6 +321,11 @@ async function runConversation(V, seed, corpus, methodCore, replayTurns = null) 
       validate: (t) => validateOutput(t, {
         ...(V.brevity ? { maxWords: V.brevity } : {}),
         ...(V.noRepeat ? { avoid: stoneTurns } : {}),
+        ...(V.fixed ? { banOpeners } : {}),
+        ...(V.fixed && assoc && !widenPair ? { mustHold: {
+          a: [...new Set(contentWords(assoc.earlyText))].slice(0, 8),
+          b: [...new Set(contentWords(assoc.liveText))].slice(0, 8),
+        } } : {}),
       }),
       generate: (correction) => {
         const msgs = correction
@@ -292,10 +340,12 @@ async function runConversation(V, seed, corpus, methodCore, replayTurns = null) 
     trace.push({
       turn: r + 1,
       declined: !!declined,
-      assoc: assoc && !widenPair ? { gap: assoc.distance, charge: assoc.charge ?? null, salience: assoc.salience ?? null, why: assoc.why || null, artfail: !!assoc.artfail, carried: assoc.carried } : null,
+      assoc: assoc && !widenPair ? { gap: assoc.distance, charge: assoc.charge ?? null, salience: assoc.salience ?? null, why: assoc.why || null, artfail: !!assoc.artfail, carried: assoc.carried, earlyW: [...new Set(contentWords(assoc.earlyText))].slice(0, 8), liveW: [...new Set(contentWords(assoc.liveText))].slice(0, 8) } : null,
       corrected,
       widen: widenPair || null,
-      dwell: dwell ? `${dwell.anchor}(${dwell.returns})` : null,
+      precision,
+      conv: Math.round((sig.conviction ?? 1) * 100) / 100,
+      dwell: featureInvite ? 'INVITE' : dwell ? `${dwell.anchor}(${dwell.returns})` : null,
       newMaterial: newMaterial || null,
       nudge: nudge.fired || null,
     });
@@ -330,6 +380,19 @@ async function runConversation(V, seed, corpus, methodCore, replayTurns = null) 
   const REJECT_NEXT = /(^|\s)(what\?+|huh\??)(\s|$)|does ?n'?t make sense|makes no sense|aren'?t related|not related like that|not what i (meant|said)|did ?n'?t say|don'?t (get|understand|follow)|asked (me )?(that|the same)|told you/i;
   const joins = trace.filter((t) => t.assoc);
   const joinMiss = joins.filter((t) => REJECT_NEXT.test(oneLine(replies[t.turn] || ''))).length;
+  // the metrics the 29 Jul session proved blind: opener anaphora, warmth firing, join visibility
+  const qOpeners = questions.map((q) => questionOpener(q));
+  const whenPct2 = qOpeners.filter((o) => o === 'when').length / Math.max(1, qOpeners.length) * 100;
+  const openRep = qOpeners.slice(1).filter((o, i) => o && o === qOpeners[i]).length / Math.max(1, qOpeners.length - 1) * 100;
+  const warmFired = trace.filter((t) => t.nudge === 'acknowledge').length;
+  const joinTurns2 = trace.map((t, i) => ({ t, i })).filter((x) => x.t.assoc);
+  const joinVis = joinTurns2.filter(({ t, i }) => {
+    const tw = new Set(oneLine(questions[i]).toLowerCase().match(/[a-z]{3,}/g) || []);
+    const a = (t.assoc.earlyW || []).some((w) => tw.has(w));
+    const b = (t.assoc.liveW || []).some((w) => tw.has(w));
+    return a && b;
+  }).length;
+
   const gramSeen = []; let reQ = 0;
   for (const q of questions) {
     const g = questionFrames(q);
@@ -369,7 +432,7 @@ async function runConversation(V, seed, corpus, methodCore, replayTurns = null) 
     dupOpen: openers.length - new Set(openers).size,
     guardPct: guardOk / questions.length * 100,
     repaired,
-    joinsFired: joins.length, joinMiss, reQ,
+    joinsFired: joins.length, joinMiss, reQ, whenPct2, openRep, warmFired, joinVis,
     corrFired: trace.filter((t) => t.corrected).length,
     questions, replies, trace,
   };
@@ -389,6 +452,8 @@ async function runVariant(key, corpus, methodCore, replay) {
     firedAssoc: mean(convos.map((c) => (c.trace || []).filter((t) => t.assoc).length)),
     joinMiss: mean(convos.map((c) => c.joinMiss || 0)), reQ: mean(convos.map((c) => c.reQ || 0)),
     corrFired: mean(convos.map((c) => c.corrFired || 0)),
+    whenPct2: mean(convos.map((c) => c.whenPct2 || 0)), openRep: mean(convos.map((c) => c.openRep || 0)),
+    warmFired: mean(convos.map((c) => c.warmFired || 0)), joinVis: mean(convos.map((c) => c.joinVis || 0)),
     firedWiden: mean(convos.map((c) => (c.trace || []).filter((t) => t.widen).length)),
     firedDeclined: mean(convos.map((c) => (c.trace || []).filter((t) => t.declined).length)),
     uptakePct: avg('uptakePct'), guardPct: avg('guardPct'), repaired: convos.reduce((a, c) => a + c.repaired, 0),
@@ -409,18 +474,18 @@ async function runVariant(key, corpus, methodCore, replay) {
 
   if (replay) {
     console.log(`\n══════ QUESTION SIDE, on the student's real replies (lower partic/qWords/consec/dupOpen, higher uptake = better) ══════`);
-    console.log(`  ${'variant'.padEnd(38)} manner%  onDecline  judge%  uptake%  qWords  reQ  joins  guard%`);
+    console.log(`  ${'variant'.padEnd(38)} manner%  onDecline  judge%  uptake%  qWords  When%  opRep%  warm  joinVis  reQ  guard%`);
     for (const r of results) {
       const judge = r.particPct + r.binaryPct;
-      console.log(`  ${(r.key + ' ' + r.label).slice(0, 38).padEnd(38)} ${r.mannerPct.toFixed(0).padStart(6)}%  ${r.builtOnDecline.toFixed(0).padStart(2)}/${r.declines.toFixed(0)}      ${judge.toFixed(0).padStart(5)}%   ${r.uptakePct.toFixed(0).padStart(5)}%  ${r.qWords.toFixed(1).padStart(6)}  ${r.reQ.toFixed(1).padStart(4)}  ${r.firedAssoc.toFixed(1).padStart(5)}  ${r.guardPct.toFixed(0).padStart(5)}%`);
+      console.log(`  ${(r.key + ' ' + r.label).slice(0, 38).padEnd(38)} ${r.mannerPct.toFixed(0).padStart(6)}%  ${r.builtOnDecline.toFixed(0).padStart(2)}/${r.declines.toFixed(0)}      ${judge.toFixed(0).padStart(5)}%   ${r.uptakePct.toFixed(0).padStart(5)}%  ${r.qWords.toFixed(1).padStart(6)}  ${r.whenPct2.toFixed(0).padStart(4)}%  ${r.openRep.toFixed(0).padStart(4)}%  ${r.warmFired.toFixed(1).padStart(4)}  ${r.joinVis.toFixed(1)}/${r.firedAssoc.toFixed(1)}  ${r.reQ.toFixed(1).padStart(4)}  ${r.guardPct.toFixed(0).padStart(5)}%`);
     }
     console.log(`\n  What the LIVE build actually did to him: partic 25%, qWords 21.6, uptake —, over 40 questions.`);
   } else {
     console.log(`\n══════ ENGAGEMENT (higher stuWords/trend/newMat/uptake = student staying; lower dry/partic/consec = better) ══════`);
-    console.log(`  ${'variant'.padEnd(34)} CONFUSED%  stuWords  trend  dry%  uptake%  qWords  judge%  reQ | joins→miss corr decl`);
+    console.log(`  ${'variant'.padEnd(34)} CONFUSED%  stuWords  trend  dry%  uptake%  qWords  judge%  When%  opRep%  warm  joinVis | joins→miss corr decl`);
     for (const r of results) {
       const judge = r.particPct + r.binaryPct;
-      console.log(`  ${(r.key + ' ' + r.label).slice(0, 34).padEnd(34)} ${r.confusedPct.toFixed(0).padStart(8)}%  ${r.stuWords.toFixed(1).padStart(7)}  ${r.trend.toFixed(2).padStart(5)}  ${r.dryPct.toFixed(0).padStart(3)}%  ${r.uptakePct.toFixed(0).padStart(6)}%  ${r.qWords.toFixed(1).padStart(6)}  ${judge.toFixed(0).padStart(5)}%  ${r.reQ.toFixed(1).padStart(4)} |  ${r.firedAssoc.toFixed(1)}→${r.joinMiss.toFixed(1)}   ${r.corrFired.toFixed(1)}   ${r.firedDeclined.toFixed(1)}`);
+      console.log(`  ${(r.key + ' ' + r.label).slice(0, 34).padEnd(34)} ${r.confusedPct.toFixed(0).padStart(8)}%  ${r.stuWords.toFixed(1).padStart(7)}  ${r.trend.toFixed(2).padStart(5)}  ${r.dryPct.toFixed(0).padStart(3)}%  ${r.uptakePct.toFixed(0).padStart(6)}%  ${r.qWords.toFixed(1).padStart(6)}  ${judge.toFixed(0).padStart(5)}%  ${r.whenPct2.toFixed(0).padStart(4)}%  ${r.openRep.toFixed(0).padStart(4)}%  ${r.warmFired.toFixed(1).padStart(4)}  ${r.joinVis.toFixed(1)}/${r.firedAssoc.toFixed(1)} |  ${r.firedAssoc.toFixed(1)}→${r.joinMiss.toFixed(1)}   ${r.corrFired.toFixed(1)}   ${r.firedDeclined.toFixed(1)}`);
     }
     console.log(`\n  that student's real 28 Jul session, for reference: dry 37%, partic 25%, qWords 21.6, 40 questions.`);
   }
@@ -446,7 +511,7 @@ async function runVariant(key, corpus, methodCore, replay) {
   mkdirSync(runDir, { recursive: true });
   const jsonPath = join(runDir, `${stamp}.json`);
   const config = {
-    stamp, mode: replay ? `replay:${replayFile}` : 'live-student',
+    stamp, mode: replay ? `replay:${replayFile}` : `live-student:${PERSONA}`,
     rounds: ROUNDS, convos: replay ? 1 : CONVOS,
     variants: Object.fromEntries(keys.map((k) => [k, VARIANTS[k]])),
     stoneModel: STONE_MODEL, studentModel: STUDENT_MODEL, corpusEntries: n,
@@ -456,11 +521,11 @@ async function runVariant(key, corpus, methodCore, replay) {
 
   const ledger = join(runDir, '..', 'flow-probe-log.md');
   const cols = replay
-    ? ['manner%', 'builtOnDecline', 'judge%', 'uptake%', 'qWords', 'reQ', 'joins', 'guard%']
-    : ['CONFUSED%', 'stuWords', 'trend', 'dry%', 'uptake%', 'qWords', 'judge%', 'reQ', 'joins→miss', 'corr', 'guard%'];
+    ? ['manner%', 'judge%', 'uptake%', 'qWords', 'When%', 'opRep%', 'warm', 'joinVis', 'reQ', 'guard%']
+    : ['CONFUSED%', 'stuWords', 'trend', 'dry%', 'uptake%', 'qWords', 'judge%', 'When%', 'opRep%', 'warm', 'joinVis', 'reQ', 'guard%'];
   const row = (r) => (replay
-    ? [r.mannerPct.toFixed(0), `${r.builtOnDecline.toFixed(0)}/${r.declines.toFixed(0)}`, (r.particPct + r.binaryPct).toFixed(0), r.uptakePct.toFixed(0), r.qWords.toFixed(1), r.reQ.toFixed(1), r.firedAssoc.toFixed(1), r.guardPct.toFixed(0)]
-    : [r.confusedPct.toFixed(0), r.stuWords.toFixed(1), r.trend.toFixed(2), r.dryPct.toFixed(0), r.uptakePct.toFixed(0), r.qWords.toFixed(1), (r.particPct + r.binaryPct).toFixed(0), r.reQ.toFixed(1), `${r.firedAssoc.toFixed(1)}→${r.joinMiss.toFixed(1)}`, r.corrFired.toFixed(1), r.guardPct.toFixed(0)]);
+    ? [r.mannerPct.toFixed(0), (r.particPct + r.binaryPct).toFixed(0), r.uptakePct.toFixed(0), r.qWords.toFixed(1), r.whenPct2.toFixed(0), r.openRep.toFixed(0), r.warmFired.toFixed(1), `${r.joinVis.toFixed(1)}/${r.firedAssoc.toFixed(1)}`, r.reQ.toFixed(1), r.guardPct.toFixed(0)]
+    : [r.confusedPct.toFixed(0), r.stuWords.toFixed(1), r.trend.toFixed(2), r.dryPct.toFixed(0), r.uptakePct.toFixed(0), r.qWords.toFixed(1), (r.particPct + r.binaryPct).toFixed(0), r.whenPct2.toFixed(0), r.openRep.toFixed(0), r.warmFired.toFixed(1), `${r.joinVis.toFixed(1)}/${r.firedAssoc.toFixed(1)}`, r.reQ.toFixed(1), r.guardPct.toFixed(0)]);
   let entry = `\n## ${stamp.replace('T', ' ').replace(/-/g, ':').slice(0, 10).replace(/:/g, '-')} · ${config.mode} · ${ROUNDS} rounds × ${config.convos} conversation(s)\n\n`;
   entry += `Stone \`${STONE_MODEL}\`${replay ? '' : `, student \`${STUDENT_MODEL}\``} · ${n} tensions · transcripts: \`flow-probe-runs/${stamp}.json\`\n\n`;
   entry += `| variant | ${cols.join(' | ')} |\n|${' --- |'.repeat(cols.length + 1)}\n`;

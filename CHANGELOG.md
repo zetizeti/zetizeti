@@ -21,6 +21,53 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.11.1] — 2026-07-29
+
+The first real test of v0.11.0 (a tester's two sessions, sent with written notes at 2 AM) found the
+frame the metrics could not see, and three structural gaps. This release closes all of them.
+
+### Fixed
+- **The opener anaphora.** 22 of 24 questions in her sessions opened "When …" while both sameness
+  metrics read clean — one compares four-word prefixes, the other drops stopwords; a one-word frame was
+  invisible to each. The question now may not open with the word either of the two previous questions
+  opened with: named proactively in the turn context, enforced in the guard (`questionOpener`,
+  `banOpeners`). Measured on her real replies: **When 94→6–17%, consecutive opener repeats 88→0%.**
+- **Join visibility.** Joins fired on 13 of 17 turns of her session and were visible in none — a
+  steering block the model may ignore is not steering (the aim-block lesson, relearned). A join now
+  must reuse at least one of the learner's content words from EACH quoted side (`mustHold`), enforced at
+  the guard: **13–15 of 15 visible** on replay.
+- **The dead hedging branch.** `conviction` was computed on the GOAL STRING — constant for an entire
+  session, so answering "i think so / i feel like" changed nothing, which was precisely the experiment
+  she had planned. It now reads sustained hedging across the last three replies and recovers when the
+  hedging stops. Her epistemics are honoured in the lexicons: *"i think / i feel like"* are hedges;
+  *"i noticed / i have noticed"* are INSIGHT — first-person evidence routes to acknowledgement, not to
+  a commitment test.
+
+### Added
+- **Feature traversal** — her most substantial suggestion, with "feature" meaning a concrete thing in
+  the learner's own account (the storefront, the flyers, the chat), never a product-taxonomy object.
+  Among the learner's recurring concrete things the dwell anchor now prefers the LEAST-asked-about
+  (coverage read from the stone's own past questions, replayed statelessly); early conversations tether
+  to an untouched concrete word from the GOAL rather than drifting into the person's life; and when
+  every named thing has had its questions, the stone does not re-enter one — it invites the learner to
+  NAME another part that would help the people it is for. Only the learner adds to the idea's parts.
+- **Warmth for the analytical student.** The `movement` gate is a lexicon of self-narrated insight
+  ("realise", "actually", "oh") — a student who never narrates read 0.00 for 24 straight turns and the
+  release's headline lever fired zero times. A second route now fires on sustained development
+  (advancement ≥ 0.5 carried by a reply of ≥ 10 content words), with wording that must name the
+  specific thing just added. Her replay: 0 → ~5 firings per session; the expressive route unchanged.
+- **Conditional precision.** The pointed asks she requested ("which one?", "what exactly?", "the exact
+  moment") return — gated on the session's own evidence (median ≥ 10 content words across the last
+  three replies, no recent refusal), so a learner at a wordless moment never meets them. On the terse
+  fixture: fired 0 of 41 turns; decline footing untouched.
+- **The adaptive allowance** (`no turn cap — adaptive`). The fixed 40-turn day cap is retired: it
+  bounded something that costs almost nothing (28 users, ₹37 of ₹12,000) and cut off exactly the long
+  engaged sessions the pilot wants. The day control is now a ₹ share that BREATHES with the pool —
+  2% of the remaining budget per user per day, clamped to ₹2–₹50 (`adaptiveUserDailyInr`): effectively
+  unlimited while the pool is healthy, shrinking proportionally only if it depletes, with the lifetime
+  ₹ ceiling absolute above it. The client turn counter hides in adaptive mode (the budget chip carries
+  the day share); a self-hoster who wants a hard count sets `ZETIZETI_POOL_USER_TURNS` explicitly.
+
 ## [0.11.0] — 2026-07-29
 
 A student's session of 28 July — *"i worked with my idea but it was not much helpful / it was just

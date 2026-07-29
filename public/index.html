@@ -821,6 +821,9 @@ function renderPoolCount(){
   const elc=$('poolCount'); if(!elc) return;
   // AI Club students run on their own OpenRouter credit (cap at OpenRouter, not a turn count) — no counter.
   if(!poolMode() || isAiClub){ elc.hidden=true; return; }
+  // Adaptive mode (29 Jul 2026): no fixed turn count — the day control is a ₹ share that breathes with
+  // the pool, surfaced by the budget chip instead. No number to count down, so no counter.
+  if(!cfg.poolUserTurns && poolTurnsLeft==null){ elc.hidden=true; return; }
   const n = (poolTurnsLeft!=null ? poolTurnsLeft : cfg.poolUserTurns);
   elc.hidden = false;
   elc.textContent = `${n} free ${n===1?'message':'messages'} left today`;
@@ -985,7 +988,7 @@ async function critStream(url, payload, node, onReading, retry){
         else if(type==='capture'){ captureLabelUI(node, data.id); }
         else if(type==='pool'){ poolTurnsLeft=data.turnsLeft; if(data.budget) poolBudget=data.budget; renderPoolCount(); renderPoolBudget(); }
         else if(type==='error'){ errored=true;
-          if(data.code && data.code.indexOf('POOL_')===0){ poolTurnsLeft=0; renderPoolCount(); }
+          if(data.code==='POOL_USER_CAP'){ poolTurnsLeft=0; renderPoolCount(); }
           body.innerHTML=`<span style="color:var(--muted);font-style:italic">${esc(data.message)}</span>`;
         }
       }
@@ -1224,7 +1227,7 @@ async function streamStone(message, kind, reuseNode){
         else if(type==='capture') captureLabelUI(node, data.id);
         else if(type==='pool'){ poolTurnsLeft=data.turnsLeft; if(data.budget) poolBudget=data.budget; renderPoolCount(); renderPoolBudget(); }
         else if(type==='error'){ errored=true;
-          if(data.code && data.code.indexOf('POOL_')===0){ poolTurnsLeft=0; renderPoolCount(); }
+          if(data.code==='POOL_USER_CAP'){ poolTurnsLeft=0; renderPoolCount(); }
           body.innerHTML=`<span style="color:var(--muted);font-style:italic">${esc(data.message)}</span>`;
         }
       }
