@@ -321,7 +321,7 @@ async function runConversation(V, seed, corpus, methodCore, replayTurns = null) 
       validate: (t) => validateOutput(t, {
         ...(V.brevity ? { maxWords: V.brevity } : {}),
         ...(V.noRepeat ? { avoid: stoneTurns } : {}),
-        ...(V.fixed ? { banOpeners } : {}),
+        ...(V.fixed ? { banOpeners, noBinary: true } : {}),
         ...(V.fixed && assoc && !widenPair ? { mustHold: {
           a: [...new Set(contentWords(assoc.earlyText))].slice(0, 8),
           b: [...new Set(contentWords(assoc.liveText))].slice(0, 8),

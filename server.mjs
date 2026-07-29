@@ -668,6 +668,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
       validate: (t) => validateOutput(t, {
         avoid: stoneTurns,
         banOpeners,
+        noBinary: true,
         mustHold: assoc ? {
           a: [...new Set(contentWords(assoc.earlyText))].slice(0, 8),
           b: [...new Set(contentWords(assoc.liveText))].slice(0, 8),

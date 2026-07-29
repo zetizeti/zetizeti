@@ -21,6 +21,48 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.11.2] — 2026-07-29
+
+The first feedback on v0.11.1, from a cohort student: *"cross questioning wrong items… connecting one
+thing with another which is unnecessary or totally unrelated."* Replaying the mechanisms over her seven
+turns found a join that would not let go.
+
+### Fixed
+- **A join anchor is now spent once used.** Turns 5, 6 and 7 of her session all joined FROM the same
+  first reply, welding it to whatever she had just said, until the model manufactured a bridge between
+  them — *"the exact moment when a creator's responsibility shifts from the older volumes to the one
+  locked under an ad wall"* — a shift she never described. She stopped there. The cause: **discharge
+  existed only in the Jung `charge` selector**, which had been measured and rejected; the shipped `open`
+  selector had none, and the already-joined gate blocks only a repeat of the exact *pair*, so an early
+  turn stayed reusable for ever against a fresh partner. Every selector now discharges, with revival
+  requiring a genuine return — **half** the anchor's material words back in the learner's newest reply.
+  (Written first as "two shared words", which is trivial in coherent speech and brought the retired
+  anchor straight back; the unit test caught it, reading did not — the same count-where-a-proportion-was-
+  needed failure as the join-overlap gate.)
+- **Precision may no longer invent a premise.** The particular asked for must belong to something the
+  learner actually said — never the exact moment of a change, shift or trade-off they never described. A
+  pointed question about an event that never happened is worse than a vague one, because its precision
+  makes the invention sound established.
+- **The either/or demand is refused at the guard.** *"Is it X, or is it Y?"* hands the learner a menu
+  instead of asking what is so; it ran at 2 of 7 turns in the same session, and at 61% the moment the
+  form rotation was ever removed. Deliberately narrow — an offered *choice*, not the ordinary conjunction
+  (*"what would have to be true for readers or creators to stay"* still passes), verified both ways.
+
+### Measured
+Three real-student fixtures now, per the standing rule (one terse, one dense, one abandoned early).
+"When…" openers **78/94/71% → 15/11/14%**; consecutive opener repeats **60/88/33% → 0%**;
+interrogation-shaped questions **15% → 2%** on the terse fixture; joins visible **10/13 → 13/13** on the
+dense one. Live, no regression on either persona: the analytical student's replies grow slightly and
+trend up, the expressive student's confusion falls to zero and visible joins rise from 1.3/4.0 to
+3.3/3.3. 97/97 tests, two new.
+
+### Known, and deliberately not built
+The same transcript is **lopsided in a way the tool cannot see**: the student places responsibility on
+the creator, twice, while the platform she also defined takes a share of the revenue. The questioning
+circled that nerve twice and asked the wrong party each time — it has no notion of the *parties* in a
+proposal, only of words. Actor-level reading is the standing open question; it changes what the tool
+anchors on, which is the class of decision that cost a week in v0.10.1, so it waits for a conversation.
+
 ## [0.11.1] — 2026-07-29
 
 The first real test of v0.11.0 (a tester's two sessions, sent with written notes at 2 AM) found the
