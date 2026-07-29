@@ -96,8 +96,8 @@ Bounded, because dwell without a bound is the loop wearing the opposite argument
 - **`ANCHOR_MAX = 3`** — one anchor holds at most three consecutive turns.
 - **The theme ledger** — an anchor that has served its full budget is *spent for the session*, not
   merely rotated away from, unless the learner's latest reply takes it up again. (Requested in exactly
-  those terms by a tester: *"keeping an invisible list of themes already asked about, and don't re-enter
-  one unless there's a genuinely new perspective."*)
+  those terms by Siddhi Bhavya, testing the build: *"keeping an invisible list of themes already asked
+  about, and don't re-enter one unless there's a genuinely new perspective."*)
 - **`NONMATERIAL`** — hedges, light verbs, comparatives and interrogatives can never become an anchor.
   Real sessions anchored on *"don't"*, *"more"*, *"gets"* and *"where"* before this list existed, and
   that is what produced drift into the learner's personal life rather than their project.
@@ -107,9 +107,11 @@ Bounded, because dwell without a bound is the loop wearing the opposite argument
 Among the learner's live concrete things, the anchor prefers the **least-asked-about**, with coverage
 counted from the stone's own past questions and replayed per prefix.
 
-*"Feature" here means a concrete thing in the learner's own account* — the storefront, the flyers, the
-chat — never a product-taxonomy object. That reading is what makes this simple: the learner's concrete
-things are their material words once hedges are filtered, so no feature model is required. What was
+The request was Siddhi Bhavya's: *"take a feature and probe on it further, then after 2 questions ask
+for another feature that may help the users, so there is less chance of circling back."* **"Feature" here
+means a concrete thing in the learner's own account** — the storefront, the flyers, the chat — never a
+product-taxonomy object. That reading is what makes this simple: the learner's concrete things are their
+material words once hedges are filtered, so no feature model is required. What was
 missing was never a taxonomy; it was coverage.
 
 Two edges:
@@ -189,9 +191,9 @@ session's own evidence shows the learner has particulars ready: median ≥ 10 co
 three replies, and no refusal in the last two.
 
 This exists because two real students needed **opposite things**. One could not put his felt sense into
-words, and ten demands for a particular pushed him out of the conversation. The other is articulate, has
-the material ready, and finds soft *"what makes"* framings evasive — she asked for the pointed forms by
-name. Removing the demand globally (v0.11.0) was overfitting to the first student; restoring it globally
+words, and ten demands for a particular pushed him out of the conversation. The other — Siddhi Bhavya — is articulate, has the
+material ready, and finds soft *"what makes"* framings evasive; she asked for the pointed forms by name:
+*"prefer 'what specifically' / 'which one' / 'what's the exact moment' over 'what makes'."* Removing the demand globally (v0.11.0) was overfitting to the first student; restoring it globally
 would overfit to the second.
 
 **The register follows the evidence of the current turn, so nobody is modelled.** The same person meets
@@ -242,10 +244,11 @@ The repertoire in `corpus/method/clean-questioning.md` was developed for therape
 *"what kind of X is that X?"* opens a felt sense. Asked of a technical object it produces *'what kind of
 "avoid" is that?'* — refused half the time.
 
-`APPROACHES` now carries only the measured-good moves, plus two added at a tester's request:
+`APPROACHES` now carries only the measured-good moves, plus two added at Siddhi Bhavya's request:
 **provenance** (*"how do you know it — what you noticed, what you gathered from others, what you read —
 and which does this part rest on?"*) and the one-sentence **gather**. Provenance encodes a distinction she
-drew herself: *"'I have noticed' is way different than 'gathered insight'."* The lexicons follow —
+drew herself: *"'I have noticed' is way different than 'gathered insight' — one gets from asking around,
+because we put people in the same waters and have preconceived opinions and biases."* The lexicons follow —
 *"i think / i feel like"* are hedges and draw a question asking for the measurable thing; *"i noticed / i
 have noticed"* is first-person evidence and routes to acknowledgement.
 

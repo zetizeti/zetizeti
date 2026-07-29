@@ -42,9 +42,10 @@ The first persona was told to be "a good, honest thinking-partner". That floors 
   **needs meaning**: told to refuse a question that does not parse rather than answer it agreeably. An
   agreeable student makes nonsense invisible, which is exactly how a showcase question that meant
   nothing once passed every metric.
-- **analytical** — modelled on a real tester: dense material, **never narrates its own insight**,
-  notices frame repetition, pulls drift back to the project. It exists because the expressive persona
-  trips insight-lexicon gates that a real analytical student never trips.
+- **analytical** — modelled on Siddhi Bhavya's transcripts: dense material, **never narrates its own
+  insight**, notices frame repetition, pulls drift back to the project. It exists because the expressive persona
+  trips insight-lexicon gates that a real analytical student never trips — a gap that hid a shipped
+  feature firing zero times for a full release.
 
 The second persona immediately exposed a harness bug present since the probe was first written: the
 student model had been receiving every question **twice**. Nine runs of the expressive persona had
