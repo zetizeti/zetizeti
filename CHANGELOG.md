@@ -21,6 +21,68 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.11.3] — 2026-07-30
+
+A student finished a ten-turn enquiry on v0.11.2, saved the transcript, and asked for one thing:
+*"if I wanted to continue this conversation.. there should be an option to upload the downloaded
+transcript so that the previous conversation can be continued"*. Reading her session for that request
+turned up three question shapes worth refusing, none of them steered by any aim or form — the stone
+falls into them on its own.
+
+### Added
+- **Continue from a saved transcript.** Pick up the `.md` you saved and the conversation carries on
+  from where it stopped. **The ephemeral promise is untouched, and this is why:** the service never
+  held the thread in the first place — the browser holds it and posts `history[]` on every turn — so
+  restoring one is just filling that array from a file the student themselves kept. The file is read
+  with `FileReader` in the tab, reaches no endpoint, and is stored nowhere. The student becomes the
+  custodian of their own record, which is arguably a firmer version of the promise than before.
+  The parse is the exact inverse of the download, so the round trip closes on itself; a file that is
+  not a zetizeti transcript is refused in a sentence rather than half-loaded.
+
+### Fixed
+- **The either/or guard now catches a polar pair.** *"…bluffing **before or after** the transaction is
+  recorded?"* is a two-box menu exactly as much as *"is it X or Y"*, and the v0.11.2 regex — which
+  wanted a comma or an auxiliary on the second limb — let it through. **It was the last question of her
+  session and where she stopped.** Both limbs naming opposite ends of one axis is what makes a menu;
+  *"readers or creators"* is two different things and still passes. The **root cause was upstream**: the
+  approach itself read *"ask what happens JUST BEFORE it, or just after"*, offering the model an
+  alternation that it duly passed on to the learner. Both ends fixed, because a steering line that can
+  be misread will be.
+- **A question answerable "yes" is refused and re-asked open.** Three of her ten opened with an
+  auxiliary, and both of the session's thin replies followed one (*"yes, by identifying behavioural
+  cues"*). Its longest, sharpest replies followed the open moves the 1,938-pair measurement already
+  favoured. Nothing in the steering asks for the closed shape, so the guard is not fighting the aim
+  layer — it is catching a default.
+- **The warmth clause may only say back words the learner used.** One question was prefaced with *"that
+  focus on behavioural cues is shifting the log from a record of the past to a tool for the next
+  interaction"* — the stone's reading of her idea, handed over as settled before she was asked anything.
+  Same failure as v0.11.2's invent-no-premise rule, one clause earlier. Warmth is not banned; it is the
+  largest measured lever there is. What is refused is a clause whose content words are mostly not hers.
+- **Restoring a transcript lands on the last turn.** Twenty appends started twenty smooth scrolls toward
+  `document.body.scrollHeight`, which overshoots badly here because the fixed painterly layers make the
+  document far taller than its content — the reader ended up parked in empty ground with the final
+  question hidden behind the composer.
+- **`.env.example` now says guest needs the personal allowlist too.** The guest signs in as
+  `guest@localhost` and the pool tiers are closed by default, so without both lines every turn on the
+  auth-less local build is refused `NO_ACCESS` before reaching the model — which defeats the one thing
+  that build exists for.
+
+### Measured
+Firing rates over **5,256 questions from 42 logged probe runs**, per rule, before any of them was
+judged (full table in `docs/ops/flow-probe-log.md`): widened binary **3.7%** (+4 questions, all true
+positives), closed question **4.2%**, preamble rule **1.3%**. The preamble rule's first cut fired at
+3.7% and was **rejected on the evidence** — it was catching the *"that distinction … is doing real
+work"* warmth motif, a clause made of the learner's own material. Neutralising appraisal vocabulary
+retargeted it onto the tool narrating what an idea is becoming.
+
+The first audit was itself wrong: it read `validateOutput`'s whole verdict rather than each rule alone,
+so pre-existing `FORBIDDEN` hits were counted as the widening's. Corrected before any rule was judged.
+
+**Not changed, reported instead** (invariant #3 — the FORBIDDEN list is not a silent edit): that list
+fires 4 times in 5,256 questions and all four are false positives — `\byou need to\b` catching the open
+question *"What would you need to know…"*, and quoted UI labels tripping patterns `stripQuoted` is never
+applied to.
+
 ## [0.11.2] — 2026-07-29
 
 The first feedback on v0.11.1, from a cohort student: *"cross questioning wrong items… connecting one
@@ -50,9 +112,17 @@ turns found a join that would not let go.
 
 ### Measured
 Three real-student fixtures now, per the standing rule (one terse, one dense, one abandoned early).
-"When…" openers **78/94/71% → 15/11/14%**; consecutive opener repeats **60/88/33% → 0%**;
-interrogation-shaped questions **15% → 2%** on the terse fixture; joins visible **10/13 → 13/13** on the
-dense one. Live, no regression on either persona: the analytical student's replies grow slightly and
+
+**Against the build she actually ran (v0.11.1):** the gains are in JOIN QUALITY, which is what she
+complained about — comics fixture "When…" 14% → 0%, joins 4 → 3 with all visible; dense fixture uptake
+89% → 94%. **Her real session already had 0 consecutive opener repeats and one "When…" in seven** — the
+opener ban shipped in v0.11.1 and worked. An earlier draft of these notes compared against the v0.11.0
+config and so re-counted a gain production had already made; corrected here, and the probe's baseline
+variant renamed to the version it actually is.
+
+Against the v0.11.0 config, for the record: "When…" openers 78/94/71% → 15/11/14%; consecutive opener
+repeats 60/88/33% → 0%; interrogation-shaped questions 15% → 2% on the terse fixture; joins visible
+10/13 → 13/13 on the dense one. Live, no regression on either persona: the analytical student's replies grow slightly and
 trend up, the expressive student's confusion falls to zero and visible joins rise from 1.3/4.0 to
 3.3/3.3. 97/97 tests, two new.
 

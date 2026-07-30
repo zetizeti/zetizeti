@@ -97,7 +97,13 @@ const VARIANTS = {
   R: { label: 'R — warmth first + length floor + evidence-pruned approaches + spacing', aim: false, shape: true, flowShapes: true, succession: true, dwell: true, decline: true, assocIn: true, open: true, corrected: true, noRepeat: true, warmth: true, spacing: true },
   RW: { label: 'RW — FIN + warmth only (isolates the one measured lever)', aim: false, shape: true, flowShapes: true, succession: true, dwell: true, decline: true, assocIn: true, open: true, corrected: true, noRepeat: true, warmth: true },
   // ── round 6 (29 Jul, after Siddhi's v0.11.0 test) ─────────────────────────────────────────────────
-  LIVE: { label: 'LIVE — v0.11.0 as deployed', aim: false, shape: true, flowShapes: true, succession: true, dwell: true, decline: true, assocIn: true, open: true, corrected: true, noRepeat: true, warmth: true },
+  // 🔴 LABEL DISCIPLINE (29 Jul 2026). This is the v0.11.0 config and was MISNAMED "as deployed" for two
+  // rounds — the opener ban, conditional precision and join visibility all shipped in v0.11.1, so
+  // comparing against it OVERSTATED every later gain by re-counting what production had already fixed.
+  // A baseline variant must be renamed or updated the moment a release lands. V111 is the true
+  // current-production comparator.
+  LIVE: { label: 'v0.11.0 config (historical — NOT what is deployed)', aim: false, shape: true, flowShapes: true, succession: true, dwell: true, decline: true, assocIn: true, open: true, corrected: true, noRepeat: true, warmth: true },
+  V111: { label: 'v0.11.1 — what production actually ran for her', aim: false, shape: true, flowShapes: true, succession: true, dwell: true, decline: true, assocIn: true, open: true, corrected: true, noRepeat: true, warmth: true, fixed: true, noDischarge: true },
   FIX: { label: 'FIX — opener ban + warmth routes + precision + hygiene + ledger + join-vis', aim: false, shape: true, flowShapes: true, succession: true, dwell: true, decline: true, assocIn: true, open: true, corrected: true, noRepeat: true, warmth: true, fixed: true },
 };
 
@@ -275,7 +281,7 @@ async function runConversation(V, seed, corpus, methodCore, replayTurns = null) 
     // ── widening by associative value ────────────────────────────────────────────────────────────
     // INTERNAL: join two things they said. Free, deterministic, no model.
     const assoc = (V.assocIn && !declined && !corrected)
-      ? readAssociation({ studentTurns, stoneTurns, selector: V.jung ? 'charge' : V.open ? 'open' : 'recurrence', skipCorrected: !!V.corrected, spacing: !!V.spacing })
+      ? readAssociation({ studentTurns, stoneTurns, selector: V.jung ? 'charge' : V.open ? 'open' : 'recurrence', skipCorrected: !!V.corrected, spacing: !!V.spacing, noDischarge: !!V.noDischarge })
       : null;
     // EXTERNAL: the model proposes concrete neighbours of the live anchor; CODE picks one.
     let widenPair = null;

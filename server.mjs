@@ -669,6 +669,13 @@ app.post('/api/chat', requireUser, async (req, res) => {
         avoid: stoneTurns,
         banOpeners,
         noBinary: true,
+        // noClosed — a question answerable "yes" is withheld and re-asked open (30 Jul 2026: three of
+        // ten in a real session, and both of its thin replies followed one).
+        noClosed: true,
+        // ownWords — the warmth clause may only say back words the learner used. Their whole transcript
+        // is the licence, so a clause reaching back to turn 2 still passes; only material that is
+        // nowhere in their own words counts as the tool's own reading.
+        ownWords: new Set([...studentTurns, message].flatMap((t) => contentWords(t))),
         mustHold: assoc ? {
           a: [...new Set(contentWords(assoc.earlyText))].slice(0, 8),
           b: [...new Set(contentWords(assoc.liveText))].slice(0, 8),

@@ -306,6 +306,17 @@
   .newq input::placeholder{color:var(--faint); font-style:italic}
   .newq button{font-family:var(--mono); font-size:13px; background:var(--vermilion); color:var(--bone); border:none; padding:12px 18px; cursor:pointer}
   .newq button:hover{background:var(--gold-bright); color:#1a1206}
+  /* continue from a saved transcript — the DOWNLOAD's mirror, so it deliberately carries the same
+     grammar as .dl-transcript (mono, gold rule, tinted ground, hard edges). One saves the thread out,
+     one brings it back; a viewer should read them as the same component doing opposite jobs. */
+  .ul-transcript{display:inline-flex; align-items:baseline; gap:10px; font-family:var(--mono); font-size:12px;
+    letter-spacing:.05em; color:var(--gold-bright); border:1px solid rgba(240,179,36,.5); background:rgba(240,179,36,.08);
+    padding:7px 14px; margin-bottom:18px; cursor:pointer}
+  .ul-transcript:hover{background:rgba(240,179,36,.16)}
+  .ul-transcript .ul-lead{color:var(--gold-bright); text-transform:uppercase; letter-spacing:.11em; font-size:11px}
+  .ul-transcript .ul-file{color:var(--goldtext); border-bottom:1px solid rgba(240,179,36,.55); padding-bottom:1px}
+  .ul-note{font-family:var(--mono); font-size:11px; letter-spacing:.04em; color:var(--faint); margin:-8px 0 26px; max-width:56ch; line-height:1.7}
+  .ul-note.bad{color:var(--vermilion)}
   .discpick{display:flex; align-items:center; gap:10px; margin-bottom:22px; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint)}
   .discpick select{background:rgba(13,38,94,.55); border:1px solid rgba(217,165,42,.40); color:var(--bone); font-family:var(--text); font-size:15px; padding:8px 12px; outline:none; text-transform:none; letter-spacing:0}
   .qlist{display:flex; flex-direction:column; gap:2px}
@@ -486,6 +497,16 @@
         <input id="newqName" placeholder="Name what you're trying to do — e.g. “onboarding for a meditation app”" />
         <button id="newqBtn">begin</button>
       </div>
+      <!-- CONTINUE FROM A SAVED TRANSCRIPT (30 Jul 2026, at a student's request). Nothing about the
+           ephemeral promise changes: the file is read in this tab and never uploaded anywhere. It
+           becomes the same `history[]` the browser already sends with every turn. -->
+      <label class="ul-transcript" for="ulMd">
+        <span class="ul-lead">↑ continue a saved transcript</span> <span class="ul-file">choose a .md</span>
+      </label>
+      <input id="ulMd" type="file" accept=".md,text/markdown,text/plain" hidden />
+      <p class="ul-note" id="ulNote">Pick up a transcript you saved earlier. It is read here in your browser and never sent
+        anywhere — the conversation simply carries on from where you left it.</p>
+
       <p class="privacy-line"><a class="privacyOpen">Nothing is ever saved.</a></p>
       </div><!-- /enquiryUI -->
     </div>
@@ -1132,6 +1153,91 @@ function downloadTranscriptPdf(){
 }
 (function wireTranscriptDl(){ const md=$('dlMd'), pdf=$('dlPdf'); if(md) md.onclick=()=>downloadFile(transcriptName('md'), buildTranscriptMd(), 'text/markdown'); if(pdf) pdf.onclick=downloadTranscriptPdf; })();
 
+// ---- CONTINUE FROM A SAVED TRANSCRIPT (30 Jul 2026) --------------------------------------------
+// Asked for by a student who had finished a ten-turn enquiry, saved it, and wanted to carry on:
+// "there should be an option to upload the downloaded transcript so that the previous conversation
+// can be continued". It costs the ephemeral promise nothing. The service never held the thread in the
+// first place — the browser holds it and posts `history[]` on every turn — so restoring a thread is
+// just filling that array from a file the student themselves kept. The file is read with FileReader
+// and never leaves the tab; no endpoint receives it, and nothing new is stored anywhere.
+//
+// The parse is the inverse of buildTranscriptMd: '**Q.** …' is the stone, every other paragraph is
+// the student, and the first student paragraph is the edge (buildTranscriptMd writes history in
+// order, and history[0] is always the goal), so the round trip closes on itself.
+function parseTranscriptMd(text){
+  const src=String(text).replace(/\r\n/g,'\n');
+  const fm=src.match(/^---\n([\s\S]*?)\n---\n/);
+  if(!fm || !/^source:\s*zetizeti\s*$/m.test(fm[1])) return {error:'That does not look like a zetizeti transcript — pick the .md file you saved from here.'};
+  const body=src.slice(fm[0].length);
+  const turns=[];
+  for(let para of body.split(/\n{2,}/)){
+    para=para.trim(); if(!para) continue;
+    if(/^#/.test(para)) continue;                       // the '# Idea transcript — …' heading
+    if(/^_[\s\S]*_$/.test(para)) continue;              // the italic note under it
+    const q=para.match(/^\*\*Q\.\*\*\s*([\s\S]+)$/);
+    if(q) turns.push({role:'interlocutor', content:q[1].trim()});
+    else  turns.push({role:'student', content:para});
+  }
+  // A transcript must open on the student's edge; anything before it is a stray heading.
+  while(turns.length && turns[0].role!=='student') turns.shift();
+  if(!turns.length) return {error:'That transcript has nothing in it to continue from.'};
+  return {turns, topic:(fm[1].match(/^topic:\s*([\s\S]*?)$/m)||[])[1]||turns[0].content};
+}
+// Rebuild the conversation in the tab, then hand it back to the student mid-flow. Everything the
+// live loop reads off is restored: goal, lineage, history, the exchange count, the download button.
+function resumeFromTranscript(parsed){
+  if(location.pathname!=='/enquiry'){ try{ window.history.pushState({}, '', '/enquiry'); }catch(e){} }
+  resetConversation(); showView('conversation'); fetchPool();
+  seedViz(hashStr('e'+parsed.turns[0].content));
+  goal=parsed.turns[0].content; lineage=[goal];
+  addDivider('carried on from a saved transcript');
+  let lastNode=null;
+  restoring=true;
+  for(const t of parsed.turns){
+    history.push({role:t.role, content:t.content});
+    if(t.role==='student'){ addYou(t.content); lastNode=stream.lastElementChild; }
+    else lastNode=addStone(t.content, null, null, {opening:true});
+  }
+  exchanges=Math.max(0, history.filter(h=>h.role==='student').length-1);
+  phase='dialogue'; input.placeholder=DIALOG_PH;
+  hint.innerHTML='grounded in <b>design</b> · the question is yours to answer';
+  showEdge(); updateEdge();
+  { const dl=$('dlTranscript'); if(dl) dl.hidden=false; }
+  // If it ends on a question, the student answers it; if it ends on their own words, the stone owes
+  // them one, so ask for it straight away rather than leaving the thread hanging.
+  // Land on the LAST TURN in one jump, anchored to the element rather than to the page bottom.
+  // Two reasons: addYou/addStone each fire the smooth scroll(), so restoring twenty turns starts twenty
+  // animations that race and settle short with the final question hidden behind the composer; and
+  // document.body.scrollHeight overshoots badly here, because the fixed painterly layers make the
+  // document far taller than its content — scrolling to it lands the reader in empty ground.
+  requestAnimationFrame(()=>{
+    if(lastNode) lastNode.scrollIntoView({block:'center', behavior:'auto'});
+    restoring=false;                       // live turns scroll normally again from here
+  });
+  const last=history[history.length-1];
+  if(last && last.role==='student'){
+    busy=true; send.disabled=true;
+    streamStone(last.content,'turn').then(()=>{ busy=false; send.disabled=false; input.focus(); });
+  } else { input.focus(); }
+}
+(function wireTranscriptUl(){
+  const f=$('ulMd'), note=$('ulNote'); if(!f) return;
+  const say=(msg,bad)=>{ if(!note) return; note.textContent=msg; note.classList.toggle('bad', !!bad); };
+  f.addEventListener('change', ()=>{
+    const file=f.files && f.files[0]; if(!file) return;
+    const r=new FileReader();
+    r.onerror=()=>say('That file could not be read — try the .md again.', true);
+    r.onload=()=>{
+      const parsed=parseTranscriptMd(r.result);
+      f.value='';                                     // so the same file can be picked twice
+      if(parsed.error){ say(parsed.error, true); return; }
+      say('Pick up a transcript you saved earlier. It is read here in your browser and never sent anywhere — the conversation simply carries on from where you left it.', false);
+      resumeFromTranscript(parsed);
+    };
+    r.readAsText(file);
+  });
+})();
+
 // (openQuest — the resume/hydrate path — removed: nothing is saved, so nothing resumes. A fresh enquiry
 // is opened by startFreshEnquiry.)
 
@@ -1141,7 +1247,12 @@ send.addEventListener('click', submit);
 redrawBtn.addEventListener('click', ()=>{ if(busy) return; phase='redraw'; field.classList.add('redraw'); input.placeholder=REDRAW_PH; input.focus(); });
 edgeTrace.addEventListener('click', ()=> lineageEl.classList.toggle('open'));
 
-function scroll(){ window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}); }
+// `restoring` is set while a saved transcript is being rebuilt turn by turn. Without it, twenty
+// appends start twenty smooth animations toward document.body.scrollHeight — which overshoots the
+// content badly, because the fixed painterly layers make the document far taller than what is written
+// on it. The reader ends up parked in empty ground. The restore does its own single anchored jump.
+let restoring=false;
+function scroll(){ if(restoring) return; window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}); }
 function addYou(text){ stream.appendChild(el(`<div class="turn you"><div class="who">you</div><div class="body">${esc(text)}</div></div>`)); scroll(); }
 function addDivider(label){ stream.appendChild(el(`<div class="divider">${esc(label)}</div>`)); scroll(); }
 function showNudge(text){ if(!text) return; stream.appendChild(el(`<div class="nudge-surface">${esc(text)}</div>`)); scroll(); }
