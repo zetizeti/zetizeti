@@ -223,6 +223,37 @@ and "when" is a stopword. **A one-word frame was invisible to both.**
 A question sharing any five-word run with an earlier question — quoted learner text stripped first — is
 withheld and repaired. Rotation prevents *scheduled* repeats; this catches *composed* ones.
 
+### The shapes a question may not take
+
+Three forms are refused outright, whatever they are asking about. All three came from reading one real
+ten-turn session; none of them is steered by any aim, approach or form — **the model falls into them on
+its own**, which is precisely why prose asking it not to would not have held.
+
+**The menu.** *"Is it X, or is it Y?"* hands the learner two boxes instead of asking what is so. The
+first version of this rule wanted a comma or an auxiliary on the second limb, and so missed the form
+that ended a real session: *"…bluffing **before or after** the transaction is recorded?"* Both limbs
+naming opposite ends of **one axis** is what makes a menu — *"readers or creators"* is two different
+things and still passes.
+
+That widening treated a symptom. The **cause** was one line up: the approach itself read *"ask what
+happens JUST BEFORE it, or just after"*, offering the model an alternation, which it passed straight on
+to the learner. It now says to pick one side. *A steering line that can be misread will be, so the
+guard holds the far end regardless.*
+
+**The closed question.** A question opening with an auxiliary or modal — *"Does…", "Can…", "Is…"* — can
+be answered "yes". Three of that session's ten opened this way, and **both of its thin replies followed
+one** (*"yes, by identifying behavioural cues"*). Its longest, sharpest answers followed the open moves
+the 1,938-pair measurement already favoured.
+
+**The preamble that interprets.** The warmth clause may **acknowledge**, never **interpret**. One
+question was prefaced with *"that focus on behavioural cues is shifting the log from a record of the
+past to a tool for the next interaction"* — a reading the learner never made, delivered as settled fact
+before she was asked anything. Warmth is not banned; it is the largest lever measured. What is refused
+is a clause whose content words are mostly **not hers**. The test is where the words came from.
+
+*This is the same failure as the invent-no-premise rule, one clause earlier: the tool supplying material
+and then treating it as given.*
+
 ---
 
 ## What the method evidence says
@@ -268,6 +299,7 @@ part:
 | **External association** (model proposes neighbours, code picks) | confusion 25% with it on, against 8–20% for internal joins alone |
 | **Join spacing** (a join may not follow a join) | buys +7 engagement for −8 arc — a worse rate than warmth's +9/−7; implemented, runnable, not shipped |
 | **The semantic novelty channel** | read a fluent restater as fresher than a genuine developer — inverted on the case it was built for; shadow-only |
+| **Actor-level traversal** (rotate the *party* a question is about) | proposed from two sessions where the tool asked the wrong party. Measured over 178 probe conversations and **null — where it moves at all it inverts**: sessions holding one party for four straight questions give *longer* replies and *fewer* refusals. But the deciding objection is that **the measure cannot answer this**: a play-acted student does not close the tab. Not built, and the question is recorded as open rather than as settled |
 
 ---
 
@@ -291,3 +323,18 @@ transcript is theirs); the harness that runs them is public, in `scripts/flow-pr
   unit-tested only.
 - `conviction` and `movement` remain lexicon-driven, and lexicons are brittle across registers of
   English. This is the same class of weakness that hid warmth's zero firing for a full release.
+- **The tool has no notion of the *parties* in a proposal** — who bears a burden, who holds the power,
+  who takes the benefit. It asks about whichever actor the learner's last sentence made its subject. In
+  one session that meant pressing the creator's responsibility twice while the platform the learner had
+  also defined took a share. Traversal by party was measured and found null (above), so *that* mechanism
+  is not the answer — but the measure was a play-acted student, which cannot leave, so the question is
+  **open rather than closed**. The gap is real and its fix is not yet known.
+- **The probe still cannot see a learner STOP — production now can.** Both probe axes read a completed
+  transcript, and a play-acted student never closes the tab, so a change that loses a real person one turn
+  earlier scores identically offline. That was the sharpest limit on this list until v0.11.4 added the
+  **survival curve** (`turn_depth`): production records how deep each conversation got, as counts keyed by
+  build version, with no user, no session id and no text. The drop between depth *N* and *N+1* is the
+  number of conversations that ended on the *N*th question. See `evaluation.md`.
+  **What remains open** is that the curve says *where*, never *why* — a drop at depth three is a question
+  to go and read — and it needs weeks of real use before it means anything. Until then, the two clearest
+  signals this tool has received are still the two students who happened to mention it.

@@ -21,6 +21,81 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.11.4] — 2026-07-30
+
+The tool can now see the one outcome it was never able to observe: **whether a learner stayed.**
+
+### Added
+- **The survival curve (`turn_depth`).** Production records how deep each conversation got — one row per
+  `(day, surface, version, depth)` with a count, surfaced at `/api/admin/usage` as a curve plus per-version
+  summaries. **The drop between depth *N* and *N+1* is exactly the number of conversations that ended on
+  the *N*th question**, which makes it a conversation-length distribution that never records a
+  conversation.
+  - **No session identifier exists, and none is needed.** The service is stateless, so the transcript the
+    browser posts each turn already carries its own depth.
+  - **No user column, no text.** Five columns, and a unit test asserts none of them can name a person or
+    hold content — strictly more private than the spend ledger beside it, which does hold a user id. It is
+    therefore operational rather than content, and is **not** boot-purged; purging it would destroy the
+    only cross-release comparison the project has.
+  - **Written on a delivered turn only.** A refused turn — no access, cap reached, empty generation — would
+    otherwise inflate precisely the depth where people leave, and blame the questioning for what the budget
+    did.
+  - Keyed by build version, so **a release that loses people one turn earlier is visible here and nowhere
+    else.**
+
+  *Why this was the thing to build:* both probe axes read a *completed* transcript and a play-acted student
+  never closes a tab, so offline scoring cannot see abandonment at all; and `pool_spend` is keyed
+  `(day, user_id)`, so one ten-turn conversation and five two-turn conversations were the same row. The two
+  clearest signals this tool has ever received — a student stopping at a manufactured association bridge,
+  another at a two-box menu a fortnight later — both arrived as messages from people who happened to
+  mention it, and were invisible to every instrument here.
+
+  **What it does not do:** it says *where* people stop, never *why*, and it needs weeks of real use before a
+  curve means anything. On day one it is four rows.
+
+### Fixed
+- **`noteTurnDepth` no longer defaults a missing depth to 1.** A destructuring default of `1` would turn a
+  caller passing `depth: undefined` — a renamed field, a refactor — into a silently recorded depth-1 turn,
+  inflating the first bucket and making retention look *worse* than it is. A missing depth is a programming
+  error and now records nothing. Caught by the unit test, not by reading; every other nonsense value
+  already failed the range check.
+
+### Measured
+- **Actor/party traversal — not built, and the question is recorded as OPEN rather than settled.** After
+  v0.11.3 one thing stayed unresolved: two students had stopped on a question whose *shape* the tool chose,
+  and the suspicion was that both were symptoms of the tool having no notion of the **parties** in a
+  proposal. Rotating the party was measured over **178 probe conversations** and came back
+  null-to-**inverted**: sessions holding one party for four straight turns produced *longer* replies (+2.7%
+  vs −3.0%) and *fewer* refusals (11.3% vs 12.9%), and 24.7% of sessions do it anyway.
+  **The load-bearing caveat: those conversations are a play-acted student, not people** — and the 55
+  real-transcript *replays* had to be excluded outright, because a replayed reply is fixed and cannot react
+  to what was asked, so including it drags any effect toward zero by construction. A model does not close
+  the tab. So this is not a null that settles the question; it is a demonstration that **the probe harness
+  cannot answer it**, which is what sent us to build the survival curve above. *(An earlier draft of these
+  notes reported +0.8%/13.4% over all 233 conversations and called it settled. Both figures were diluted by
+  the fixed-reply replays; correcting the sample inverted the direction rather than rescuing the
+  hypothesis.)*
+
+### Documented
+- **`dialogue.md`** — the three shapes a question may not take (the menu, the closed question, the
+  interpreting preamble), each with the evidence and, for the menu, the upstream cause in the approach
+  that offered the model an alternation. Actor traversal added to the removed-mechanisms table.
+- **`evaluation.md`** — a fourth expensive rule: *a rule measured through a composite verdict reports
+  someone else's number*. Plus a new section, **"What this apparatus cannot see, and it is the important
+  part"**.
+- **`CLAUDE.md`, `status.md`** — current state, and the ship rule that the CHANGELOG is not
+  documentation.
+
+### Documented
+- **`dialogue.md`** — the three shapes a question may not take (the menu, the closed question, the
+  interpreting preamble), each with its evidence and, for the menu, the upstream cause in the approach that
+  offered the model an alternation. Actor traversal added to the removed-mechanisms table.
+- **`evaluation.md`** — a fifth expensive rule (*a rule measured through a composite verdict reports
+  someone else's number*), and a new closing section on the limit of a simulated student and the instrument
+  that answers it.
+- **`CLAUDE.md`, `status.md`** — current state, and the rule that a ship is not finished until the docs
+  that describe the behaviour are updated: the CHANGELOG is not documentation.
+
 ## [0.11.3] — 2026-07-30
 
 A student finished a ten-turn enquiry on v0.11.2, saved the transcript, and asked for one thing:

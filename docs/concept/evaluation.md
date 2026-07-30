@@ -76,7 +76,7 @@ measurement. Simulated axes narrow the field; real sessions decide.
 
 ---
 
-## Four rules, each learned expensively
+## Five rules, each learned expensively
 
 ### 1. Log every run, append-only, with full transcripts
 
@@ -107,12 +107,68 @@ A question can be short, non-interrogative, take up the learner's newest words, 
 All three of those were columns. *"Where in your body do you notice the sound of that plastic bag?"*
 scored perfectly on every one.
 
-### 4. Metrics go blind in ways you must actively hunt
+### 4. A rule measured through a composite verdict reports someone else's number
+
+Measure each rule **alone**, never by asking the guard whether the whole question passed.
+
+The three shape rules added in v0.11.3 were first audited by reading `validateOutput`'s verdict with one
+option switched on — which also carries every other rule that fires unconditionally. Four pre-existing
+`FORBIDDEN` hits were duly attributed to the new one, and two of them were false positives that had
+nothing to do with it. The number was real; it belonged to something else. Isolating each rule changed
+the widened binary guard's apparent catch from eight questions to four.
+
+### 5. Metrics go blind in ways you must actively hunt
 
 Both sameness metrics read a real session as clean while **22 of 24 questions opened with the same
 word** — one compares four-word prefixes, the other drops stopwords. When a human sees a pattern
 instantly and the numbers do not, the numbers are wrong, and the fix is a new column plus a persona that
 reacts to it.
+
+---
+
+## The limit of a simulated student, and the instrument that answers it
+
+Everything above measures a **play-acted student** — a model prompted to behave like a design student and
+permitted to disengage. That buys a great deal: it will refuse a question that does not parse, which is
+how nonsense became visible. But it cannot do the one thing that matters most.
+
+**A model does not close the tab.** It does not get bored, and it never simply stops replying. So every
+engagement reading here — refusal rate, reply length, both axes — is a *proxy* for a thing the harness
+could not observe. Worse, a **replay** run (a real student's recorded replies, re-run against a variant)
+cannot react at all: those replies are fixed, so including replays in an engagement measure does not add
+noise, it drags any real effect toward zero by construction. They must be excluded from such measures,
+which leaves only the simulated student behind them.
+
+This is not a small caveat. The two clearest signals this tool has ever received — a student stopping at
+a manufactured association bridge, another stopping at a two-box menu a fortnight later — reached it as
+**messages from people who happened to mention it**. Both produced a release. Neither was visible to any
+instrument here, and neither would have been noticed had those students closed the tab in silence, which
+is what everyone else does.
+
+### The survival curve (`turn_depth`, v0.11.4)
+
+So the tool now records, in production, **how deep each conversation got** — and nothing else:
+
+| | |
+|---|---|
+| **what is stored** | one row per `(day, surface, version, depth)`, with a count |
+| **what is not** | no user id, no session id, no text. The table has five columns, and a unit test asserts that none of them can name a person or hold content |
+| **why no session id is needed** | the service is stateless — the browser posts the whole transcript every turn, so each request already carries its own depth |
+| **when it is written** | on a **delivered** turn only. A refused turn (no access, cap reached, empty generation) would otherwise inflate precisely the depth where people leave, and blame the questioning for what the budget did |
+
+The **drop** between depth *N* and *N+1* is exactly the number of conversations that ended on the *N*th
+question. That makes the curve a conversation-length distribution without ever recording a conversation,
+and keying it by build version makes it a *measurement*: **a release that loses people one turn earlier is
+visible here and nowhere else.**
+
+It is strictly more private than the spend ledger beside it, which does hold a user id. It is therefore
+operational rather than content, and survives the boot purge — purging it would destroy the only
+cross-release comparison the project has.
+
+**What it does not do.** It says *where* people stop, never *why*. A drop at depth three is a question to
+go and read, not a verdict. And it needs weeks of real use before a curve means anything; on day one it is
+four rows. It also cannot see someone who never returns — a learner who has one good session and never
+comes back looks identical to one who is still going.
 
 ---
 

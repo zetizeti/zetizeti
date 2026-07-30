@@ -35,6 +35,9 @@ import {
   usageByUser,
   poolSpendToday, poolSpendAllTime, poolSpendUser, poolSpendUserAllTime, poolTurnsUser, addPoolSpend,
   adaptiveUserDailyInr,
+  // The survival curve (30 Jul 2026) — counts only, no user column, no session id, no content. The one
+  // thing the project could never see was a learner stopping; see the table comment in db.mjs.
+  noteTurnDepth, turnDepthCurve, turnDepthSummary, turnDepthVersions,
 } from './lib/db.mjs';
 import { streamQuestion } from './lib/llm.mjs';
 import { generateGuarded } from './lib/guard.mjs';           // the guard's ENFORCEMENT layer (invariant #3)
@@ -366,6 +369,19 @@ app.get('/api/admin/usage', requireUser, requireAdmin, (req, res) => {
     // Felt-shift health — counts + the last compute's latency; no content (invariant #8). `neural`
     // says whether the embedding backend is live (false = felt off entirely, the app unaffected).
     felt: { ...feltStats, neural: neuralReady },
+    // THE SURVIVAL CURVE (30 Jul 2026) — the answer to "did they stay", which no instrument here could
+    // give before. `reached` is how many turns got to that depth; `leftHere` is the drop to the next one,
+    // i.e. how many conversations ended on that question. Counts only: no user, no session, no content —
+    // strictly more private than the per-user ledger above it. `byVersion` is what makes it a measurement
+    // rather than a number: a release that loses people one turn earlier is visible here and nowhere else.
+    depth: {
+      enquiry:   { summary: turnDepthSummary({ surface: 'enquiry' }),   curve: turnDepthCurve({ surface: 'enquiry' }) },
+      criticism: { summary: turnDepthSummary({ surface: 'criticism' }), curve: turnDepthCurve({ surface: 'criticism' }) },
+      byVersion: {
+        enquiry:   turnDepthVersions('enquiry').map((v) => ({ ...v, ...turnDepthSummary({ surface: 'enquiry',   version: v.version }) })),
+        criticism: turnDepthVersions('criticism').map((v) => ({ ...v, ...turnDepthSummary({ surface: 'criticism', version: v.version }) })),
+      },
+    },
   });
 });
 
@@ -714,7 +730,13 @@ app.post('/api/chat', requireUser, async (req, res) => {
       advancement: +sig.advancement.toFixed(3),
       advancementIfWired: +refineFresh(sig.advancement, fs && fs.semFresh, studentTurns.length - 1).toFixed(3), question: full, guard: guarded.check.ok, attempts: guarded.attempts, rejected: guarded.rejected });
     if (capId) send('capture', { id: capId });
-    // Nothing persisted — the client keeps the turn in its own transcript.
+    // THE SURVIVAL CURVE. Recorded here and only here: a turn that was actually DELIVERED. The depth is
+    // read off the transcript the browser already sends, so no session identifier is needed or created —
+    // `studentTurns.length` IS how deep this conversation is. A refused turn (no access, cap, empty
+    // generation) never reaches this line, which matters: counting refusals would inflate precisely the
+    // depth where people leave, and make the tool look like it lost them when the budget did.
+    noteTurnDepth({ day: utcDay(), surface: 'enquiry', version: BUILD.version, depth: studentTurns.length });
+    // Nothing of the conversation persisted — the client keeps the turn in its own transcript.
     if (meter) {
       addPoolSpend(utcDay(), req.user.id, poolCost, poolFlag);   // count this turn + its real cost, all attempts (poolFlag: 1 shared, 0 personal)
       if (usingPool) send('pool', poolEvent(req.user.id));       // budget-header event only for the shared pool
@@ -863,6 +885,8 @@ app.post('/api/criticism/open', requireUser, async (req, res) => {
     if (ids.length) { const chosen = segments.find((s) => s.id === ids[0]) || segments[ids[0]]; if (chosen) located = { text: chosen.text, why: describeLocated(chosen) }; }
     send('status', { t: 'composing a question…' });
     const { qCost } = await askCriticismQuestion({ send, apiKey: key.apiKey, meter: key.meter, artefact: text, forcedLocated: located, discipline, goal, priorMessages: [], studentTurn: null });
+    // Survival curve, depth 1: the paste that opened this critique. Counts only — see db.mjs.
+    noteTurnDepth({ day: utcDay(), surface: 'criticism', version: BUILD.version, depth: 1 });
     if (key.meter) { addPoolSpend(utcDay(), req.user.id, qCost, key.poolFlag); if (key.usingPool) send('pool', poolEvent(req.user.id)); }
     send('done', {});
   } catch (err) { sendGenerationError(send, err, key.usingPool ? null : req.user.email); }  // never echo req.body
@@ -892,6 +916,12 @@ app.post('/api/criticism/turn', requireUser, async (req, res) => {
       artefact, forcedLocated: located, discipline, goal,
       priorMessages, studentTurn: message || null,
     });
+    // Survival curve. The client's own transcript carries the depth, so no session id exists here either:
+    // depth = the number of questions this critique has now delivered, counting this one. priorMessages is
+    // the transcript BEFORE this turn, so its 'stone' entries are the earlier questions and the opening
+    // paste is depth 1 — which keeps the enquiry and criticism curves reading on the same scale.
+    noteTurnDepth({ day: utcDay(), surface: 'criticism', version: BUILD.version,
+      depth: priorMessages.filter((m) => m && m.role === 'stone').length + 1 });
     if (key.meter) { addPoolSpend(utcDay(), req.user.id, qCost, key.poolFlag); if (key.usingPool) send('pool', poolEvent(req.user.id)); }
     send('done', {});
   } catch (err) { sendGenerationError(send, err, key.usingPool ? null : req.user.email); }
