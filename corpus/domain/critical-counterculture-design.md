@@ -9,6 +9,7 @@
 
 ## entry: affirmative-vs-critical-design
 **discipline:** critical-design
+**provenance:** pending
 **vocabulary:** solve, problem, solution, useful, user-friendly, intuitive, please, easy, fix, product, optimise, helpful
 **felt as:** i just want to solve the problem and make it useful; make it intuitive and easy; the user should find it effortless; let's fix it and ship a helpful product; user-friendly is the whole goal.
 **the_tension:** Most design is *affirmative* — it solves a problem and reinforces how things already are. *Critical* design instead uses the artefact to ask a question, provoke, or critique. Is your design here to solve a problem and please the user, or to make them think — and is "user-friendly" always the right aim?
@@ -21,6 +22,7 @@ Dunne (in *Hertzian Tales*) argues design is too preoccupied with making technol
 
 ## entry: speculative-design-for-debate
 **discipline:** critical-design
+**provenance:** pending
 **vocabulary:** future, predict, trend, roadmap, forecast, what users want, innovation, next, vision, scenario
 **felt as:** what's the future of this; let's predict the trend and build the roadmap; design for what users will want next; chase the next big thing; map out where it's heading; forecast the vision.
 **the_tension:** Conventional future-facing design *predicts and optimises* — trends, roadmaps, what users will want. Speculative design instead poses "what if" provocations to open debate about the futures people do and don't want. Are you forecasting the likely future, or interrogating which future is desirable — and have you confused the two?
@@ -33,6 +35,7 @@ Dunne & Raby's speculative design uses design fictions to make "reality more mal
 
 ## entry: adversarial-design-and-agonism
 **discipline:** critical-design
+**provenance:** pending
 **vocabulary:** consensus, seamless, smooth, agree, frictionless, harmony, resolve, neutral, agreement, friction-free, conflict
 **felt as:** make it seamless and smooth; get everyone to agree; resolve the friction; keep it harmonious and frictionless; smooth over the disagreement; make it all just flow.
 **the_tension:** Conventional design smooths toward consensus and seamlessness. Adversarial design instead *surfaces* conflict — it treats contestation (agonism) as foundational to democratic life rather than something to design away. Is smoothing the disagreement here a service, or is it erasing a conflict that deserves to be seen?
@@ -45,6 +48,7 @@ DiSalvo argues design can "provoke and engage the political," making power and d
 
 ## entry: defamiliarisation-and-ambiguity
 **discipline:** critical-design
+**provenance:** pending
 **vocabulary:** clear, obvious, intuitive, transparent, unambiguous, simple, easy to understand, legible, self-explanatory, clean
 **felt as:** make it crystal clear and obvious; it should be intuitive and self-explanatory; remove any ambiguity; keep it simple and transparent; people shouldn't have to think about it; legible at a glance.
 **the_tension:** Usability prizes clarity and transparency — the interface should be obvious. But ambiguity and *defamiliarisation* can be resources: making the familiar strange invites the user to interpret, engage, and reflect rather than consume on autopilot. When is clarity a gift, and when does it foreclose the thinking that a little strangeness would have opened?
@@ -57,6 +61,7 @@ Gaver argues ambiguity "encourages close personal engagement," and reflective-de
 
 ## entry: whose-values-feminist-hci
 **discipline:** critical-design
+**provenance:** pending
 **vocabulary:** neutral, universal, objective, everyone, the user, best practice, standard, default, unbiased, general
 **felt as:** just design it for the user; keep it neutral and objective; follow best practice; make it work for everyone; use the standard default; an unbiased, general solution.
 **the_tension:** "Good design" is often presented as neutral, universal, serving "the user." Feminist HCI argues the opposite — that every design embeds values and a model of who the user is, so "neutral" can quietly carry the values of whoever did the designing. Does "the user" here name a real, specific person — and is the convention you're following a fair default, or one that fits some bodies and lives better than others?
@@ -69,6 +74,7 @@ Feminist HCI (Bardzell) foregrounds agency, identity, equity and marginalised ex
 
 ## entry: pluriversal-and-decolonial-design
 **discipline:** critical-design
+**provenance:** pending
 **vocabulary:** universal, global, scalable, best practice, standard, one design, works everywhere, localise, roll out, mainstream
 **felt as:** build one design that works everywhere; make it universal and scalable; roll it out globally; follow the global standard; one solution we can localise later; make it work for the mainstream.
 **the_tension:** Conventional design seeks the universal, scalable solution — one design that works everywhere. Decolonial and pluriversal design argue that "universal" design often exports one (frequently Western) world and crowds out others. Is the universality you're reaching for a genuine strength here — shared, accessible, interoperable — or is it carrying one world's assumptions as if they were everyone's?
@@ -81,6 +87,7 @@ Escobar argues for a "pluriverse" — *a world where many worlds fit*, in the Za
 
 ## entry: convivial-tools-vs-dependence
 **discipline:** counterculture
+**provenance:** pending
 **vocabulary:** automatic, convenient, do it for you, seamless, frictionless, no setup, just works, easy, effortless, managed, hands-off
 **felt as:** make it automatic so it just works; do it for the user, no setup; keep it effortless and hands-off; convenient and managed; they shouldn't have to think about it; seamless and frictionless.
 **the_tension:** Convenience-driven design makes tools that act *for* the user — automatic, managed, hands-off. The convivial-tools tradition (Illich) prizes the opposite: tools people can understand, shape, and repair, that enlarge rather than replace their capacity. Does this convenience free the user's attention for what matters, or quietly remove a capacity worth keeping — and who can fix the tool when it breaks?
@@ -93,6 +100,7 @@ Illich argued for tools that foster autonomy and conviviality over institutions 
 
 ## entry: attention-as-extracted-resource
 **discipline:** attention-economy
+**provenance:** pending
 **vocabulary:** engagement, attention, retention, focus, interest, hold attention, time on app, capture, hook, eyeballs, stickiness, dwell time, screen time
 **felt as:** how do we hold their attention; boost engagement and time on app; make it sticky, hook them; capture eyeballs and increase dwell time; keep them coming back; get more screen time.
 **the_tension:** The dominant platform business model treats attention as a resource to capture and sell. The attention-economy critique (Wu; Williams) counters that the attention is the user's own — finite, and not the platform's to enclose. When a design holds attention, is it *earning* it (offering something the person values) or *extracting* it (against the person's own ends) — and how would you tell the difference here?
@@ -105,6 +113,7 @@ The attention-economy critique (Wu; Williams) frames attention as a scarce commo
 
 ## entry: engagement-vs-agency
 **discipline:** attention-economy
+**provenance:** pending
 **vocabulary:** engagement, retention, daily active users, time on app, addictive, hooked, autoplay, infinite scroll, notifications, growth, metrics, conversion
 **felt as:** maximise engagement and daily active users; add autoplay and infinite scroll; send notifications to pull them back; make it addictive, get them hooked; grow the metrics, push retention and conversion.
 **the_tension:** Platforms are incentivised to maximise engagement — autoplay, infinite scroll, notifications, variable rewards — even when it conflicts with users' own interests. The counter-value is the user's *sense of agency*: their felt control over their own use. Does this design extend the user's agency, or quietly override it to extend their session?
@@ -117,6 +126,7 @@ Empirical work finds autoplay and recommendations primarily *undermine* sense of
 
 ## entry: wellbeing-design-or-willpower
 **discipline:** attention-economy
+**provenance:** pending
 **vocabulary:** self-control, willpower, screen time, digital wellbeing, user responsibility, discipline, distraction, focus, habits, moderation
 **felt as:** users just need more self-control; add a screen-time limit and a wellbeing dashboard; it's about their willpower and discipline; help them resist distraction; teach better habits and moderation; it's on the user to manage it.
 **the_tension:** "Digital wellbeing" is usually framed as the user's job — exercise willpower, set screen-time limits, resist distraction. But if the environment is engineered to hold attention, critics argue that locating the fix entirely in the user's self-control misreads where the problem lives. Is this mostly a matter of the user's habits and discipline, mostly of how the thing is built, or genuinely shared — and how would you decide?

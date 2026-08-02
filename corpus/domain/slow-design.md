@@ -11,6 +11,7 @@
 
 ## entry: restraint-is-not-neutral
 **discipline:** slow-design
+**provenance:** pending
 **vocabulary:** minimal, clean, neutral, simple, flat, plain, modern, default, grid, restraint, less, uncluttered, timeless
 **felt as:** let's just keep it clean and minimal; i want it simple and modern; make it neutral so it doesn't get in the way; strip it back, less is more; just use a plain grid; keep it timeless and uncluttered.
 **the_tension:** "Clean", "minimal", "neutral" can feel like the *absence* of an aesthetic. Design history reads restraint differently — as a particular style with a lineage (Bauhaus, Swiss, modernist) that some content can't enter. Is your "neutral" choice serving clarity here, or carrying an aesthetic position you haven't named — and who or what does it leave out?
@@ -23,6 +24,7 @@ The modernist grid was offered as rational, clear, transparent — order rather 
 
 ## entry: who-slowness-excludes
 **discipline:** slow-design
+**provenance:** pending
 **vocabulary:** slow, friction, reflective, considered, patient, effort, attention, time, deliberate, demanding, deep, mindful
 **felt as:** i want people to slow down and reflect; make them sit with it; add some friction so it's more considered; it should be deliberate and patient; give it depth and make them take their time.
 **the_tension:** Slow, effortful, reflective design assumes a user who *has* time, attention, and the cultural fluency to recognise what is being offered. Designing for slowness can be a gift — or a quiet act of exclusion. Who can't afford the slowness you're designing, and is that exclusion a failure, or is it constitutive of what you're making?
@@ -35,6 +37,7 @@ Slow design positions reflection and deceleration as virtues against a culture o
 
 ## entry: the-shortcut-skips-the-journey
 **discipline:** slow-design
+**provenance:** pending
 **vocabulary:** search, shortcut, fast, quick, efficient, skip, instant, find, jump, save time, streamline, seamless
 **felt as:** just add a search so they can jump straight to it; let them skip ahead; make it quick and instant; streamline it, save them time; cut straight to what they want; make it seamless.
 **the_tension:** Search — and every shortcut — is the anti-slow gesture: it knows what it wants and skips the journey. Sometimes the journey *was* the value; sometimes it was just friction in the way of a person in a hurry. When a user reaches for the shortcut, what are they confessing — and what is lost, or rightly saved, by giving it to them instantly?
@@ -47,6 +50,7 @@ A shortcut treats the path as cost. But in reflective, associative, or learning 
 
 ## entry: wandering-or-abandonment
 **discipline:** slow-design
+**provenance:** pending
 **vocabulary:** explore, discover, browse, open-ended, freedom, wander, rabbit hole, serendipity, navigation, orient, lost, get lost
 **felt as:** let users explore and discover on their own; let them get lost and wander; keep it open-ended and free; no fixed path, let them roam; trust them to find their own way; lean into serendipity and rabbit holes.
 **the_tension:** "Let the user explore and get lost" is celebrated as associative discovery — but the labyrinth only works if the wanderer trusts there's something worth finding. At what point does productive wandering become disorientation, and disorientation become abandonment? From inside the experience, what tells the difference between a design that invites you to get lost and one that has simply failed to orient you?
@@ -59,6 +63,7 @@ Open-ended, exploratory design resists the funnel and the optimised path; it tru
 
 ## entry: visibility-and-the-unrewarded
 **discipline:** slow-design
+**provenance:** pending
 **vocabulary:** likes, engagement, gamify, reward, badge, points, streak, social, feedback, motivate, contribute, retention, score
 **felt as:** add likes and points to drive engagement; gamify it with badges and streaks; reward people so they keep coming back; show counts to motivate contributions; or — we stripped out all the metrics so we're not manipulative; how do we get anyone to take part.
 **the_tension:** Removing likes, counts and badges is framed as a refusal to gamify — a moral upgrade. But people contribute to things partly *because they are seen* contributing. If you strip out social feedback, what replaces it — and if the honest answer is "nothing," who is willing to act for nothing, and is that small group enough to sustain what you're building?
@@ -71,6 +76,7 @@ The anti-gamification stance resists manufactured engagement and the dignity-cos
 
 ## entry: made-to-be-lived-with
 **discipline:** slow-design
+**provenance:** pending
 **vocabulary:** efficient, productivity, optimise, fast, engagement, retention, usage, performance, speed, time-on-task, frictionless, convenient
 **felt as:** i want to boost engagement and time-on-app; optimise it, make it faster and more efficient; improve retention and usage; get the task done quicker; make it convenient and frictionless; measure success by how much it gets used.
 **the_tension:** Most design is measured by speed and usage — task done faster, more time-on-app, higher engagement. Slow technology proposes a different aim: artefacts made to be *lived with* and reflected on, present over years rather than consumed in seconds. Is what you're making meant to be used quickly and forgotten, or to be dwelt with — and are you measuring it by the right clock?
@@ -83,6 +89,7 @@ Efficiency metrics answer "did they do it faster / more often"; they cannot see 
 
 ## entry: slow-on-the-phone
 **discipline:** slow-design
+**provenance:** pending
 **vocabulary:** mobile, phone, app, responsive, on the go, quick, notification, scroll, fragmented, attention, swipe, feed
 **felt as:** it needs to work on the phone, on the go; make it responsive and quick to glance at; add notifications to pull them back; design for short sessions and scrolling; put it in a feed; it has to be mobile-first.
 **the_tension:** The phone is the device of fragmented attention — built for the quick, interruptible, in-between moment. Slowness asks for the opposite. Is "slow mobile" a contradiction in terms, or is the phone's temporal grammar exactly what most needs a slow counter-design? When you move something onto the phone, are you serving it, or surrendering it to the feed?
@@ -95,6 +102,7 @@ Designing for mobile usually means accommodating distraction: short sessions, gl
 
 ## entry: name-the-tension-first
 **discipline:** slow-design
+**provenance:** pending
 **vocabulary:** improve, better, feature, redesign, add, fix, wishlist, requirements, brief, goal, scope, idea, solution
 **felt as:** how could this be better; let's add features and fix things; here's my wishlist; what should it do; we just need to improve it; add this and this and this; let's redesign the whole thing.
 **the_tension:** "How could this be better?" tends to generate wishlists — a pile of features answering no clear question. A slower move asks what tension a design would resolve, and names that strain first. But problems and solutions also *co-evolve* — sometimes you only find the real tension by making something. So: is this a moment to articulate the tension before building, or a moment to build in order to discover it?

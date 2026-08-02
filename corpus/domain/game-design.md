@@ -17,7 +17,7 @@
 **failure_modes:** choices that are visible but change nothing (false agency); consequences the player cannot perceive, so the choice feels arbitrary; insisting every interaction carry weight until the game is airless and humourless.
 **questions_it_invites:** When the player makes this choice, can they tell what it did — and will it matter later? · Does this action need to be meaningful, or is it doing something else — texture, rhythm, breathing room?
 **sources:** Salen & Zimmerman, *Rules of Play: Game Design Fundamentals* (MIT Press, 2003) — the concept of *meaningful play* (discernable + integrated outcomes).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — *meaningful play* (discernable + integrated) is the central organising concept of Salen & Zimmerman (2003); position-in-named-work, citation-verified (MIT Press **2003**, not 2004). Counter-pole (not everything must matter) is a design judgement, argued not smuggled.
 
 ---
@@ -30,7 +30,7 @@
 **failure_modes:** tuning rules endlessly when the felt problem lives in emergent dynamics or in theme/fiction; assuming a desired aesthetic can be specified directly rather than coaxed out of mechanics; ignoring everything (art, sound, social setting) that shapes experience but is not a mechanic.
 **questions_it_invites:** Is the thing you want to change a matter of the rules, of how they behave once people play, or of how it feels — and which of those are you actually working on? · What is carrying the experience here that no rule of yours controls?
 **sources:** Hunicke, LeBlanc & Zubek, "MDA: A Formal Approach to Game Design and Game Research", Challenges in Game AI Workshop, 19th National Conference on Artificial Intelligence (AAAI Press, 2004).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — MDA is a well-known, correctly-attributed framework (citation-verifier confirmed authorship + AAAI 2004 venue, eds. Fu & Orkin). The opposite-traversal claim is the paper's own. Counter-pole (experience exceeds mechanics) argued.
 
 ---
@@ -43,7 +43,7 @@
 **failure_modes:** treating the game as a sealed safe space while real money, harassment or addiction cross the boundary; designing as if "it's just a game" settles the question of real-world consequence; over-correcting until nothing is allowed to be playful, low-stakes or pretend.
 **questions_it_invites:** What does treating this as "inside the game, so it doesn't count" give the people playing — what can they do here that they couldn't if it counted? · And where it counts anyway — money, feelings, reputation crossing back out — has the design noticed, or is it leaning on a boundary that isn't holding?
 **sources:** Huizinga, *Homo Ludens: A Study of the Play-Element in Culture* (1938; Eng. Routledge & Kegan Paul, 1949); Salen & Zimmerman, *Rules of Play* (2003) — the "magic circle"; Consalvo, "There Is No Magic Circle", *Games and Culture* 4(4) (2009).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — the magic circle (Huizinga / Salen & Zimmerman) and Consalvo's named critique are well-documented and citation-verified (Consalvo DOI 10.1177/1555412009343575 confirmed; Huizinga subtitle is "in **Culture**", not "in Society"). Two-sided debate in the literature; the entry's framing was de-loaded in verification (title trimmed from "-and-its-leakage"; "licenses"→"frames"; questions rebalanced so one articulates what the protected space gives players) — see the sign-off sheet. Neither the sealed nor the porous reading is privileged.
 
 ---
@@ -56,7 +56,7 @@
 **failure_modes:** smoothing difficulty until nothing is at stake and victory means nothing; punishing difficulty that reads as unfair or inaccessible rather than meaningful; assuming "flow" is the only good experience and treating all frustration as a defect.
 **questions_it_invites:** Is this difficulty there to keep the player absorbed, or to make what they achieve mean something — and are those the same here? · If you smoothed this frustration away, what would change in what the player feels when they finally get it — and would something be lost, or nothing?
 **sources:** Csikszentmihalyi, *Flow: The Psychology of Optimal Experience* (Harper & Row, 1990); Juul, *The Art of Failure: An Essay on the Pain of Playing Video Games* (MIT Press, 2013).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** medium — flow and Juul's art-of-failure are correctly-attributed, citation-verified positions. Consensus-checked: the challenge–skill balance is only *partially* supported and the four-channel model is directly challenged (Engeser 2008; Lambert 2013), so the entry deliberately frames flow as a contested target, not settled science. See verification-consensus-backing.md.
 
 ---
@@ -69,7 +69,7 @@
 **failure_modes:** stripping out the "inefficiency" that *was* the game, leaving a frictionless non-activity; defending tedious or confusing friction as essential "challenge" when it is incidental; reading players' rule-breaking as a verdict on the rules rather than asking which obstacle they actually value.
 **questions_it_invites:** Is this difficulty the obstacle players actually came to overcome, or friction they are putting up with to get to the game? · If you let them take the efficient shortcut, would the game get better — or would there be no game left?
 **sources:** Suits, *The Grasshopper: Games, Life and Utopia* (University of Toronto Press, 1978) — the lusory attitude; playing a game as the voluntary attempt to overcome unnecessary obstacles.
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — Suits's definition is canonical and correctly attributed (citation-verified, University of Toronto Press 1978). Framed as his idea (the short formulation is a genuine Suits phrase). Counter-pole (not all friction is constitutive) argued. Strong board + digital relevance.
 
 ---
@@ -82,7 +82,7 @@
 **failure_modes:** hand-authoring linear content for a game whose life should come from emergent systems (and exhausting it in one play); leaning on emergence where the experience actually needs authored pacing and story, and getting shapeless mush; refusing to choose, so the game is neither deep as a system nor satisfying as a sequence.
 **questions_it_invites:** Does the experience you want come from rules combining in ways you didn't script, or from a sequence you author and control? · What are you willing to pay — the unpredictability of emergence, or content that is largely spent after one play?
 **sources:** Juul, "The Open and the Closed: Games of Emergence and Games of Progression", in Mäyrä (ed.), *Computer Games and Digital Cultures Conference Proceedings* (Tampere University Press, 2002), 323–329; Juul, *Half-Real: Video Games between Real Rules and Fictional Worlds* (MIT Press, 2005).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — emergence/progression is Juul's well-known, correctly-attributed distinction (citation-verified: 2002 proceedings pp. 323–329, ed. Mäyrä; 2005 MIT Press). Two-sided by construction (each pole carries a named cost).
 
 ---
@@ -95,7 +95,7 @@
 **failure_modes:** assuming the procedural argument lands as intended when players are optimising past it; loading the message into story/text while the rules quietly argue the opposite (ludonarrative dissonance); dismissing fiction and art as mere decoration on top of "real" procedural meaning.
 **questions_it_invites:** What is the *system* you've built claiming about the world — separately from anything the story says? · A player trying hard to win — what do they actually take away from the system you built: the claim you meant, or something else?
 **sources:** Bogost, *Persuasive Games: The Expressive Power of Videogames* (MIT Press, 2007) — the concept of *procedural rhetoric*.
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — procedural rhetoric is Bogost's correctly-attributed coinage (citation-verified, MIT Press 2007). Counter (arguments misread / optimised past; meaning also in fiction) argued, not smuggled.
 
 ---
@@ -108,7 +108,7 @@
 **failure_modes:** bolting story onto a system as cutscenes players skip; building rich systems with fiction so thin the game feels meaningless; letting the narrative and the mechanics argue opposite things (the player rewarded for what the story condemns).
 **questions_it_invites:** What does the story do here that the system can't, and what does the system do that the story can't — and which is the player actually here for? · Where the two meet, do they reinforce each other, or is one fighting the other?
 **sources:** Murray, *Hamlet on the Holodeck: The Future of Narrative in Cyberspace* (Free Press, 1997); Aarseth, *Cybertext: Perspectives on Ergodic Literature* (Johns Hopkins University Press, 1997); Juul, *Half-Real* (MIT Press, 2005).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — the ludology/narratology emphases and these named works are well-documented and citation-verified. Framed as a live, two-sided debate (the entry declares no winner) and deliberately avoids the overblown "war" caricature — differing emphases, not enemies.
 
 ---

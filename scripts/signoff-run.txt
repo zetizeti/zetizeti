@@ -4,7 +4,7 @@ Run these in your own terminal (Terminal / iTerm), from the app directory, so th
 tool can read your keystrokes. It only edits local files on the `next-inquiry-maths`
 branch — every change is git-tracked and revertable.
 
-cd ~/Dropbox/personal_projects/zetizeti.com/app
+cd app          # from the repo root
 
 # 1. See the lay of the land — how many pending, per file (changes nothing):
 node scripts/signoff.mjs --count
