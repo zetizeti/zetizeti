@@ -61,7 +61,7 @@ HTTPS deploy + domain wiring.
 
 **Name:** **aaraaya** — from Malayalam ആരായൽ / ആരായുക (*aaraayal* / *aaraayuka*): "inquiry / to inquire, examine, look into." Native Dravidian root (not Sanskrit). The dictionary noun is ആരായൽ (*aaraayal*); the final **-l** is dropped, turning the word into a name — softer, all-open-vowels (aa-raa-ya), ownable. Same move that produced "Koher" from "cohere": a clipped/respelled real word whose meaning shows through. Names the *act of inquiry*, fitting a questions-only tool.
 
-**Non-Koher tool.** Carries no Koher branding, no `koher.app` subdomain, none of Koher's release conventions. Naming and domain are independent. (Relocated OUT of the Koher tree 23 May 2026 to its own top-level project: `~/Dropbox/personal_projects/zetizeti.com/`.)
+**Non-Koher tool.** Carries no Koher branding, no `koher.app` subdomain, none of Koher's release conventions. Naming and domain are independent. (Relocated out of the Koher tree on 23 May 2026 into its own top-level project.)
 
 **Domain:** **aaraaya.net** (chosen). Verified available 23 May 2026 via whois. Also available at decision time: `aaraaya.org`, `aaraaya.app`, `aaraaya.dev`, likely `aaraaya.in`. Taken: `aaraaya.com`. Holding `.org` + `.app` alongside `.net` was flagged as cheap collision insurance.
 

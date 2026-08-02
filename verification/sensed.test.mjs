@@ -16,9 +16,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, writeFileSync, mkdtempSync } from 'node:fs';
-import { tmpdir, homedir } from 'node:os';
-import { join } from 'node:path';
+import { existsSync, readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+
+const HERE = dirname(fileURLToPath(import.meta.url));   // app/verification
 
 import { readSplitRecord, readSensed, describeArithmetic } from '../lib/sensed.mjs';
 
@@ -170,13 +173,16 @@ test('describeArithmetic exposes the four canonical rule strings', () => {
 
 // ───────────────────────── 3. LIVE CROSS-CHECK against the Python MCP ─────────────────────────
 
-// Resolve via $HOME so the same default works on both Prayas's machines (Mac
-// /Users/prayasabhinav, Linux /home/prayas) without an env var. An explicit
-// SPLIT_RATIO_MCP_SRC still overrides. Previously hardcoded to the Linux path, which made
-// the live cross-check silently SKIP on the Mac — defeating the very guard it exists to be.
-const MCP_SRC =
-  process.env.SPLIT_RATIO_MCP_SRC ||
-  join(homedir(), 'Dropbox/personal_projects/koher/tools-release/split-ratio-mcp/src');
+// WHERE THE CANONICAL MCP LIVES IS A LOCAL FACT, so it is not written into this file. Set
+// SPLIT_RATIO_MCP_SRC, or drop the path in `app/.mcp-src` (gitignored, one line). Absent both,
+// the live cross-check SKIPS — and says so, loudly, because a guard that skips quietly is the
+// failure this block already suffered once: it was hardcoded to one machine's path and so
+// silently skipped on the other, defeating the very check it exists to be.
+const localSrc = () => {
+  try { return readFileSync(join(HERE, '..', '.mcp-src'), 'utf8').trim() || null; }
+  catch { return null; }
+};
+const MCP_SRC = process.env.SPLIT_RATIO_MCP_SRC || localSrc() || '';
 
 function pythonAvailable() {
   const v = spawnSync('python3', ['--version']);

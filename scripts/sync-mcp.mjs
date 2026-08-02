@@ -2,9 +2,9 @@
 // sync-mcp.mjs — keep lib/sensed.mjs in sync with the canonical split-ratio MCP.
 //
 // WHAT THIS IS. lib/sensed.mjs is a hand-written JS port of the MCP's arithmetic
-// (koher/tools-release/split-ratio-mcp/src/rules.py). The MCP is the canonical standard; the
-// port must not drift from it. This script TRACKS the MCP's development (the MCP is in Dropbox
-// with no git, so tracking is by content hash + a stored baseline snapshot) and helps APPLY
+// (the split-ratio MCP's rules.py). The MCP is the canonical standard; the port must not drift
+// from it. This script TRACKS the MCP's development (that source has no git of its own, so
+// tracking is by content hash + a stored baseline snapshot) and helps APPLY
 // updates to stay in sync.
 //
 // WHAT IT CANNOT DO, BY DESIGN. It will not auto-translate a Python arithmetic change into JS.
@@ -34,9 +34,16 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const APP = join(HERE, '..'); // app/
 const LIB = join(APP, 'lib');
 
-const MCP_SRC =
-  process.env.SPLIT_RATIO_MCP_SRC ||
-  '/home/prayas/Dropbox/personal_projects/koher/tools-release/split-ratio-mcp/src';
+// A local fact, kept out of a public file: SPLIT_RATIO_MCP_SRC, or one line in app/.mcp-src
+// (gitignored). Neither set → this script says where to put it rather than guessing a home dir.
+let MCP_SRC = process.env.SPLIT_RATIO_MCP_SRC || '';
+if (!MCP_SRC) {
+  try { MCP_SRC = readFileSync(join(APP, '.mcp-src'), 'utf8').trim(); } catch { /* not configured */ }
+}
+if (!MCP_SRC) {
+  console.error('Set SPLIT_RATIO_MCP_SRC, or put the path to the split-ratio MCP\'s src/ in app/.mcp-src');
+  process.exit(2);
+}
 const RULES_PY = join(MCP_SRC, 'rules.py');
 
 const MANIFEST = join(LIB, 'sensed.mcp-sync.json'); // recorded synced state
@@ -148,7 +155,7 @@ async function accept() {
   writeFileSync(BASELINE, rulesBuf); // snapshot for future --diff
   const now = new Date().toISOString();
   const manifest = {
-    mcp_src: MCP_SRC,
+    mcp_src: 'split-ratio-mcp/src',   // a NAME — the absolute path is a local fact and stays local
     rules_py_sha256: sha(rulesBuf),
     rules_py_mtime: statSync(RULES_PY).mtime.toISOString(),
     synced_at: now,

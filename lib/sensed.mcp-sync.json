@@ -1,5 +1,5 @@
 {
-  "mcp_src": "/home/prayas/Dropbox/personal_projects/koher/tools-release/split-ratio-mcp/src",
+  "mcp_src": "split-ratio-mcp/src",
   "rules_py_sha256": "1640119ec16fa85cad96cbc052b3ba05b039346fb12a7c33e47a90b2016334ca",
   "rules_py_mtime": "2026-06-02T04:23:19.167Z",
   "synced_at": "2026-06-02T05:17:21.466Z",
