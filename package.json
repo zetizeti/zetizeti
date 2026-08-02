@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.mjs",
     "dev": "node --env-file=.env server.mjs",
-    "test": "node --test test/",
+    "test": "node --test test/ verification/",
     "sync-mcp": "node scripts/sync-mcp.mjs",
     "retrieve-test": "node -e \"import('./lib/retrieval.mjs').then(async m=>{const D=(await import('better-sqlite3')).default;const db=new D(':memory:');const n=m.buildIndex(db,'./corpus/domain');console.log('indexed',n,'entries');console.log(JSON.stringify(m.retrieve(db,process.argv[1]||'I want to make the checkout faster and more frictionless',{limit:3}).map(r=>({id:r.id,snippet:r.snippet})),null,2));})\""
   },

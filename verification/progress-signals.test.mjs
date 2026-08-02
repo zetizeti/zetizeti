@@ -33,11 +33,37 @@ test('convergence: near-identical re-draws settle high; a leap reads low', () =>
   assert.ok(leap < 0.2, `leap=${leap}`);
 });
 
-test('conviction: hedged goal is low, committed goal is high', () => {
-  const hedged = computeSignals({ goal: 'maybe sort of make it a bit nicer i think' }).conviction;
-  const firm = computeSignals({ goal: 'remove the third sign-up field' }).conviction;
+// 🔴 REWRITTEN 2 August 2026. This asserted the GOAL STRING, which is what conviction read until
+// 2ae4f04 (29 Jul, v0.11.1). A goal is constant for a whole session, so the hedging branch in
+// nudge.mjs could never fire off anything the learner actually said — it was dead for every session
+// ever run, and a real tester had planned the exact experiment the bug forbade. Conviction now reads
+// the LAST THREE REPLIES. The old assertion was not a guard failing; it was a guard describing a bug.
+test('conviction: hedging in the recent REPLIES is low, committed replies are high', () => {
+  const hedged = computeSignals({
+    goal: 'remove the third sign-up field',
+    studentTurns: ['maybe it works', 'i think so', 'sort of, i guess'],
+  }).conviction;
+  const firm = computeSignals({
+    goal: 'remove the third sign-up field',
+    studentTurns: ['the third field is the one people abandon on'],
+  }).conviction;
   assert.ok(hedged < 0.6, `hedged=${hedged}`);
   assert.equal(firm, 1);
+});
+
+// The regression the rewrite above must not lose: a hedged GOAL is not hedging. Somebody who names
+// their edge tentatively once, then speaks plainly, is not trembling — and reading the goal made the
+// signal permanent for the session, which is the shape of the original bug.
+test('conviction: a hedged GOAL alone never lowers it', () => {
+  const c = computeSignals({ goal: 'maybe sort of make it a bit nicer i think' }).conviction;
+  assert.equal(c, 1, 'the goal string must not feed conviction — that was the 29 Jul bug');
+});
+
+// And the tester's own distinction, honoured by the lexicons: noticing is EVIDENCE, not a hedge.
+test('conviction: "i have noticed" is insight, never hedging', () => {
+  const r = computeSignals({ goal: 'g', studentTurns: ['i have noticed juniors ask seniors in hostel groups'] });
+  assert.equal(r.conviction, 1, 'first-person evidence must not read as a hedge');
+  assert.ok(r.movement > 0, 'and it should register as movement');
 });
 
 test('movement: insight markers in the learner turns raise movement', () => {
@@ -70,10 +96,18 @@ test('nudge is quiet before any history and under the refractory period', () => 
   assert.equal(decideNudge(sig, { ...baseState, turnsSinceNudge: REFRACTORY - 1 }).fired, null, 'refractory holds');
 });
 
-test('hedging on the goal fires a commitment-testing posture', () => {
+// 🔴 REWRITTEN 2 August 2026. This matched /commit|real edge/i — the wording before 2ae4f04. The
+// posture now asks for the concrete thing instead of testing commitment, which is the better move
+// and the one that shipped. Asserting a PHRASE made this fail on a deliberate rewording; it now
+// asserts the two things that are actually the contract, so a rewrite passes and a breach does not.
+test('sustained hedging fires a posture that asks for the concrete thing', () => {
   const n = decideNudge({ conviction: 0.2, specificity: 0.8, drift: 0.1, cycling: 0, movement: 0.1, condensation: 0.5 }, baseState);
   assert.equal(n.fired, 'hedging');
-  assert.match(n.posture, /commit|real edge/i);
+  assert.match(n.posture, /instance|observation|number|concrete|thing itself/i,
+    'the posture must ask for evidence, whatever words it uses');
+  // invariant #7 — a POSTURE, never a diagnosis. It may describe the answers; never the person.
+  assert.doesNotMatch(n.posture, /\bthe learner is\b|\byou are (hedging|stuck|drifting|unsure|vague)\b/i,
+    'the model must never receive a characterisation of the person');
 });
 
 test('cycling fires ONLY jointly (not on cycling alone)', () => {
