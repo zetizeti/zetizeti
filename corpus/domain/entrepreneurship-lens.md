@@ -15,7 +15,7 @@
 **failure_modes:** pricing every job by the hour because it is safe, capping the reward at your speed; quoting a value price you cannot actually justify, so the number feels arbitrary; dressing a routine, low-stakes job in value-talk to inflate the fee or dodge giving a simple number; undercharging out of fear and calling it "being competitive."
 **questions_it_invites:** Are you billing the time this took, or the value it creates — and which does this job actually call for? · If you couldn't mention hours at all, how would you explain what this is worth — and where is the hours figure simply the honest answer?
 **sources:** Enns, *Pricing Creativity: A Guide to Profit Beyond the Billable Hour* (2018); Monteiro, *Design Is a Job* (A Book Apart, 2012).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — value-vs-time pricing (Enns) and "charge what you're worth / fear of asking" (Monteiro) are the central, Perplexity-confirmed theses of both works. Consensus-checked (20 peer-reviewed papers; value-based pricing is empirically linked to firm performance — Liozu et al. 2013, the first quantitative demonstration — yet the counter holds: >80% of firms still price on cost or time, adoption is low with a high failure rate, and fixed-fee or time-based schemes perform near-optimally in many service settings — see verification-consensus-backing.md).
 
 ---
@@ -28,7 +28,7 @@
 **failure_modes:** giving away the thinking that *is* the product, then being hired merely to execute it; entering a race to the bottom where whoever works most for free wins; refusing all pitches so absolutely that an unknown studio is never seen.
 **questions_it_invites:** When you pitch for free, what are you giving away — and is it the thing they should be paying for, or a worthwhile way to be seen? · For a studio no one knows yet, what does refusing every pitch cost — and how would you tell a worthwhile shop-window from spent expertise?
 **sources:** Enns, *The Win Without Pitching Manifesto* (2010); Monteiro, *Design Is a Job* (A Book Apart, 2012).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — anti-speculative-pitching / paid-expertise is Enns's central, Perplexity-confirmed thesis. Consensus-checked (20 peer-reviewed papers; the anti-spec movement within design is empirically documented — Kennedy 2013 — unpaid/spec work displaces others in the sector — Siebert & Wilson 2013 — and unpaid placements are found *not* to be stepping stones — Hunt et al. 2023; yet the counter has real weight: design competitions can spur more original work up to a point — Gross 2018, on commercial logo contests — see verification-consensus-backing.md).
 
 ---
@@ -41,7 +41,7 @@
 **failure_modes:** scaling for its own sake until the founder only manages and never makes; staying small out of fear — turning down work you could do well, leaving the studio fragile and its reach narrow; growing the client list faster than the studio can hold its standards.
 **questions_it_invites:** What is growing the studio *for* — and what would it cost, or gain, for the part of the work you most care about? · At what size would this stop being the work you wanted — and is staying small protecting the work, or protecting you from the risk of growing?
 **sources:** Schumacher, *Small Is Beautiful: A Study of Economics as if People Mattered* (1973); Shaughnessy, *How to Be a Graphic Designer, Without Losing Your Soul* (2005); Martin, *The Design of Business* (Harvard Business Press, 2009).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high (citations Perplexity-confirmed); three-pass-revised 24 May to rebalance toward the growth pole. ⚠ sign-off watch: this tension sits close to the project's own density-not-mass view and the passes flagged it tilting "stay small" — keep the growth pole genuinely weighted. Consensus-checked (20 peer-reviewed papers) and the growth pole is now empirically anchored: large firms are found to be the major engine of innovation/growth (Knott & Vieregger 2020), and creative-industry firms grow *because of*, not despite, their quality focus (Loots et al. 2022); the craft pole holds too (diseconomies of scale and bureaucratic drag — Link et al. 1990; more innovation per R&D dollar in small firms — Plehn-Dujowich 2009). The size–innovation relationship is genuinely contested in the literature, which is the honest shape for this tension — see verification-consensus-backing.md.
 
 ---
@@ -54,7 +54,7 @@
 **failure_modes:** treating a client's problem as a canvas for personal style the brief never asked for; dissolving so completely into service work that no point of view is left to bring; mistaking a signature style for having something to say.
 **questions_it_invites:** In this project, is your voice serving the problem or competing with it? · If none of this carried your signature, would that be a loss — or simply the job done well?
 **sources:** Shaughnessy, *How to Be a Graphic Designer, Without Losing Your Soul* (2005); Monteiro, *Design Is a Job* (A Book Apart, 2012).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — both theses Perplexity-confirmed (Shaughnessy: voice/soul within service; Monteiro: design-as-service). Consensus-checked (20 papers; the designer-as-author debate is documented in design scholarship — McCarthy 2011 traces its formal emergence, Sadokierski 2006 its two definitions — and the service pole gets an empirical anchor: professional designers are found to regard their clients as co-authors of the final work — Falcão & Nicolau 2017. Note: these are design-studies sources documenting the debate, not empirical-science findings, with the one noted exception — see verification-consensus-backing.md).
 
 ---
@@ -67,7 +67,7 @@
 **questions_it_invites:** What could this practice genuinely own as a specialist — and would narrowing concentrate your authority, or just shrink a market that rewards range? · Where is "full-service" real resilience and flexibility, and where is it a refusal to decide what you're for?
 **failure_modes:** staying broad and undifferentiated until the studio is a substitute for many others and competes only on price; narrowing into a niche too early or too tightly, before knowing what you're good at or whether the market sustains it; sitting "stuck in the middle", neither focused enough to command a premium nor broad enough to be resilient.
 **sources:** Baker, *The Business of Expertise: How Entrepreneurial Experts Convert Insight to Impact + Wealth* (2017).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — Consensus-checked; genuinely two-sided and contingent (specialist premium/outperformance — Spaenjers, Castaldi, Casterella — vs generalist advantage under brokerage / slow change / client bargaining power, and the "stuck in the middle" risk — Shipilov, Teodoridis, Adner). See verification-consensus-backing.md. (Relates to money-career's specialist-or-generalist — the individual's skills; here it is studio/practice positioning.) Framing PENDING three-pass + Prayas's sign-off.
 
 ---
@@ -80,7 +80,7 @@
 **questions_it_invites:** Is building your own product a move toward owning what you make, or an escape from client work you haven't yet mastered — and which is it here? · Can the services practice fund and survive the product's long, uncertain build — or would the bet starve the work that pays?
 **failure_modes:** betting the studio on a product while the services that fund it are starved of attention and decline; staying purely in time-for-money services, capped at what hours allow, never building anything you own; productising until the bespoke craft that made the studio worth hiring is hollowed out.
 **sources:** Fried & Hansson, *Rework* (Crown Business, 2010); and the documented services-to-product / "productised services" debate in creative practice.
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — the services-vs-product / productisation debate is a recognised position in creative-business discourse (Perplexity-verified; *Rework* the popular anchor), the dual-model reality well documented. Position-in-named-works (strategy discourse, not a contested empirical claim): citation-verified, framing PENDING three-pass + Prayas's sign-off.
 
 ---
@@ -93,5 +93,5 @@
 **questions_it_invites:** What does this venture need capital *for* — a real scale opportunity with a closing window, or a substitute for revenue it hasn't yet learned to earn? · What would raising cost in control, discipline and the kind of company this becomes — and is that price worth the speed?
 **failure_modes:** raising to chase growth the business didn't need, ceding control and bending to investors' growth-at-all-costs clock; bootstrapping so cautiously that a genuine, time-limited scale opportunity is lost to a funded competitor; treating either raising or bootstrapping as the braver or purer choice regardless of what the venture is.
 **sources:** Fried & Hansson, *Rework* (Crown Business, 2010, the bootstrapping case); Ries, *The Lean Startup* (Crown Business, 2011, the build-measure-learn / scaling case).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — Consensus-checked; genuinely two-sided (VC-backed firms reach larger scale and lower early failure — Puri & Zarutskie, Colombo — while bootstrappers show comparable outcomes, less failure variance, and retain control, and VC-backed often show worse profitability — Rutherford, Bhide, Bronzini). See verification-consensus-backing.md. ⚠ Sign-off watch: the project's own non-profit / anti-venture-scale orientation must NOT tilt this into an anti-raising verdict — both poles are genuinely weighted; the student decides. Framing PENDING three-pass + Prayas's sign-off.

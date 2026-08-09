@@ -121,7 +121,7 @@
 **failure_modes:** offering so much freedom that the authored experience never reliably happens; railroading so tightly that the player feels like a spectator holding a controller; faking agency with choices that visibly change nothing (which players quickly feel).
 **questions_it_invites:** Where in this design does the player's felt power to *act* matter most — and where does the shape of an experience you author matter more? · Is the freedom you're offering real consequence, or the appearance of choice the player will see through?
 **sources:** Murray, *Hamlet on the Holodeck: The Future of Narrative in Cyberspace* (Free Press, 1997) — *agency* as a core aesthetic of digital narrative.
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — agency is Murray's correctly-attributed concept (citation-verified, Free Press 1997). The agency-vs-authorship ("narrative paradox") tension is standard and genuinely two-sided. Distinct from interaction-design's direct-manipulation-vs-agents (there the axis is manipulation vs delegation) and from this file's story-or-system (there the axis is the game's medium-identity — story vs ruleset); here the axis is the player's freedom vs the designer's authored arc.
 
 ---
@@ -134,7 +134,7 @@
 **failure_modes:** shipping deep mechanics with feel so flat the game seems broken or lifeless; pouring juice over hollow mechanics so it feels great for ten minutes and empty after; treating feel as mere "polish" to add at the end rather than a core design layer.
 **questions_it_invites:** Is what's missing here a matter of how it *feels* to act — responsiveness, feedback, weight — or of what there is to do? · If you added all the juice you could, would the game be better, or just better at hiding what's thin?
 **sources:** Swink, *Game Feel: A Game Designer's Guide to Virtual Sensation* (Morgan Kaufmann/Elsevier, 2009).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — game feel is Swink's correctly-attributed subject (citation-verified; keep **2009**, a 2008 catalogue variant exists). Position-in-named-work; counter-pole (juice as substitute for substance) argued. Digital-specific (real-time virtual sensation).
 
 ---
@@ -147,7 +147,7 @@
 **failure_modes:** assuming a solved game is necessarily a dead one, and chasing novelty over the pleasures of mastery, ritual and company; ignoring that some games do go genuinely stale once their pattern is learned; manufacturing endless "content" to learn while neglecting the social or aesthetic reasons people stay.
 **questions_it_invites:** When this stops being fun, is it because the player has finished learning it — or for some other reason? · What keeps people here after the learning curve flattens — mastery, each other, the story, the ritual — and is the design feeding that?
 **sources:** Koster, *A Theory of Fun for Game Design* (Paraglyph Press, 2004; 2nd ed. O'Reilly Media, 2013).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high (as a position) — fun-as-learning is the correctly-attributed central argument of Koster (2004), citation-verified. Framed explicitly as "Koster argues", **not** as established cognitive science (the verifier flagged it as a popular-press thesis, not an empirical finding). Counter-pole (social/aesthetic/competitive pleasures) argued.
 
 ---

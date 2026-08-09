@@ -21,6 +21,68 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.11.6] — 2026-08-09
+
+Twenty more corpus entries carry a human sign-off. **70 of 265 verified, 195 pending.**
+
+### Changed
+- **Gate-4 sign-off, batch of twenty** — `critical-counterculture-design.md` (10),
+  `entrepreneurship-lens.md` (7), `game-design.md` (3), each flipped through
+  `scripts/signoff-web.mjs` and logged with a second-precision timestamp in
+  `docs/corpus-build/signoff-log.md`. What changes for a learner is the curtain: those twenty now read
+  *framing verified* rather than *framing pending verification*. Retrieval is untouched — it has never
+  filtered on provenance, and pending entries ground questions exactly as verified ones do
+  (invariant #0).
+- **The counts, everywhere they were asserted.** `CLAUDE.md` (twice), `docs/concept/learning-mode.md`,
+  and the tracker's resume point all stated 50 verified / 215 pending. `learning-mode.md` also carried
+  the figure in prose — a learning mode would converse from "a fifth of the corpus", now about a
+  quarter — which is the kind of number that goes stale in silence because nothing rebuilds it.
+
+### Fixed
+- **A comment in `lib/dialogue.mjs` claiming "265 verified design tensions".** The curtain has never
+  said that. All 265 have verified *citations*; 70 have a signed-off *framing*. The comment asserted
+  the stronger of the two.
+- **Two version numbers that had drifted from the tags.** `app/package.json` read `0.11.4` with
+  `v0.11.5` already tagged, and `app/package-lock.json` had read `0.9.3` since that release. Both now
+  say `0.11.6`. Neither is load-bearing — the build string comes from `git describe` — which is
+  precisely why they went stale unnoticed: nothing consumes them, so nothing failed.
+- **The local test suite was running on a damaged dependency tree.** Seven tests failed on a
+  `better_sqlite3.node` that was not a valid mach-o file, and one on a source file simply absent from
+  `compromise`. Dropbox had been syncing `app/node_modules` and had left a 488 MB `node_modules 2`
+  duplicate beside it. No code was involved and production was never affected — the image builds its
+  own native modules and the tar excludes `node_modules` — but "all tests pass" was unavailable until
+  it was repaired. Both trees are now marked `com.dropbox.ignored`, which is per-machine and does not
+  sync, so the Linux box needs the same treatment.
+
+### Also in this release
+The four commits that landed after v0.11.5 and were never tagged: first person in the two files
+heading for the public repo, the deploy runbook repointed from `blevn` to `myplaceholder` with the
+publish guard hardened against a rename, machine paths swept out of the published tree, and two stale
+assertions fixed alongside the `verification/` suite that `npm test` had never run.
+
+## [0.11.5] — 2026-08-02
+
+*Written retrospectively on 9 August 2026: v0.11.5 was tagged with no changelog entry, and
+`app/package.json` was left reading `0.11.4`. Reconstructed from the tag's own history.*
+
+### Added
+- **`scripts/signoff-web.mjs`** — the Gate-4 sign-off bench in a browser, local-only on 127.0.0.1,
+  with whole-corpus view, bulk selection, bookmarks and revert. Built because walking 231 pending
+  entries one at a time in a terminal is hopeless. It changes nothing by itself; every flip is an
+  explicit action, written into `corpus/domain/*.md` and appended to the sign-off log.
+- **`lib/coverage.mjs`** — retrieval that can report a thin ground, with its own test.
+- **`docs/concept/learning-mode.md`**, the residency terms, the not-knowing text, and three method
+  drafts.
+
+### Fixed
+- **The provenance correction.** 18 entries carried no `provenance` line at all, and `retrieval.mjs`
+  parsed a missing line as verified — so the curtain told students *framing verified* for entries
+  nobody had read. Prayas: *"no legacy is pending."* All 18 now declare `pending` and every entry
+  states its state explicitly. A default that silently upgrades is worse than a missing field, because
+  nothing fails and nobody looks. *(The sign-off count for that day is stated inconsistently across the
+  commit message, the tracker banner and memory — 34 in one place, 16 in another. Not reconciled here;
+  the 2 August figure of 50 `verified` lines is what the files themselves said.)*
+
 ## [0.11.4] — 2026-07-30
 
 The tool can now see the one outcome it was never able to observe: **whether a learner stayed.**

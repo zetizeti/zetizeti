@@ -186,9 +186,10 @@ invariant #0 exists to prevent, arriving by a route the invariant did not antici
 pending entry may still be used to *ask* — the mixed turn is allowed and is probably the common one.
 The split is by speech act, not by turn.
 
-⚠️ **This has a cost that is a design constraint, not a bug.** As of 2 August 2026 there are **50
-verified entries and 215 pending**, so a learning mode shipped today would converse from a fifth of
-the corpus. That is an argument for sequencing — Gate-4 first — not for weakening the filter.
+⚠️ **This has a cost that is a design constraint, not a bug.** As of 9 August 2026 there are **70
+verified entries and 195 pending**, so a learning mode shipped today would converse from about a
+quarter of the corpus. That is an argument for sequencing — Gate-4 first — not for weakening the
+filter.
 
 ## 6. Turning it on
 
