@@ -160,7 +160,7 @@
 **failure_modes:** bolting points and badges onto an activity people already valued, and watching the intrinsic interest drain out; assuming rewards always backfire and refusing structure that would genuinely help; designing for the engagement metric while the underlying activity becomes something people only do for the prize.
 **questions_it_invites:** What already motivates someone to do this — and would the reward you're adding strengthen that motive, or substitute for it? · If you removed the points tomorrow, what would people still do, and what would stop?
 **sources:** Deterding, Dixon, Khaled & Nacke, "From Game Design Elements to Gamefulness: Defining 'Gamification'", MindTrek '11 (ACM, 2011); Deci, "Effects of Externally Mediated Rewards on Intrinsic Motivation", *Journal of Personality and Social Psychology* 18(1) (1971); Lepper, Greene & Nisbett, "Undermining Children's Intrinsic Interest with Extrinsic Reward", *Journal of Personality and Social Psychology* 28(1) (1973).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — gamification (Deterding et al.) and the overjustification studies (Deci; Lepper, Greene & Nisbett) are correctly attributed and citation-verified (DOIs confirmed). Consensus-checked: overjustification is empirically supported but *conditional* (near-zero mean in one quantitative review; reward-type dependent), so the entry frames it as a caution, not a law. Both poles weighted — the design value of rewards is granted (NB: zetizeti's own anti-gamification stance, invariant #6, is about the *product*, not a verdict the corpus carries).
 
 ---
@@ -173,7 +173,7 @@
 **failure_modes:** designing for a stereotyped "type" and missing that real players move between motivations; using a taxonomy from one genre as if it were a law of all players; refusing any model of the audience and so designing only for oneself.
 **questions_it_invites:** When you picture "the player" of this, whose pleasures are you serving — and whose are you leaving out? · Does naming a player type help you see them more clearly, or let you stop seeing the messier person who'll actually play?
 **sources:** Bartle, "Hearts, Clubs, Diamonds, Spades: Players Who Suit MUDs", *Journal of MUD Research* 1(1) (1996).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — Bartle's taxonomy is correctly attributed and citation-verified (1996, *Journal of MUD Research*; born-digital, pre-DOI — cite URL). The critique (taxonomies flatten; players move between types; MUD-specific origin) is well established. Two-sided.
 
 ---
@@ -186,7 +186,7 @@
 **failure_modes:** an open sandbox so unstructured that players feel aimless and drift off; rules so rigid they crush the free, improvisational play the design seemed to promise; being unclear whether it is a toy or a game, so players don't know how to engage.
 **questions_it_invites:** Is this offering a toy to play *with* or a contest to *win* — and does its structure match that? · Where players feel aimless or boxed in, is it because there is too little structure for the play you want, or too much?
 **sources:** Caillois, *Man, Play and Games*, trans. Barash (Free Press, 1961; orig. *Les jeux et les hommes*, Gallimard, 1958) — the paidia/ludus spectrum.
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — paidia/ludus is Caillois's correctly-attributed distinction (citation-verified: Barash trans., Free Press 1961; Gallimard 1958). Two-sided (each pole's cost named). Distinct from emergence/progression (that axis = where content comes from; this = the player's mode of play).
 
 ---

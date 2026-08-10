@@ -21,6 +21,49 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.12.0] — 2026-08-10
+
+### The AI Club studio strip moves to the header, and stops waiting for a wallet
+
+**The strip is now in the top nav**, beside `about`, where the other three studio apps carry theirs.
+A student crossing between four tools should not hunt for the way out in a different place on each.
+Turquoise at full chroma, marking the group as OUTBOUND — these links leave zetizeti — using the same
+mono grammar and the same shared hover as `.nav-author` (vermilion) and `.nav-admin` (gold).
+
+**The gate was split, and this is the substantive fix.** `loadStudioFooter` gated everything on
+`/api/usage`, which returns ok only when the credit engine **vends a key** and that key reports a
+numeric cap. So a student who had signed in but not yet registered an OpenRouter key saw nothing at
+all — no siblings, no way across. That is the state every member of the cohort is in on their first
+day, which is exactly when the strip matters most, because it is how they learn the other tools
+exist. Identity and wallet are different questions:
+
+- **identity** — `/api/pool` → `{ tier:'ai-club', aiClub:true }`, a membership fact needing no key.
+  Gates the strip.
+- **wallet** — `/api/usage`, needing a resolved key with a cap. Gates the credit meter, and nothing else.
+
+A student is a student before they have a wallet.
+
+**The footer is now the wallet and nothing else** — the sibling strip and its `fs-cap` styling are
+removed rather than left dormant. With no wallet the footer does not render at all; an empty bordered
+band reads as something failing to load.
+
+### Corpus
+
+Three game-design entries signed off at Gate-4 on 9 August and carried in this release —
+`fun-as-learning`, `extrinsic-rewards-and-gamification`, `player-types`. **265 entries, 192 pending.**
+
+### Configuration repaired on the deployed instance
+
+- 🔴 **`ZETIZETI_CREDIT_ENGINE_URL` pointed at `credit-engine.anant.prayasabhinav.net`**, dead since the
+  AI Club domain move of 4 August. Any AI Club student would have resolved to the tier and then failed
+  to get a key, with the failure reading as a credit problem rather than a dead hostname. Repointed to
+  `credit-engine.aiclub.anu.edu.in`, and zetizeti's existing tool token verified against it.
+- **`ZETIZETI_AICLUB_ALLOWLIST` set** — 26 emails: the enrolled Monsoon 2026 cohort plus two operator
+  accounts. It had been unset since the cohort was designed, so `emailIsAiClub()` returned false for
+  everybody and the AI Club tier could never be reached.
+- **`STUDIO_URL_ZETIZETI` / `_MINDMAPS` / `_VISUALGEN` / `_DASHBOARD` set** — all four were empty, so
+  the strip would have rendered labels with no links even had it been visible.
+
 ## [0.11.6] — 2026-08-09
 
 Twenty more corpus entries carry a human sign-off. **70 of 265 verified, 195 pending.**

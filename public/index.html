@@ -33,7 +33,7 @@
     --ink:#0a1428; --ink-2:#0c1c40;                 /* deep blue-black ground — never #000 */
     --cobalt:#173a8c; --cobalt-deep:#102b66; --sheet:#143173; --sheet-edge:rgba(246,232,198,.14);
     --gold:#f0b324; --gold-bright:#ffd24a; --amber:#ec8a1e; --vermilion:#e8431f;
-    --teal:#0f7d72; --teal-deep:#0a4f49; --turq:#0f7f8d;
+    --teal:#0f7d72; --teal-deep:#0a4f49; --turq:#0f7f8d; --turq-bright:#30d8c0;
     --bone:#F6E8C6; --bone-dim:#cdd6ea; --goldtext:#f0d49a; --muted:#9aa8c6; --faint:#6f7ea0;
     --display:"Rozha One",Georgia,serif;            /* high-contrast didone — wordmark + the stone's questions */
     --text:"Besley",Georgia,serif;                  /* warm slab — the learner's words + reading text */
@@ -263,6 +263,15 @@
 
   /* ---- admin: usage monitor (machinery — Space Mono register) ---- */
   .nav-admin{color:var(--gold) !important}
+  /* AI Club studio strip — the sibling tools, in the HEADER (10 Aug 2026) so it sits where the other
+     three studio apps carry theirs. Turquoise because vermilion is the author's and gold the admin's;
+     the colour marks the group as OUTBOUND — these links leave zetizeti. Same mono grammar, same hover
+     as every other nav link. A hairline rule, never a pill or a card. */
+  .nav-studio{display:flex; align-items:center; gap:16px; padding-left:20px; border-left:1px solid rgba(15,127,141,.45)}
+  .nav-studio .studio-kicker{font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint)}
+  .nav-studio a{color:var(--turq-bright) !important}   /* full chroma, like .nav-author and .nav-admin */
+  .nav-studio span.tool{color:var(--faint)}            /* no URL configured — a label, never a dead link */
+  @media(max-width:900px){ .nav-studio{padding-left:12px; gap:11px} .nav-studio .studio-kicker{display:none} }
   .adminlist{display:flex; flex-direction:column}
   .usage-summary{font-family:var(--mono); font-size:13px; color:var(--bone-dim); padding:0 0 22px; letter-spacing:.04em}
   .usage-summary b{color:var(--gold-bright); font-size:22px}
@@ -441,6 +450,7 @@
       <a id="navCrit">critique</a>
       <a id="navAuthor" class="nav-author" hidden>author</a>
       <a id="navAbout">about</a>
+      <span class="nav-studio" id="navStudio" hidden><span class="studio-kicker">studio</span></span>
       <a id="navAdmin" class="nav-admin" hidden>review</a>
       <span class="poolcount" id="poolCount" hidden></span>
       <span class="poolcount budget" id="poolBudget" hidden></span>
@@ -670,18 +680,12 @@
     </div>
   </div>
 
-  <!-- AI Club studio footer — shown ONLY for AI Club cohort students (their own ₹5,000 key). Memorability
-       users never see it (the /api/usage endpoint returns ok:false for them). -->
+  <!-- AI Club credit meter — shown ONLY for an AI Club student WHOSE KEY RESOLVES. The sibling-tool
+       strip that used to sit here moved to the header on 10 Aug 2026, for consistency with the other
+       three studio apps; this footer is now the wallet and nothing else. -->
   <style>
-    #studioFooter{position:relative; z-index:2; width:min(980px,calc(100vw - 48px)); margin:40px auto 0; padding:24px 40px 44px; border-top:1px solid rgba(244,231,200,.12); font-family:var(--mono,"Space Mono",monospace)}
+    #studioFooter{position:relative; z-index:2; width:min(980px,calc(100vw - 48px)); margin:40px auto 0; padding:22px 40px 40px; border-top:1px solid rgba(244,231,200,.12); font-family:var(--mono,"Space Mono",monospace)}
     #studioFooter[hidden]{display:none}
-    #studioFooter .fs-strip{display:flex; flex-wrap:wrap; gap:22px; align-items:baseline}
-    #studioFooter .fs-cap{display:flex; flex-direction:column; gap:3px; text-decoration:none; cursor:default; color:#cdd6ea}
-    #studioFooter a.fs-cap{cursor:pointer}
-    #studioFooter .fs-cap .c{font-size:12.5px; letter-spacing:.05em}
-    #studioFooter .fs-cap .s{font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:#6f7ea0}
-    #studioFooter .fs-cap.on .c{color:#ffd24a}
-    #studioFooter a.fs-cap:hover .c{color:#ffd24a}
     #studioFooter .fs-meter{margin-top:18px; max-width:440px}
     #studioFooter .fs-bar{height:6px; background:rgba(246,232,198,.14); overflow:hidden; margin-bottom:9px}
     #studioFooter .fs-fill{height:100%; background:linear-gradient(90deg,#0f7d72,#f0b324)}
@@ -689,7 +693,6 @@
     #studioFooter .fs-aff{margin-top:6px; font-size:10.5px; color:#0f7f8d} #studioFooter .fs-aff b{color:#ffd24a; font-weight:400}
   </style>
   <footer id="studioFooter" hidden>
-    <div class="fs-strip" id="fsStrip"></div>
     <div class="fs-meter" id="fsMeter" hidden>
       <div class="fs-bar"><div class="fs-fill" id="fsFill" style="width:0%"></div></div>
       <div class="fs-num" id="fsNum"></div>
@@ -702,16 +705,51 @@ const $ = id => document.getElementById(id);
 // AI Club studio footer: the credit affordance range (questions the student's ₹5,000 key buys). Only renders
 // when /api/usage returns ok (AI Club cohort, or the ZETIZETI_DEMO_USAGE flag) — memorability users see nothing.
 function plus(n){ n=Number(n)||0; if(n>=500) return '500+'; if(n>=100) return (Math.floor(n/100)*100)+'+'; if(n>=10) return (Math.floor(n/10)*10)+'+'; return String(n); }
-async function loadStudioFooter(){
-  let u, c; try{ [u,c] = await Promise.all([fetch('/api/usage').then(r=>r.json()), fetch('/api/config').then(r=>r.json())]); }catch(e){ return; }
-  if(!u || !u.ok) return;                                          // not AI Club → no footer
-  const s = (c && c.studio) || {};
-  const strip = $('fsStrip'); strip.innerHTML='';
-  [{c:'Think',sub:'zetizeti',url:'',on:true},{c:'Map',sub:'mindmaps',url:s.mindmaps,on:false},{c:'Still',sub:'visual-gen',url:s.visualgen,on:false},{c:'Motion',sub:'visual-gen',url:s.visualgen,on:false},{c:'Dashboard',sub:'studio',url:s.dashboard,on:false}].forEach(x=>{
-    const link=x.url&&!x.on; const el=document.createElement(link?'a':'div'); el.className='fs-cap'+(x.on?' on':''); if(link) el.href=x.url;
-    el.innerHTML='<span class="c"></span><span class="s"></span>'; el.querySelector('.c').textContent=x.c; el.querySelector('.s').textContent=x.sub; strip.appendChild(el);
+// Build the header studio strip from /api/config's `studio`. A tool with no URL configured is
+// rendered as PLAIN TEXT, not a dead link — the same rule the footer used, kept: a link that goes
+// nowhere is worse than a label, because it looks like the tool is broken rather than unconfigured.
+function buildStudioNav(s){
+  const el = $('navStudio'); if(!el) return;
+  el.querySelectorAll('a,span.tool').forEach(n=>n.remove());
+  [{c:'map',url:s.mindmaps},{c:'visualise',url:s.visualgen},{c:'dashboard',url:s.dashboard}].forEach(x=>{
+    const n = document.createElement(x.url ? 'a' : 'span');
+    if(x.url) n.href = x.url; else n.className = 'tool';
+    n.textContent = x.c; el.appendChild(n);
   });
+  el.hidden = false;
+}
+
+async function loadStudioFooter(){
+  // TWO GATES, deliberately separated (10 Aug 2026). They used to be one, and the strip was invisible.
+  //
+  //   IDENTITY — /api/pool returns { tier:'ai-club', aiClub:true } for a cohort student. Needs NO key:
+  //              it is a membership fact, decided by ZETIZETI_AICLUB_ALLOWLIST. This gates the STRIP.
+  //   WALLET   — /api/usage returns ok only when the engine also VENDS a key AND that key reports a
+  //              numeric cap. This gates the METER, and nothing else.
+  //
+  // Before this, the strip was gated on the wallet too, so a student who had signed in but not yet
+  // registered an OpenRouter key saw nothing at all — no siblings, no way across to the other tools.
+  // That is the state every one of the cohort is in on their first day, which is exactly when the
+  // strip matters most: it is how they learn the other tools exist. A student is a student before
+  // they have a wallet.
+  let p, u, c;
+  try{ [p,u,c] = await Promise.all([
+    fetch('/api/pool').then(r=>r.json()).catch(()=>null),
+    fetch('/api/usage').then(r=>r.json()).catch(()=>null),
+    fetch('/api/config').then(r=>r.json()).catch(()=>null),
+  ]); }catch(e){ return; }
+  const isAiClubUser = !!(p && (p.tier==='ai-club' || p.aiClub)) || !!(u && u.ok);
+  if(!isAiClubUser) return;                                        // not AI Club → no footer
+  const s = (c && c.studio) || {};
+  // The sibling-tool strip MOVED TO THE HEADER, 10 Aug 2026 — the other three studio apps carry theirs
+  // in a top nav, and a student crossing between four tools should not hunt for the way out in a
+  // different place on each. What stays here is the CREDIT METER, which is where the other apps keep
+  // theirs too. The footer is now the wallet; the header is the map.
+  buildStudioNav(s);
   const inr=n=>'≈₹'+Number(n).toLocaleString('en-IN');
+  // No wallet yet → the header strip is up and that is the whole visible affordance. Showing the
+  // footer here would render an empty bordered band, which reads as something failing to load.
+  if(!u || !u.ok) return;
   const rateTag=u.rate?'  ·  ≈₹'+u.rate+'/$':''; const demoTag=u.demo?' (demo)':'';
   if(typeof u.totalInr==='number'){ $('fsMeter').hidden=false; $('fsFill').style.width=Math.round((u.fraction||0)*100)+'%'; $('fsNum').innerHTML='your studio credit  <b>'+inr(u.remainingInr)+'</b> left of '+inr(u.totalInr)+rateTag+demoTag; }
   if(typeof u.questions==='number'){ $('fsAff').innerHTML='that buys about <b>'+plus(u.questions)+' questions</b>'; }

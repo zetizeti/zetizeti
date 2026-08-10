@@ -882,7 +882,7 @@ app.post('/api/criticism/open', requireUser, async (req, res) => {
     send('reading', readingPayload);                         // sensed reading behind the curtain (client keeps it)
     const ids = reading.strict.conflation_segment_ids || [];
     let located = null;
-    if (ids.length) { const chosen = segments.find((s) => s.id === ids[0]) || segments[ids[0]]; if (chosen) located = { text: chosen.text, why: describeLocated(chosen) }; }
+    if (ids.length) { const chosen = segments.find((s) => s.id === ids[0]) || segments[ids[0]]; if (chosen) located = { text: chosen.text, why: describeLocated(chosen), stage: chosen.sdc_stage, heldBy: chosen.judgement_held_by }; }
     send('status', { t: 'composing a question…' });
     const { qCost } = await askCriticismQuestion({ send, apiKey: key.apiKey, meter: key.meter, artefact: text, forcedLocated: located, discipline, goal, priorMessages: [], studentTurn: null });
     // Survival curve, depth 1: the paste that opened this critique. Counts only — see db.mjs.
@@ -909,7 +909,7 @@ app.post('/api/criticism/turn', requireUser, async (req, res) => {
   const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
   const key = await resolveKeyForCriticism(req, res, send); if (!key) return;
   try {
-    const located = seg ? { text: seg.text, why: describeLocated(seg) } : null;
+    const located = seg ? { text: seg.text, why: describeLocated(seg), stage: seg.sdc_stage, heldBy: seg.judgement_held_by } : null;
     send('status', { t: 'composing a question…' });          // the question is buffered until it passes the guard
     const { qCost } = await askCriticismQuestion({
       send, apiKey: key.apiKey, meter: key.meter,

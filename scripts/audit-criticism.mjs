@@ -110,7 +110,9 @@ async function runCase(tc, i) {
   let located = null;
   if (ids.length) {
     const chosen = segments.find((s) => s.id === ids[0]) || segments[ids[0]];
-    if (chosen) located = { text: chosen.text, why: describeLocated(chosen) };
+    // 🧪 experiment/located-enum: carry the tokens too, exactly as server.mjs does, so an enum-mode
+    // run is a real comparison rather than a run against 'unspecified'.
+    if (chosen) located = { text: chosen.text, why: describeLocated(chosen), stage: chosen.sdc_stage, heldBy: chosen.judgement_held_by };
   }
   console.log(`\n  ── located spot (what the question will aim at) ──`);
   console.log(located ? `     "${located.text}"\n     → ${located.why}` : '     (no blur located this turn — affirming-but-open path)');
