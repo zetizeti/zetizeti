@@ -790,7 +790,13 @@ async function resolveKeyForCriticism(req, res, send) {
   const ut = poolTurnsUser(day, req.user.id);
   if (userBudgetExhausted(req.user.id)) { send('error', { code: 'POOL_USER_LIFETIME_CAP', message: USER_LIFETIME_MSG }); res.end(); return null; }
   if (userDayCapReached(day, req.user.id)) { send('error', { code: 'POOL_USER_BUDGET_CAP', message: USER_BUDGET_MSG }); res.end(); return null; }
-  if (ut >= POOL_USER_TURNS) { send('error', { code: 'POOL_USER_CAP', message: USER_TURNS_MSG }); res.end(); return null; }
+  // 🔴 `POOL_USER_TURNS > 0` is NOT optional — the cap is DISABLED at 0, not set to zero. Without it
+  // `ut >= 0` is true on a student's very first turn, so this refused the ENTIRE students cohort with
+  // "You've used today's 0 messages — please come back tomorrow." Live from 29 July 2026, when the
+  // adaptive ₹ allowance replaced the fixed turn count and prod flipped the var to 0: the enquiry path
+  // (line ~549) got the guard, this one — the CRITICISM path — did not. Thirteen days, whole cohort,
+  // and invisible because the operator sits on POOL_PERSONAL, which returns above this line.
+  if (POOL_USER_TURNS > 0 && ut >= POOL_USER_TURNS) { send('error', { code: 'POOL_USER_CAP', message: USER_TURNS_MSG }); res.end(); return null; }
   return { apiKey: POOL_KEY_ORG, usingPool: true, meter: true, poolFlag: 1 };   // the ORG key, metered against the ₹ ceiling
 }
 

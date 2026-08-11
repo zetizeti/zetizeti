@@ -21,6 +21,34 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.12.2] — 2026-08-11
+
+### The criticism surface refused every student, and had done since 29 July
+
+**A missing `POOL_USER_TURNS > 0` guard.** `ZETIZETI_POOL_USER_TURNS = 0` means the per-user turn cap
+is **disabled**, not that zero turns are allowed. The enquiry path checks
+`POOL_USER_TURNS > 0 && ut >= POOL_USER_TURNS`. The criticism surface's key resolver checked only
+`ut >= POOL_USER_TURNS` — true on a student's very first turn — so *"Push back on an idea"* answered
+every `pool-students` user with **"You've used today's 0 messages — please come back tomorrow."**
+
+Live from **29 July**, when the adaptive ₹ allowance replaced the fixed turn count and production
+flipped the variable to `0`. The enquiry path was updated in that change; this one was not. Thirteen
+days, the whole student cohort, one surface entirely unusable.
+
+**Two reasons it stayed invisible, both structural.** The operator sits on `pool-personal`, which
+returns from that resolver *above* the cap checks — so the only person able to notice it is on the one
+tier whose code path never reaches the line. And the message blames the reader: a student who is told
+they have used today's messages concludes they have a quota, not that the tool is broken. It surfaced
+only because a student was asked for a transcript and said why she could not produce one.
+
+- `server.mjs`: the guard added, matching the enquiry path.
+- `verification/turn-cap-guard.test.mjs`: **new.** Reads *every* `>= POOL_USER_TURNS` comparison in
+  `server.mjs` and fails if any lacks the `> 0`. Deliberately a source-shape test — the defect was
+  never that a check was wrong on its own, but that one of two copies drifted, and only a test reading
+  both would have caught it. Proved against the pre-fix source, where it names `server.mjs:793`.
+
+209 tests pass, up from 206.
+
 ## [0.12.1] — 2026-08-11
 
 ### Dev traffic now says it is dev
