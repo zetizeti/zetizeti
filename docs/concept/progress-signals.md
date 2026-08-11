@@ -236,7 +236,8 @@ the meaning back.
   and the learner's own clarity-movement*, not delivery of an answer; the system never declares
   arrival. ✅
 - **SDC split:** signals are the *code* judgement/tracking layer; the LLM still only asks (and
-  receives a posture, never a verdict); the human still decides. ✅
+  receives a posture, never a verdict — because only `posture` is read by `buildTurnContext`, not
+  because a rule forbids the rest); the human still decides. ✅
 - **the SSE contract as implemented §2:** any backend progress signal is *advisory only and must not
   drive the display* — honoured: signals surface as observation, never as a score that drives UI. ✅
 - **Anti-gamification / density-not-mass:** no score, %, badge, streak, comparison; the surfaces are

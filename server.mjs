@@ -12,7 +12,7 @@ import { buildIndex, retrieve } from './lib/retrieval.mjs';
 import {
   loadMethodCore, buildSystemPrompt, buildTurnContext, validateOutput,
   loadCriticismCore, buildCriticismSystemPrompt, validateCriticismOutput,
-  CRITICISM_POINTERS, pickCriticismPointer, questionOpener,
+  CRITICISM_POINTERS, pickCriticismPointer, questionOpener, describeLocated,
 } from './lib/dialogue.mjs';
 import { readSensed } from './lib/sensed.mjs';
 import { qualify, toCanonSegments } from './lib/qualify.mjs';   // DETERMINISTIC, no-LLM qualification (locating)
@@ -754,13 +754,8 @@ app.post('/api/chat', requireUser, async (req, res) => {
 // no record at all to aggregate. Pool spend is still metered (turn counts + cost, no content). The
 // pasted text lives in req.body and is NEVER logged (invariant #8). Two stateless endpoints:
 // POST /open (paste → reading + first question) and POST /turn (client sends artefact + transcript → next question).
-const describeLocated = (seg) => {
-  const s = seg.sdc_stage, h = seg.judgement_held_by;
-  if (s === 'judgement' && (h === 'text' || h === 'shared')) return 'a consequential call the text appears to make for the reader';
-  if (s === 'narration' && h === 'text') return 'a call relayed as if it were already settled';
-  if (s === 'mixed') return 'describing and deciding in the same breath';
-  return 'a place where describing and deciding may blur';
-};
+// describeLocated now lives in lib/dialogue.mjs and is IMPORTED — see the note there. It was
+// duplicated in scripts/audit-criticism.mjs and the two drifted (11 Aug 2026).
 
 const sseHeaders = (res) => { res.setHeader('Content-Type', 'text/event-stream'); res.setHeader('Cache-Control', 'no-cache'); res.setHeader('Connection', 'keep-alive'); };
 const goalTermsOf = (g) => (String(g || '').toLowerCase().match(/[a-z0-9]+/g) || []).filter((t) => t.length > 2);

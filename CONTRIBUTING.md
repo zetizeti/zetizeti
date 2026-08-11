@@ -20,8 +20,10 @@ conversation before code (open an issue):
    licensed exception: the CC BY 4.0 Clean Language Principles, attributed).
 5. **No scores, grades, verdicts, aggregation, leaderboards, or user-modelling** — anywhere, for
    anything. Per-instance readings only.
-6. **The nudge layer sends a posture, never a diagnosis** — no learner-state ever routes into the
-   prompt, by any path.
+6. **The signal vector is not wired into prompt-building.** `decideNudge()` in `lib/nudge.mjs`
+   returns `{ posture, fired }`, and only the `posture` string is read by `buildTurnContext` in
+   `lib/dialogue.mjs`. No learner-state reaches the prompt because there is no path for it to take —
+   check the consumer, not the producer, and keep it that way.
 7. **Keys are never logged or persisted.** Any new code touching `req.headers`, request bodies, or a
    key variable is touching a security invariant — flag it in your PR description.
 8. **Claude models only**, via OpenRouter.

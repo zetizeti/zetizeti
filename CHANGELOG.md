@@ -21,6 +21,39 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.12.3] — 2026-08-11
+
+### Three invariants that claimed more than the code delivers
+
+From the withholding-mechanisms audit (items 5, 6, 14). No behaviour changes; all three are
+over-claims in prose, and the same shape each time — asserting *absence* or a *rule* where what exists
+is a *guard* or a *missing wire*.
+
+- **Invariant #3** was constitutive: *"the never-answer guard must hold."* It is regulative. The guard
+  reads a finite list of marks and refuses output carrying them; it does not certify that no answer was
+  given, and a leading question with no forbidden word passes. The buffer is also re-described as the
+  interval in which judgement becomes possible, not only as latency traded for enforcement.
+- **Invariant #7** was a division of labour — *"the nudge layer sends a posture, never a diagnosis"* —
+  and a rule about who does what can be violated. It now states the access fact: `decideNudge()`
+  returns `{ posture, fired }` and only `posture` is read by `buildTurnContext`. There is no wire.
+- **The residency section** claimed *"no code path capable of retaining a conversation on its own
+  enters the running service."* `lib/capture.mjs` is such a path and does ship. What stops it is
+  `isCaptureEnabled()`, requiring `ZETIZETI_CAPTURE_DIR` **and** `NODE_ENV !== 'production'`. The guard
+  is sound; the sentence was not.
+
+🔴 **The audit's own acceptance criterion — grep for the sentence you REMOVED, not the one you added —
+earned its keep.** Invariant #7's phrasing existed in four more places, including the **public**
+`CONTRIBUTING.md`. And the first pass wrote the residency correction directly above an uncorrected
+copy of the very sentence it was correcting.
+
+### Also
+
+`describeLocated` extracted to `lib/dialogue.mjs` and imported by both `server.mjs` and the audit
+harness. It had been two copies and they had already drifted — the harness's silently omitted the
+tokens, so a gloss-vs-enum comparison would have read `unspecified` for both modes and looked like a
+clean null. Same defect class as v0.12.2's turn cap: one of two copies. The harness now also passes
+the route's posture, which it never had; the gloss/enum comparison is settled in `flow-probe-log.md`.
+
 ## [0.12.2] — 2026-08-11
 
 ### The criticism surface refused every student, and had done since 29 July

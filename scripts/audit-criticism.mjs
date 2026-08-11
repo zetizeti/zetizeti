@@ -30,7 +30,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import { buildIndex, retrieve } from '../lib/retrieval.mjs';
-import { loadMethodCore, loadCriticismCore, buildCriticismSystemPrompt, validateCriticismOutput } from '../lib/dialogue.mjs';
+import { loadMethodCore, loadCriticismCore, buildCriticismSystemPrompt, validateCriticismOutput, describeLocated, CRITICISM_POINTERS } from '../lib/dialogue.mjs';
 import { qualify, toCanonSegments } from '../lib/qualify.mjs';
 import { readSensed } from '../lib/sensed.mjs';
 import { streamQuestion } from '../lib/llm.mjs';
@@ -51,14 +51,10 @@ const nEntries = buildIndex(corpus, join(APP, 'corpus', 'domain'));
 const methodCore = loadMethodCore(join(APP, 'corpus', 'method'));
 const criticismCore = methodCore + '\n\n---\n\n' + loadCriticismCore(join(APP, 'corpus', 'criticism'));
 
-// ── helpers copied VERBATIM from server.mjs so this mirrors the route, not an approximation ─────
-const describeLocated = (seg) => {
-  const s = seg.sdc_stage, h = seg.judgement_held_by;
-  if (s === 'judgement' && (h === 'text' || h === 'shared')) return 'a consequential call the text appears to make for the reader';
-  if (s === 'narration' && h === 'text') return 'a call relayed as if it were already settled';
-  if (s === 'mixed') return 'describing and deciding in the same breath';
-  return 'a place where describing and deciding may blur';
-};
+// ── helpers ─────────────────────────────────────────────────────────────────────────────────────
+// describeLocated is IMPORTED from lib/dialogue.mjs (11 Aug 2026). It used to be "copied VERBATIM"
+// here, and the copy drifted: it silently omitted the sdc_stage/judgement_held_by tokens, so an
+// enum-mode comparison would have read `unspecified` for both modes and looked like a clean null.
 const goalTermsOf = (g) => (String(g || '').toLowerCase().match(/[a-z0-9]+/g) || []).filter((t) => t.length > 2);
 
 // ── the sample battery — each stresses a different SDC stage; design-discipline relevant ────────
@@ -135,7 +131,15 @@ async function runCase(tc, i) {
   }
 
   // 3) buildCriticismSystemPrompt + streamQuestion — the SAME composition the route uses (create path)
-  const system = buildCriticismSystemPrompt(criticismCore, { artefact: tc.text, located, retrieved, goal: tc.goal });
+  // 🔴 POSTURE — the route ALWAYS passes one, and this harness passed none until 11 Aug 2026, which
+  // invalidated the 9 Aug gloss-vs-enum comparison. For a LOCATED turn the route does NOT rotate:
+  // server.mjs `if (forcedLocated && forcedLocated.text) { pointer = CRITICISM_POINTERS[0]; ... }`.
+  // pickCriticismPointer runs only when located === null. So the faithful posture here is the fixed
+  // `blur` aim — and note that that aim instructs "whose call is that word making", which is the very
+  // frame the 9 Aug run scored as "collapse". It was measuring collapse with the instruction that
+  // mandates the frame switched off.
+  const posture = located ? CRITICISM_POINTERS[0].aim : '';
+  const system = buildCriticismSystemPrompt(criticismCore, { artefact: tc.text, located, posture, retrieved, goal: tc.goal });
   const messages = [
     { role: 'user', content: located ? `Point me at this spot: "${located.text}"` : '(continue questioning the text)' },
   ];
