@@ -34,6 +34,12 @@ import { generateGuarded } from '../lib/guard.mjs';
 import { readAssociation, associationBlock, associatesPrompt, pickAssociate, widenBlock } from '../lib/assoc.mjs';
 import { streamQuestion } from '../lib/llm.mjs';
 
+
+// Dev traffic identifies itself to OpenRouter (11 Aug 2026). Without this every probe call
+// filed under 'zetizeti' and was indistinguishable from a cohort in the spend logs.
+// `||=` so an explicit ZETIZETI_APP_TITLE in the environment still wins.
+process.env.ZETIZETI_APP_TITLE ||= 'zetizeti-dev';
+
 const HERE = dirname(fileURLToPath(import.meta.url));
 const KEY = (process.env.OPENROUTER_API_KEY || '').trim();
 if (!KEY) { console.error('No OPENROUTER_API_KEY. Run: node --env-file=.env scripts/flow-probe.mjs'); process.exit(1); }
@@ -165,6 +171,11 @@ async function ask(model, system, messages, { maxTokens, temperature }) {
       const t = stripThink(await streamQuestion({
         system, messages, model, apiKey: KEY, temperature, maxTokens,
         reasoning: { enabled: false }, onToken: () => {},
+        // The play-acted student is billed separately from the stone, because it is roughly HALF the
+        // spend and is not the tool doing anything — it is the measuring instrument. On 28 Jul 2026
+        // the two were visible in the logs only as two token bands (small prompt/long reply = student,
+        // large prompt/short question = stone) and had to be told apart by eye.
+        appTitle: model === STUDENT_MODEL ? 'zetizeti-dev (student sim)' : 'zetizeti-dev',
       }));
       if (t) return t;
     } catch { /* retry */ }

@@ -35,6 +35,12 @@ import { qualify, toCanonSegments } from '../lib/qualify.mjs';
 import { readSensed } from '../lib/sensed.mjs';
 import { streamQuestion } from '../lib/llm.mjs';
 
+
+// Dev traffic identifies itself to OpenRouter (11 Aug 2026). Without this every probe call
+// filed under 'zetizeti' and was indistinguishable from a cohort in the spend logs.
+// `||=` so an explicit ZETIZETI_APP_TITLE in the environment still wins.
+process.env.ZETIZETI_APP_TITLE ||= 'zetizeti-dev';
+
 const APP = dirname(dirname(fileURLToPath(import.meta.url)));   // …/app
 const KEY = (process.env.OPENROUTER_API_KEY || '').trim();     // BYOK/pool key — used, never printed
 const MODEL = process.env.ZETIZETI_MODEL || 'anthropic/claude-haiku-4.5 (default)';

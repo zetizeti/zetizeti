@@ -21,6 +21,34 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.12.1] — 2026-08-11
+
+### Dev traffic now says it is dev
+
+Every call this project has ever made to OpenRouter — production turns and probe runs alike — carried
+`X-Title: zetizeti`. So the one surface anywhere that could tell development apart from real use could
+not, and nothing else could either: `flow-probe.mjs` discards the `onUsage` callback and writes no
+ledger row, so `pool_spend` has never seen a probe.
+
+The cost of that showed up on **28 July 2026**, when twenty-three probe runs spent roughly **$7 across
+~7,500 calls** and were indistinguishable from a student cohort in the spend logs. They could be
+separated only by noticing two token populations by eye — a small prompt with a long reply is the
+play-acted student, a large prompt with a short question is the stone.
+
+- `lib/llm.mjs` now sends `appTitle || ZETIZETI_APP_TITLE || 'zetizeti'`, read at **call** time rather
+  than at module load, so a script can set it after its imports have already been evaluated.
+  `streamQuestion` takes an explicit `appTitle` that outranks the environment.
+- The eight model-calling scripts set `ZETIZETI_APP_TITLE ||= 'zetizeti-dev'`.
+- `flow-probe.mjs` bills the play-acted student separately as `zetizeti-dev (student sim)`. It is
+  roughly half the spend and it is the measuring instrument, not the tool.
+
+**Production behaviour is unchanged and no new CapRover variable is needed** — unset still means
+`zetizeti`. 206/206 tests pass, and the header was proved live rather than asserted: one call at
+$0.0000035 filed under `zetizeti-dev`.
+
+⚠️ A new script that calls a model and omits the line is invisible again, and nothing fails. The
+convention is in `CLAUDE.md`; it is a convention, not a guard.
+
 ## [0.12.0] — 2026-08-10
 
 ### The AI Club studio strip moves to the header, and stops waiting for a wallet

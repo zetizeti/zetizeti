@@ -23,6 +23,12 @@ import { buildIndex, retrieve } from '../lib/retrieval.mjs';
 import { loadMethodCore, buildSystemPrompt, buildTurnContext, validateOutput } from '../lib/dialogue.mjs';
 import { streamQuestion } from '../lib/llm.mjs';
 
+
+// Dev traffic identifies itself to OpenRouter (11 Aug 2026). Without this every probe call
+// filed under 'zetizeti' and was indistinguishable from a cohort in the spend logs.
+// `||=` so an explicit ZETIZETI_APP_TITLE in the environment still wins.
+process.env.ZETIZETI_APP_TITLE ||= 'zetizeti-dev';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OR_KEY = (process.env.OPENROUTER_API_KEY || '').trim();
 const F_KEY = (process.env.FEATHERLESS_API_KEY || '').trim();

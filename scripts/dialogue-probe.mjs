@@ -26,6 +26,12 @@ import { streamQuestion } from '../lib/llm.mjs';
 import { embedNeural } from '../lib/embed.mjs';
 import { readFeltShifts, itemWords } from '../lib/feltshift.mjs';
 
+
+// Dev traffic identifies itself to OpenRouter (11 Aug 2026). Without this every probe call
+// filed under 'zetizeti' and was indistinguishable from a cohort in the spend logs.
+// `||=` so an explicit ZETIZETI_APP_TITLE in the environment still wins.
+process.env.ZETIZETI_APP_TITLE ||= 'zetizeti-dev';
+
 const HERE = dirname(fileURLToPath(import.meta.url));
 const APIKEY = (process.env.OPENROUTER_API_KEY || '').trim();
 if (!APIKEY) { console.error('No OPENROUTER_API_KEY. Run:  node --env-file=.env scripts/dialogue-probe.mjs'); process.exit(1); }
