@@ -269,11 +269,11 @@ async function keyStatus(apiKey) {
   return { limit: num(d.limit), remaining: num(d.limit_remaining) };
 }
 app.get('/api/usage', requireUser, async (req, res) => {
-  if (process.env.ZETIZETI_DEMO_USAGE) {
-    const rate = usdInr(), remUsd = 32.4, limUsd = 52.6, remainingInr = Math.round(remUsd * rate);
-    res.json({ ok: true, demo: true, remainingInr, totalInr: Math.round(limUsd * rate), fraction: remUsd / limUsd, rate: Math.round(rate), questions: Math.floor(remainingInr / (QUESTION_USD * rate)) });
-    return;
-  }
+  // 🔴 ZETIZETI_DEMO_USAGE REMOVED 11 August 2026. It made this endpoint return INVENTED figures —
+  // a hardcoded $32.40 of $52.60 — to any signed-in user whenever the variable was set. A flag that
+  // makes a live endpoint report fabricated numbers to a student is a never-mislead problem wearing a
+  // demo's clothes, and its only protection was that nobody had set it. Screenshots come from a real
+  // account or they do not come.
   if (tierOf(req.user.email) !== TIER.AI_CLUB) { res.json({ ok: false, reason: 'not-ai-club' }); return; }
   const r = await resolveAiClubKey(req.user.email);
   if (!r.ok) { res.json({ ok: false, reason: 'unresolved' }); return; }

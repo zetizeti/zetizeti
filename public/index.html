@@ -703,7 +703,9 @@
 <script>
 const $ = id => document.getElementById(id);
 // AI Club studio footer: the credit affordance range (questions the student's ₹5,000 key buys). Only renders
-// when /api/usage returns ok (AI Club cohort, or the ZETIZETI_DEMO_USAGE flag) — memorability users see nothing.
+// when /api/usage returns ok — AI Club cohort only; memorability users see nothing. (The
+// ZETIZETI_DEMO_USAGE flag this line used to name was removed on 11 Aug 2026: it made the endpoint
+// return invented figures. The meter now shows a real balance or it shows nothing.)
 function plus(n){ n=Number(n)||0; if(n>=500) return '500+'; if(n>=100) return (Math.floor(n/100)*100)+'+'; if(n>=10) return (Math.floor(n/10)*10)+'+'; return String(n); }
 // Build the header studio strip from /api/config's `studio`. A tool with no URL configured is
 // rendered as PLAIN TEXT, not a dead link — the same rule the footer used, kept: a link that goes

@@ -21,6 +21,39 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.12.4] — 2026-08-11
+
+### Two flags removed, not switched off
+
+**`ZETIZETI_LOCATED_MODE` and its enum branch are gone.** The gloss-vs-enum question was measured
+twice — 9 August without the route's posture, 11 August with it. Enum repeats the "whose call" frame
+about twenty points more often in *both* runs, and under faithful composition its advantages evaporate:
+brevity falls from 5.3 words to 1.9, and the multi-question win disappears entirely. Gloss wins, so the
+switch went rather than being left off. Tables in `docs/ops/flow-probe-log.md`.
+
+⚠️ What is *not* settled is a position rather than a measurement: the gloss **interprets** — a closed
+set of four strings, but composed in the layer that writes sentences. If that is ever ruled
+unacceptable, the answer is the third mode the log names, enum tokens plus a *non-interpretive* varying
+element, built deliberately. Not this flag, resurrected. `verification/located-mode.test.mjs` now
+guards the removal instead of the experiment: setting the retired variable must change nothing, no enum
+rendering may survive, and `dialogue.mjs` must not read the name at all — the last one is source-shape,
+because the behavioural test passes just as well if the flag is read and its result discarded.
+
+**`ZETIZETI_DEMO_USAGE` is gone.** It made `GET /api/usage` return **invented** figures — a hardcoded
+$32.40 of $52.60 — to any signed-in user whenever it was set. That endpoint is the AI Club credit
+meter. Added 10 July 2026 in `f7b77fd`, the same commit that built `lib/credit-engine.mjs`, which
+shipped inert: on that day there was no engine, no allowlist and no student with a key, so the meter
+had nothing real to draw and this drew something fake instead.
+
+It was never documented — not in the commit message, not in `.env.example` — and its justification
+expired silently. The allowlist was set on 10 August, putting 26 students on that path, and a scaffold
+for a meter with no data became a switch that would show real students invented balances. Its only
+protection was that nobody had set it. **A flag that makes a live endpoint report fabricated numbers to
+a student is a never-mislead problem wearing a demo's clothes.** Screenshots come from a real account
+or they do not come.
+
+Runtime env vars read: **31, down from 33.** No behaviour change in production, where neither was set.
+
 ## [0.12.3] — 2026-08-11
 
 ### Three invariants that claimed more than the code delivers

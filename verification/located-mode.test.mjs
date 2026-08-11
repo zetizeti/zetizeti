@@ -1,87 +1,69 @@
-// located-mode.test.mjs — 🧪 EXPERIMENT (branch experiment/located-enum, 9 August 2026).
+// located-mode.test.mjs — there is ONE rendering of the located spot, and no flag selecting between them.
 //
-// Covers the two renderings of the located spot in buildCriticismSystemPrompt:
+// HISTORY. From 9 August 2026 this file tested two renderings behind `ZETIZETI_LOCATED_MODE`:
+// `gloss` (the interpretive phrase from describeLocated) and `enum` (the two tokens plus the span, no
+// interpretation). The flag was merged and deployed on 10 August as inert code, never switched on.
 //
-//   'gloss' (default)  — passes describeLocated()'s interpretive phrase.
-//   'enum' (experiment) — passes the two tokens the phrase was derived from, and no interpretation.
+// SETTLED 11 August 2026. Measured twice — once without the route's posture, once with it. Enum repeats
+// the "whose call" frame about 20 points more often in both runs, and under faithful composition its
+// advantages evaporate: brevity falls from 5.3 words to 1.9 and the multi-question win disappears
+// entirely. Gloss won, the flag was removed rather than left switched off, and this file now guards the
+// removal instead of the experiment. Tables: `docs/ops/flow-probe-log.md`, 9 and 11 August.
 //
-// What is actually asserted, and why it is worth asserting: that the enum rendering carries NO
-// interpretive language across into the layer that writes sentences. A test that only checked the
-// tokens were present would pass on a prompt that also still glossed them, which is the failure
-// this experiment exists to avoid — so the negative assertions are the load-bearing ones.
-//
-// The default path is asserted UNCHANGED, because an experiment that quietly alters the shipped
-// behaviour is not an experiment.
+// ⚠️ What these tests do NOT assert is that the gloss is *right*. It interprets — a closed set of four
+// strings, but composed in the layer that writes sentences — and whether that is acceptable is a
+// position, not a measurement. If it is ever ruled unacceptable, the answer is the third mode the log
+// names (enum tokens plus a non-interpretive varying element), built deliberately. **Not this flag,
+// resurrected.** These tests exist so that resurrection has to be a decision rather than a diff.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildCriticismSystemPrompt } from '../lib/dialogue.mjs';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+import { buildCriticismSystemPrompt, describeLocated } from '../lib/dialogue.mjs';
 
+const LIB = join(dirname(fileURLToPath(import.meta.url)), '..', 'lib', 'dialogue.mjs');
 const SPAN = 'The onboarding flow is the best part of the product';
-const LOCATED = { text: SPAN, why: 'a consequential call the text appears to make for the reader', stage: 'judgement', heldBy: 'text' };
-const CORE = '(method core stub)';
-
-// The interpretive phrases describeLocated() can emit — the exact strings that must not cross in
-// enum mode. Kept as a list rather than a regex so a new phrase added to describeLocated() and not
-// added here shows up as an untested case rather than as a silent pass.
-const GLOSSES = [
-  'a consequential call the text appears to make for the reader',
-  'a call relayed as if it were already settled',
-  'describing and deciding in the same breath',
-  'a place where describing and deciding may blur',
-];
-
-const withMode = (mode, fn) => {
+const SEG = { text: SPAN, sdc_stage: 'mixed', judgement_held_by: 'text' };
+const build = (env) => {
   const prev = process.env.ZETIZETI_LOCATED_MODE;
-  if (mode === null) delete process.env.ZETIZETI_LOCATED_MODE;
-  else process.env.ZETIZETI_LOCATED_MODE = mode;
-  try { return fn(); } finally {
-    if (prev === undefined) delete process.env.ZETIZETI_LOCATED_MODE;
-    else process.env.ZETIZETI_LOCATED_MODE = prev;
+  if (env === undefined) delete process.env.ZETIZETI_LOCATED_MODE;
+  else process.env.ZETIZETI_LOCATED_MODE = env;
+  try {
+    return buildCriticismSystemPrompt('CORE', {
+      artefact: SPAN, located: { text: SPAN, why: describeLocated(SEG), stage: SEG.sdc_stage, heldBy: SEG.judgement_held_by },
+      posture: '', retrieved: [], goal: '',
+    });
+  } finally {
+    if (prev === undefined) delete process.env.ZETIZETI_LOCATED_MODE; else process.env.ZETIZETI_LOCATED_MODE = prev;
   }
 };
 
-test('default (no env var) is the gloss rendering — shipped behaviour is untouched', () => {
-  const p = withMode(null, () => buildCriticismSystemPrompt(CORE, { artefact: SPAN, located: LOCATED }));
-  assert.ok(p.includes('The locator marks this as: a consequential call'), 'gloss phrase missing from the default prompt');
-  assert.ok(p.includes(SPAN), 'the span must be present in both modes');
+test('the located spot is rendered with the gloss', () => {
+  const p = build(undefined);
+  assert.match(p, /THE SPOT TO QUESTION/);
+  assert.ok(p.includes(SPAN), 'the span itself must reach the prompt');
+  assert.match(p, /The locator marks this as: describing and deciding in the same breath/);
 });
 
-test("explicit 'gloss' matches the default exactly", () => {
-  const a = withMode(null, () => buildCriticismSystemPrompt(CORE, { artefact: SPAN, located: LOCATED }));
-  const b = withMode('gloss', () => buildCriticismSystemPrompt(CORE, { artefact: SPAN, located: LOCATED }));
-  assert.equal(a, b);
+test('ZETIZETI_LOCATED_MODE no longer selects anything — setting it changes NOTHING', () => {
+  // The load-bearing assertion. A flag left half-removed — read somewhere, ignored elsewhere — is worse
+  // than either keeping or removing it, because it looks like a control and is not one.
+  assert.equal(build('enum'), build(undefined), 'setting the retired flag must not alter the prompt');
+  assert.equal(build('anything-else'), build(undefined));
 });
 
-test("'enum' carries the case tokens and the span", () => {
-  const p = withMode('enum', () => buildCriticismSystemPrompt(CORE, { artefact: SPAN, located: LOCATED }));
-  assert.match(p, /case: judgement/);
-  assert.match(p, /the call sits with: text/);
-  assert.ok(p.includes(SPAN), 'the span must survive — Clean Language needs the text\'s own words');
+test('no enum rendering survives anywhere in the prompt path', () => {
+  const p = build('enum');
+  assert.doesNotMatch(p, /The locator reports only which case fired/, 'the enum block must be gone');
+  assert.doesNotMatch(p, /the call sits with:/, 'the enum token lines must be gone');
 });
 
-test("'enum' carries NO interpretive gloss — the load-bearing assertion", () => {
-  const p = withMode('enum', () => buildCriticismSystemPrompt(CORE, { artefact: SPAN, located: LOCATED }));
-  for (const g of GLOSSES) assert.ok(!p.includes(g), `enum mode leaked a describeLocated gloss: "${g}"`);
-  assert.ok(!p.includes('The locator marks this as'), 'enum mode still frames the locator as having made a reading');
-});
-
-test("'enum' does not crash when the tokens are absent, and says so rather than inventing", () => {
-  const p = withMode('enum', () => buildCriticismSystemPrompt(CORE, { artefact: SPAN, located: { text: SPAN } }));
-  assert.match(p, /case: unspecified/);
-  assert.match(p, /the call sits with: unspecified/);
-});
-
-test('no located spot → no spot block, in either mode', () => {
-  for (const m of [null, 'gloss', 'enum']) {
-    const p = withMode(m, () => buildCriticismSystemPrompt(CORE, { artefact: SPAN, located: null }));
-    assert.ok(!p.includes('THE SPOT TO QUESTION'), `mode ${m} emitted a spot block with no located spot`);
-  }
-});
-
-test('the never-judge instruction survives in both modes — it is not part of the experiment', () => {
-  for (const m of ['gloss', 'enum']) {
-    const p = withMode(m, () => buildCriticismSystemPrompt(CORE, { artefact: SPAN, located: LOCATED }));
-    assert.ok(p.includes('never tell them which it is'), `mode ${m} dropped the hand-back instruction`);
-  }
+test('the flag is not read by lib/dialogue.mjs at all', () => {
+  // Source-shape, deliberately: the behavioural test above passes just as well if the flag is read and
+  // its result discarded. This one fails if the read comes back.
+  const src = readFileSync(LIB, 'utf8');
+  const reads = src.split('\n').filter((l) => /process\.env\.ZETIZETI_LOCATED_MODE/.test(l));
+  assert.deepEqual(reads, [], 'ZETIZETI_LOCATED_MODE must not be read; the flag is retired, not disabled');
 });
