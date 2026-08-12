@@ -640,6 +640,7 @@
   <section class="view" id="view-criticism-chat">
     <div class="wrap">
       <span class="backlink" id="critChatBack">‹ back</span>
+      <span class="dl-transcript" id="dlCritTranscript" hidden><span class="dl-lead">↓ save your critique</span> <a id="critDlMd">.md</a> <span class="dl-sep">·</span> <a id="critDlPdf">.pdf</a></span>
       <div class="edge" id="critArtefact" hidden>
         <div class="edge-label">the text you're questioning</div>
         <div class="edge-text crit-specimen" id="critArtefactText"></div>
@@ -955,6 +956,7 @@ function openNewCritique(){
   showView('criticism-chat');
   $('critChatStream').innerHTML='';
   $('critArtefact').hidden = true; $('critArtefactText').textContent='';
+  showCritDl(false);                             // nothing pasted yet — nothing to save
   const node=critAddStone('Paste an idea in the box below — something you concluded, or a claim from anywhere — and I’ll question the text, not you: pointing to where it quietly decided something. You judge.');
   const inp=$('critChatInput'); inp.value=''; inp.placeholder='Paste an idea, claim, or answer you want to push back on…';
   setTimeout(()=>inp.focus(), 50);
@@ -966,6 +968,7 @@ function sendCritTurn(){
     $('critArtefactText').textContent=t; $('critArtefact').hidden=false;
     inp.placeholder='Respond, or sit with the question…';
     critArtefact=t; critHistory=[];
+    showCritDl(true);                            // from the paste onward there is something to carry away
     streamCriticismOpen(t);
   } else {                                        // a response in the ongoing critique
     critAddYou(t); streamCriticismTurn({ message:t });   // streamCriticismTurn records it in critHistory
@@ -1102,6 +1105,7 @@ function runCritDemo(){
   critArtefact=null; critHistory=[]; critReading=CRIT_DEMO_READING;
   showView('criticism-chat');
   $('critArtefactText').textContent = CRIT_DEMO_TEXT; $('critArtefact').hidden=false;
+  showCritDl(false);              // the demo is canned — none of it is the viewer's, so there is nothing of theirs to save
   $('critChatInput').value=''; $('critChatInput').placeholder='Paste an idea, claim, or answer you want to push back on…';
   const stream=$('critChatStream'); stream.innerHTML='';
   stream.appendChild(el(`<div class="divider">an example — canned, no model called, nothing saved</div>`));
@@ -1178,11 +1182,18 @@ function buildTranscriptMd(){
     +body;
 }
 function downloadFile(name, text, mime){ const b=new Blob([text],{type:mime+';charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1500); }
-function downloadTranscriptPdf(){
-  const J=window.jspdf&&window.jspdf.jsPDF; if(!J){ alert('PDF library not loaded — try the .md instead.'); return; }
+// One page-layout writer for BOTH surfaces' PDFs — same margins, same type scale, so an enquiry and a
+// critique come out of the same document family. Same-job components share grammar (3 Jun correction c).
+function pdfWriter(){
+  const J=window.jspdf&&window.jspdf.jsPDF; if(!J) return null;
   const doc=new J({unit:'pt', format:'a4'}); const M=54, W=doc.internal.pageSize.getWidth()-M*2, page=doc.internal.pageSize.getHeight(); let y=M;
   const nl=(h)=>{ if(y+h>page-M){ doc.addPage(); y=M; } };
   const block=(text, font, size, color, lh, gap)=>{ doc.setFont('times',font); doc.setFontSize(size); doc.setTextColor(color[0],color[1],color[2]); for(const ln of doc.splitTextToSize(String(text).replace(/\n+/g,' '), W)){ nl(lh); doc.text(ln,M,y); y+=lh; } y+=gap; };
+  return { doc, block };
+}
+function downloadTranscriptPdf(){
+  const w=pdfWriter(); if(!w){ alert('PDF library not loaded — try the .md instead.'); return; }
+  const { doc, block }=w;
   block('Idea transcript — '+transcriptTopic(), 'bold', 18, [20,20,40], 22, 6);
   block("An AI Club idea transcript from zetizeti. Your responses are the substance; the questions are context.", 'italic', 10, [120,120,130], 14, 12);
   for(const h of history){
@@ -1192,6 +1203,68 @@ function downloadTranscriptPdf(){
   doc.save(transcriptName('pdf'));
 }
 (function wireTranscriptDl(){ const md=$('dlMd'), pdf=$('dlPdf'); if(md) md.onclick=()=>downloadFile(transcriptName('md'), buildTranscriptMd(), 'text/markdown'); if(pdf) pdf.onclick=downloadTranscriptPdf; })();
+
+// ---- the SAME download on the CRITICISM surface (12 Aug 2026) ------------------------------------
+// Asked for as parity: "add download option like enquiry to criticism mode too". The argument that put
+// the chip on the enquiry view holds here unchanged and for the same reason — a critique is stateless
+// too, so the tab closing is the end of it, and this is the only way a student's work survives.
+//
+// WHAT IT CARRIES: the text under question, the stone's questions, and the student's own responses.
+// WHAT IT DOES NOT: the sensed reading. That is this surface's CURTAIN — `attachCritReading` builds it
+// as `.curtain` behind a toggle — and the enquiry transcript has never carried its curtain either (no
+// retrieved tensions, no citations, no sources). Following that precedent also keeps the about-page
+// claim literally true: a reading is a self-frame and never a benchmark, and three ratios written into
+// a file that leaves the tab are a portable number that can be set beside somebody else's.
+//
+// buildCritTranscriptMd takes its material as ARGUMENTS rather than reading the globals, so the test
+// can lift the real function out of this page and run it — the enquiry side has to reproduce its own
+// format by hand in the test, which is a drift waiting to happen.
+// The enquiry's topic is a goal the student wrote, usually short. A critique's is a PASTED PARAGRAPH,
+// so a blind slice truncates mid-word every single time ("…prefer a minimal int") — the enquiry's
+// exception is this surface's rule. Cut on the first sentence, and otherwise on a word boundary.
+function critTranscriptTopic(artefact){
+  const a=String(artefact||'').trim().replace(/\s+/g,' ');
+  if(!a) return 'critique';
+  if(a.length<=110) return a;
+  const stop=a.slice(0,110).match(/^[\s\S]*?[.!?](?=\s)/);          // a whole first sentence, if there is one
+  if(stop && stop[0].length>28) return stop[0];
+  return a.slice(0,110).replace(/\s+\S*$/,'')+'…';                   // else the last whole word
+}
+function critTranscriptName(ext){
+  const slug=critTranscriptTopic(critArtefact).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  const cut=slug.length>48 ? slug.slice(0,48).replace(/-[^-]*$/,'') : slug;   // never end on half a word
+  return 'critique-transcript-'+(cut||'critique')+'.'+ext;
+}
+function buildCritTranscriptMd(artefact, turns){
+  const topic=critTranscriptTopic(artefact);
+  const mine=(turns||[]).filter(h=>h.role==='you').length;
+  let body='';
+  for(const h of (turns||[])){ if(h.role==='stone') body+='**Q.** '+String(h.content).replace(/\n+/g,' ')+'\n\n'; else body+=String(h.content)+'\n\n'; }
+  return '---\nsource: zetizeti\ntype: critique-transcript\ntopic: '+topic+'\ndate: '+new Date().toISOString()+'\nturns: '+mine+'\n---\n\n'
+    +'# Critique transcript — '+topic+'\n\n'
+    +'_A critique from zetizeti. The stone questioned the text below, never you; your own responses are the substance. Nothing here was scored, ranked, or compared against anything._\n\n'
+    +'## the text under question\n\n'
+    +'> '+String(artefact||'').trim().replace(/\n+/g,'\n> ')+'\n\n'
+    +'## the questioning\n\n'
+    +body;
+}
+function downloadCritTranscriptPdf(){
+  const w=pdfWriter(); if(!w){ alert('PDF library not loaded — try the .md instead.'); return; }
+  const { doc, block }=w;
+  block('Critique transcript — '+critTranscriptTopic(critArtefact), 'bold', 18, [20,20,40], 22, 6);
+  block('A critique from zetizeti. The stone questioned the text below, never you; your responses are the substance. Nothing was scored, ranked, or compared.', 'italic', 10, [120,120,130], 14, 12);
+  block('the text under question', 'bold', 9.5, [150,120,40], 13, 4);
+  block(critArtefact||'', 'italic', 11, [70,70,85], 15, 14);
+  for(const h of critHistory){
+    if(h.role==='stone') block('Q.  '+h.content, 'italic', 10.5, [150,120,40], 15, 5);   // question: light context
+    else block(h.content, 'normal', 12.5, [25,25,35], 17, 13);                            // response: the substance
+  }
+  doc.save(critTranscriptName('pdf'));
+}
+function showCritDl(on){ const dl=$('dlCritTranscript'); if(dl) dl.hidden=!on; }
+(function wireCritTranscriptDl(){ const md=$('critDlMd'), pdf=$('critDlPdf');
+  if(md) md.onclick=()=>downloadFile(critTranscriptName('md'), buildCritTranscriptMd(critArtefact, critHistory), 'text/markdown');
+  if(pdf) pdf.onclick=downloadCritTranscriptPdf; })();
 
 // ---- CONTINUE FROM A SAVED TRANSCRIPT (30 Jul 2026) --------------------------------------------
 // Asked for by a student who had finished a ten-turn enquiry, saved it, and wanted to carry on:
@@ -1208,6 +1281,14 @@ function parseTranscriptMd(text){
   const src=String(text).replace(/\r\n/g,'\n');
   const fm=src.match(/^---\n([\s\S]*?)\n---\n/);
   if(!fm || !/^source:\s*zetizeti\s*$/m.test(fm[1])) return {error:'That does not look like a zetizeti transcript — pick the .md file you saved from here.'};
+  // A saved CRITIQUE is also `source: zetizeti` and would otherwise parse straight through here: the
+  // text under question would become the student's edge, and questions asked about somebody else's
+  // text would replay as this student's own enquiry. Nothing would error. So the type is checked
+  // rather than assumed — the gap the critique download opened, converted into a refusal.
+  const kind=(fm[1].match(/^type:\s*(\S+)\s*$/m)||[])[1];
+  if(kind!=='idea-transcript') return {error: kind==='critique-transcript'
+    ? 'That is a saved critique, not an enquiry. A critique does not carry on — start a new one and paste the text again.'
+    : 'That does not look like a zetizeti idea transcript — pick the .md file you saved from an enquiry.'};
   const body=src.slice(fm[0].length);
   const turns=[];
   for(let para of body.split(/\n{2,}/)){

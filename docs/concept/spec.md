@@ -20,8 +20,11 @@ origin record but the project has moved past it. Current state:
   **All 34 Consensus-backed** against peer-reviewed literature with original-paper citations
   (`app/verification-consensus-backing.md`). No in-copyright text bundled — the licensing
   blocker is resolved by *synthetic-verified* corpus + bring-your-own-corpus engine.
-- **Model:** `claude-haiku-4-5` (the corpus carries the substance; the model only composes
-  a question in the learner's words).
+- **Model:** `google/gemini-3.1-flash-lite` via OpenRouter, set by `ZETIZETI_MODEL` (the corpus
+  carries the substance; the model only composes a question in the learner's words — which is
+  why a cheap model is the right one). *Corrected 12 August 2026: this said `claude-haiku-4-5`,
+  true when written in May and false since the vendor-neutral cost-and-fit rule replaced the
+  Claude-only convention on 22 June 2026.*
 - **Engine contract:** the SSE contract as implemented (`server.mjs` + `public/index.html`) — goal/edge flow, code-tracked honing,
   the never-answer guard (`validateOutput`), and the SSE behind-the-curtain protocol.
 - **Login flow (built 23 May 2026):** Google OAuth (`lib/auth.mjs`) + dev-only guest fallback;
@@ -117,7 +120,7 @@ The release demo needs a legally-clean default corpus so it works out of the box
 
 | Layer | Choice | Why |
 |-------|--------|-----|
-| Model | Anthropic SDK, `claude-...` (Claude only) | — |
+| Model | ~~Anthropic SDK, `claude-...` (Claude only)~~ — **superseded, see *Model* under Built reality above** | the feasibility-era choice; the built engine calls OpenRouter and the vendor lock was retired 22 June 2026 |
 | Retrieval | **SQLite FTS5** (or ripgrep subprocess) | **Exact-word matching is non-negotiable** — Clean Language uses the student's *literal* words. Embeddings are wrong here and must never "improve" this to semantic search. FTS5 is edge-deployable ("Do More With Less"). |
 | Sessions | SQLite / cookie (matches Turnstile + anonymous-cookie pattern on existing demos) | — |
 | Frontend | zetizeti's own painterly identity (`app/brand.md`), Behind-the-Curtain showing retrieved passages | architecture-visibility rule |

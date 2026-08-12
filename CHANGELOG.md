@@ -21,6 +21,42 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.13.0] — 2026-08-12
+
+### A critique can be saved, the same way an enquiry can
+
+The enquiry view has carried a download since the surface was stateless; the criticism view never did,
+though the argument for it is identical. Both surfaces store nothing, so closing the tab is the end of
+the work either way. The criticism chat now carries the same chip — `↓ save your critique · .md · .pdf`
+— revealed the moment a text is pasted, and hidden in the canned demo, where none of it is the viewer's.
+
+**What the file carries:** the text under question, the stone's questions, and the student's own
+responses. **What it does not carry: the sensed reading.** That is this surface's *curtain*, and the
+enquiry transcript has never carried its curtain either — no retrieved tensions, no citations. Following
+that precedent also keeps a claim on the about page literally true: a reading is a self-frame and never a
+benchmark, and three ratios written into a file that leaves the tab are a portable number that can be set
+beside somebody else's.
+
+### The gap the new file opened, closed in the same change
+
+Both files declare `source: zetizeti`, so a saved critique would have parsed straight through the
+enquiry pick-up: the questioned text becoming the student's own edge, and questions asked about somebody
+else's text replaying as their enquiry. Nothing would have errored. `parseTranscriptMd` now requires
+`type: idea-transcript` and refuses a critique by name. Every transcript ever written by the download
+carries that line, including the real one in `docs/ops/fixtures/`, so nothing a student holds is orphaned.
+
+### Also
+
+- **A pasted paragraph is not a goal.** The enquiry topic is a line the student wrote and slicing it at
+  120 characters is usually harmless; a critique's topic is a pasted paragraph, so the first render cut
+  mid-word ("…prefer a minimal int"). The topic now takes a whole first sentence where there is one, and
+  otherwise elides on a word boundary; the filename slug does the same.
+- **One PDF writer for both surfaces** (`pdfWriter`), so an enquiry and a critique print as the same
+  document family rather than as two near-copies of the same layout code.
+- Seven tests, lifting the real builder out of `public/index.html` rather than reproducing its format —
+  including one asserting that no ratio, no reading and no located-blur vocabulary reaches the file. 212
+  assertions pass.
+
 ## [0.12.4] — 2026-08-11
 
 ### Two flags removed, not switched off
