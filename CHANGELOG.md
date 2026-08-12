@@ -21,6 +21,25 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.14.1] — 2026-08-12
+
+### The concept-only control, where it can actually be found
+
+Prayas asked "where is concept switch?" while looking straight at the page it was on. That is the whole
+bug report and it is a good one: the control existed, worked, and shipped where nobody would find it.
+
+It had been the **last item in the composer's status line** — 10.5px, faint grey, below the composer,
+sitting after "grounded in design · the question is yours to answer". Everything beside it is passive
+caption text, so it inherited that reading. A hollow 9px square at the end of a grey sentence is not an
+affordance; it is punctuation.
+
+It now sits in the **top row beside the save-transcript chip**, as a bordered chip with the same grammar
+— hard 0-radius edge, hairline border, machinery type — but turquoise rather than gold, because the save
+chip is an **action** and this is a **state**. And it names its state rather than leaving it to be
+inferred from whether a box is filled: `asking about EVERYTHING` / `asking about CONCEPT ONLY`.
+
+No behaviour changed. The filter, the guard and the flag are exactly as shipped in 0.14.0.
+
 ## [0.14.0] — 2026-08-12
 
 ### A switch that asks the stone for the concept, not the making
