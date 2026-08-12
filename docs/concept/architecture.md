@@ -140,6 +140,13 @@ So the architecture is a clean hybrid the original agent never had: **Part A beh
 - `unicode61` tokeniser; conservative — exact tokens and quoted-phrase `MATCH`; `snippet()` for cited excerpts. Avoid stemming/synonyms so the index mirrors student vocabulary.
 - WAL mode: many readers, occasional batch re-index when the synthetic corpus is regenerated. Comfortable on a small VPS.
 - Embeddings are the documented fallback only if recall proves thin; not v1. ripgrep is dev/debug only, never the request path.
+- **A second filter dimension, added v0.14.0 (12 August 2026): `register`.** Alongside the optional
+  discipline filter, `retrieve()` takes `focus`; with `focus:'concept'` it excludes entries whose
+  `**register:**` field is `making`. This is still exact-word FTS5 — the filter is a predicate on a
+  column, never a semantic judgement at query time, and invariant #1 is untouched. ⚠️ The field is
+  **absent** on most entries and absent means concept-side, i.e. the permissive default, so
+  `verification/register-lint.test.mjs` fails when an entry's vocabulary reads as production and its
+  register is left undecided.
 
 ### 5.3 Dialogue engine
 > **🔵 SUPERSEDED IN PART (29 July 2026, v0.11.1).** Two claims below are historical: the engine runs on

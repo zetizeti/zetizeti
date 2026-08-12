@@ -213,6 +213,7 @@ Adams and colleagues showed experimentally that people systematically default to
 
 ## entry: automate-or-by-hand
 **discipline:** slow-design
+**register:** making
 **vocabulary:** automate, generate, ai, auto, one-click, script, let the tool, no manual, do it for me, batch, hands-off, effortless
 **felt as:** just automate it; let the AI generate it; one click and it's done; script the whole thing; the tool can do it for me; no manual work; make it hands-off; why do it by hand.
 **the_tension:** When a task is tedious, automating it looks like obvious progress — the machine does it faster and you move on. But some of what feels like drudgery is also where skill and understanding are built, and a capability you stop exercising is one you slowly lose. Is the work you're about to automate pure friction, or is it where the knowing actually happens — and for whom?

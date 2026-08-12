@@ -21,6 +21,71 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.14.0] — 2026-08-12
+
+### A switch that asks the stone for the concept, not the making
+
+Both surfaces now carry a `concept only` switch in the composer. When it is on, the stone questions the
+idea — what the thing is for, what it means, who it is for, what it assumes — and does not ask how it
+would be made, produced, repaired, or what it would cost to produce.
+
+**The line is narrow, and that is a decision rather than an oversight.** Making means fabrication,
+tooling, material afterlife, repair, durability, cost-to-produce. Form, medium, styling and
+truth-to-materials stay askable, because those are questions about what the thing *is*.
+
+**It is enforced, not requested.** Two halves, because either alone is a control that does not control:
+
+- **Retrieval** drops the 22 corpus entries marked `**register:** making`, so the material is not in the
+  pool the question is composed from. A vocabulary heuristic cannot draw this line — the mark is a
+  judgement written in the corpus where it can be read and corrected.
+- **The guard** refuses a question that lands on production anyway and regenerates it once, exactly like
+  the never-answer guard. A prompt line states the constraint as well, but this project has twice
+  measured that a direction in the prompt does not displace the move the model was going to make.
+
+**Measured over ten-round conversations against the real endpoints, two student types.** For a student
+preoccupied with production, seven of ten questions would be production questions without the switch,
+and **zero** reach them with it on; making tensions went from 7–10 turns out of 10 to **0 of 10**. For a
+terse student on a project with no fabrication in it, the switch is invisible: same retrieval depth
+(3.0 tensions a turn either way), no empty pools, no spurious refusals.
+
+**Three faults the conversations found that no unit test could.** The criticism surface was wholly
+broken — `focus` was read in the handlers but used inside `askCriticismQuestion`, a different scope, so
+every turn died with `focus is not defined` while all fifteen unit tests passed. Widening the making
+vocabulary made the refusal rate *worse*, because the breaches were in the **warmth preamble**, which
+echoes the learner's own words as Clean Language requires; the check now reads the question, not the
+preamble. And the abstract vocabulary of production is not what a stone actually uses — it asked about
+tenon sizes, plywood dimensioned to standard sheet sizes, and hex keys, so the list now reaches the
+fabrication particulars.
+
+### A DIY / hacking / incremental lens — nine entries
+
+A new always-on lens, `diy-hacking`, aimed at the assumption that a design is authored by its designer,
+arrives finished, and is used rather than altered. Nine tensions, held two-sided: modding as unpaid
+labour against modding as unalienated work (Kücklich; Postigo) · repair as the normal condition against
+the rebuild some things need (Jackson) · making against caring (Chachra; Franklin) · the convivial tool
+against legitimate expertise (Illich) · half a good house against what the unbounded increment did to it
+(Aravena/Elemental; O'Brien et al. 2020) · open source as survivability against the unpaid maintainer
+(Eghbal) · the user who already solved it against the limits of lead-user theory (von Hippel; Trott et
+al.) · curiosity above permission against whose system it is (Levy) · and Linus's Law against the
+evidence, where files touched by nine or more developers were roughly sixteen times more likely to carry
+a vulnerability (Raymond; Meneely & Williams; Schryen).
+
+Every citation was verified at source before the entry was drafted — Exa for the positions, Consensus
+for the empirical literature — never from model memory. **All nine carry `provenance: pending`** and stay
+so until the three-pass and Prayas's Gate-4 sign-off. Corpus is now **274 entries**. None of the nine is
+marked `making`: the interesting tensions in this territory are about authorship, labour and power over
+tools rather than fabrication, which is why they survive the concept-only focus.
+
+**Nine of a requested thirty.** Verification sets the pace, not breadth (invariant #0). The remaining 21
+have candidate anchors named and unverified in `docs/corpus-build/corpus-build-tracker.md`.
+
+### A lint so the filter cannot rot
+
+An entry with no `**register:**` line defaults to the concept side, so the next production tension
+anyone writes would leak through the filter silently — the same shape as the legacy-provenance default
+that told students "framing verified" for entries nobody had read. `verification/register-lint.test.mjs`
+fails when an entry's own vocabulary reads as production and its register is left undecided. 240 tests.
+
 ## [0.13.0] — 2026-08-12
 
 ### A critique can be saved, the same way an enquiry can

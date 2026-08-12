@@ -427,6 +427,18 @@
   .dl-transcript a{color:var(--goldtext); cursor:pointer; text-decoration:none; border-bottom:1px solid rgba(240,179,36,.55); padding-bottom:1px}
   .dl-transcript a:hover{color:var(--gold-bright); border-bottom-color:var(--gold-bright)}
   .backlink:hover{color:var(--gold-bright)}
+  /* the concept-only focus — a CONTROL, so it is turquoise and lives with the machinery in the hint
+     row, where the gold save-chip is an ACTION and lives with the back link. Hard square, never a
+     rounded switch: the pill toggle is the single most off-brand object a UI can carry. The mark fills
+     rather than slides, because the state is on or it is not. */
+  .focus-toggle{display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:10.5px;
+    letter-spacing:.12em; text-transform:uppercase; color:var(--faint); background:none; border:none;
+    padding:0; cursor:pointer; transition:color .18s}
+  .focus-toggle:hover{color:var(--turq)}
+  .focus-toggle .sw{width:9px; height:9px; flex:none; border:1px solid currentColor; background:transparent; transition:background .18s, box-shadow .18s}
+  .focus-toggle[aria-pressed="true"]{color:var(--turq)}
+  .focus-toggle[aria-pressed="true"] .sw{background:var(--turq); box-shadow:0 0 9px rgba(24,192,192,.75)}
+  .hint .focus-sep{color:var(--faint); padding:0 10px}
 
   @keyframes rise{from{opacity:0; transform:translateY(13px)} to{opacity:1; transform:none}}
   @media(max-width:640px){ .mark h1{font-size:32px} .turn.stone .body{font-size:20px} .edge-text{font-size:17px} .topbar{padding:12px 16px} .topbar nav{gap:14px} }
@@ -544,7 +556,7 @@
           <textarea id="input" rows="1" placeholder="Name what you're trying to do…"></textarea>
           <button class="send" id="send" title="Send">→</button>
         </div>
-        <div class="hint" id="hint">grounded in <b>design</b> · name the edge, then it sharpens</div>
+        <div class="hint"><span id="hint">grounded in <b>design</b> · name the edge, then it sharpens</span><span class="focus-sep">·</span><button class="focus-toggle" id="focusToggle" aria-pressed="false" title="Ask about the idea only — not how it would be made, produced, repaired or what it would cost to make."><span class="sw" aria-hidden="true"></span>concept only</button></div>
       </div>
     </div>
   </section>
@@ -653,7 +665,7 @@
           <textarea id="critChatInput" rows="1" placeholder="Paste an idea, claim, or answer you want to stress-test…"></textarea>
           <button class="send" id="critChatSend" title="Send">→</button>
         </div>
-        <div class="hint">nothing saved · <b>never scored or compared</b></div>
+        <div class="hint">nothing saved · <b>never scored or compared</b><span class="focus-sep">·</span><button class="focus-toggle" id="critFocusToggle" aria-pressed="false" title="Question the idea only — not how the thing would be made, produced, repaired or what it would cost to make."><span class="sw" aria-hidden="true"></span>concept only</button></div>
       </div>
     </div>
   </section>
@@ -940,6 +952,23 @@ $('aboutBack').addEventListener('click', ()=>go('/'));
 // (paste → reading + first question) and POST /api/criticism/turn (artefact + transcript → next question).
 // The chat reuses the conversation view's .turn/.composer/.edge CSS; no p5 viz.
 let critDiscipline='all', critArtefact=null, critHistory=[], critReading=null;
+
+// ───────── the CONCEPT-ONLY focus (12 Aug 2026) ─────────
+// "a switch to ask the stone to focus only on concept not making." Each surface holds its own state:
+// they are separate conversations and a student stress-testing a found text is not necessarily in the
+// same frame as one developing their own idea. Nothing is persisted — like everything else here, it
+// lives for as long as the tab does.
+//
+// 🔴 The client is NOT where this is enforced. It sends a flag; the server drops making-marked tensions
+// from retrieval and the guard withholds a question that lands on production anyway. A toggle that only
+// asked the model nicely would be the same shape as a guard that only reports.
+let focus=null, critFocus=null;
+function wireFocus(id, get, set){
+  const b=document.getElementById(id); if(!b) return;
+  b.addEventListener('click', ()=>{ set(get() ? null : 'concept'); b.setAttribute('aria-pressed', get() ? 'true':'false'); });
+}
+wireFocus('focusToggle',     ()=>focus,     (v)=>{ focus=v; });
+wireFocus('critFocusToggle', ()=>critFocus, (v)=>{ critFocus=v; });
 $('navCrit').addEventListener('click', ()=>go('/critique'));
 $('critBack').addEventListener('click', ()=>go('/'));
 $('critChatBack').addEventListener('click', ()=>go('/'));
@@ -1072,7 +1101,7 @@ async function critStream(url, payload, node, onReading, retry){
 
 function streamCriticismOpen(text){
   const node=critAddStone('');
-  critStream('/api/criticism/open', { text, goal:'', discipline:critDiscipline }, node,
+  critStream('/api/criticism/open', { text, goal:'', discipline:critDiscipline, focus:critFocus }, node,
     (reading)=>attachCritReading(node, reading));
 }
 function streamCriticismTurn({ message, segment }){
@@ -1083,7 +1112,7 @@ function streamCriticismTurn({ message, segment }){
   if(message) critHistory.push({role:'you', content:message});
   const node=critAddStone('');
   critStream('/api/criticism/turn',
-    { artefact:critArtefact, goal:'', discipline:critDiscipline, message:message||'', segment:segment||null, priorMessages:prior },
+    { artefact:critArtefact, goal:'', discipline:critDiscipline, message:message||'', segment:segment||null, priorMessages:prior, focus:critFocus },
     node, null);
 }
 
@@ -1176,7 +1205,7 @@ function buildTranscriptMd(){
   const turns=history.filter(h=>h.role==='student').length;
   let body='';
   for(const h of history){ if(h.role==='interlocutor') body+='**Q.** '+String(h.content).replace(/\n+/g,' ')+'\n\n'; else body+=String(h.content)+'\n\n'; }
-  return '---\nsource: zetizeti\ntype: idea-transcript\ntopic: '+topic+'\ndate: '+new Date().toISOString()+'\nturns: '+turns+'\n---\n\n'
+  return '---\nsource: zetizeti\ntype: idea-transcript\ntopic: '+topic+'\ndate: '+new Date().toISOString()+'\nturns: '+turns+(focus==='concept'?'\nfocus: concept-only':'')+'\n---\n\n'
     +'# Idea transcript — '+topic+'\n\n'
     +"_An AI Club idea transcript from zetizeti. The student's own responses are the substance; the questions are light context._\n\n"
     +body;
@@ -1235,12 +1264,12 @@ function critTranscriptName(ext){
   const cut=slug.length>48 ? slug.slice(0,48).replace(/-[^-]*$/,'') : slug;   // never end on half a word
   return 'critique-transcript-'+(cut||'critique')+'.'+ext;
 }
-function buildCritTranscriptMd(artefact, turns){
+function buildCritTranscriptMd(artefact, turns, focusMode){
   const topic=critTranscriptTopic(artefact);
   const mine=(turns||[]).filter(h=>h.role==='you').length;
   let body='';
   for(const h of (turns||[])){ if(h.role==='stone') body+='**Q.** '+String(h.content).replace(/\n+/g,' ')+'\n\n'; else body+=String(h.content)+'\n\n'; }
-  return '---\nsource: zetizeti\ntype: critique-transcript\ntopic: '+topic+'\ndate: '+new Date().toISOString()+'\nturns: '+mine+'\n---\n\n'
+  return '---\nsource: zetizeti\ntype: critique-transcript\ntopic: '+topic+'\ndate: '+new Date().toISOString()+'\nturns: '+mine+(focusMode==='concept'?'\nfocus: concept-only':'')+'\n---\n\n'
     +'# Critique transcript — '+topic+'\n\n'
     +'_A critique from zetizeti. The stone questioned the text below, never you; your own responses are the substance. Nothing here was scored, ranked, or compared against anything._\n\n'
     +'## the text under question\n\n'
@@ -1263,7 +1292,7 @@ function downloadCritTranscriptPdf(){
 }
 function showCritDl(on){ const dl=$('dlCritTranscript'); if(dl) dl.hidden=!on; }
 (function wireCritTranscriptDl(){ const md=$('critDlMd'), pdf=$('critDlPdf');
-  if(md) md.onclick=()=>downloadFile(critTranscriptName('md'), buildCritTranscriptMd(critArtefact, critHistory), 'text/markdown');
+  if(md) md.onclick=()=>downloadFile(critTranscriptName('md'), buildCritTranscriptMd(critArtefact, critHistory, critFocus), 'text/markdown');
   if(pdf) pdf.onclick=downloadCritTranscriptPdf; })();
 
 // ---- CONTINUE FROM A SAVED TRANSCRIPT (30 Jul 2026) --------------------------------------------
@@ -1302,7 +1331,8 @@ function parseTranscriptMd(text){
   // A transcript must open on the student's edge; anything before it is a stray heading.
   while(turns.length && turns[0].role!=='student') turns.shift();
   if(!turns.length) return {error:'That transcript has nothing in it to continue from.'};
-  return {turns, topic:(fm[1].match(/^topic:\s*([\s\S]*?)$/m)||[])[1]||turns[0].content};
+  return {turns, topic:(fm[1].match(/^topic:\s*([\s\S]*?)$/m)||[])[1]||turns[0].content,
+    focus: /^focus:\s*concept-only\s*$/m.test(fm[1]) ? 'concept' : null};
 }
 // Rebuild the conversation in the tab, then hand it back to the student mid-flow. Everything the
 // live loop reads off is restored: goal, lineage, history, the exchange count, the download button.
@@ -1311,6 +1341,10 @@ function resumeFromTranscript(parsed){
   resetConversation(); showView('conversation'); fetchPool();
   seedViz(hashStr('e'+parsed.turns[0].content));
   goal=parsed.turns[0].content; lineage=[goal];
+  // Restore the focus the transcript was recorded under. Without this, picking a concept-only enquiry
+  // back up silently reverts it and the stone starts asking about production again mid-thread.
+  focus=parsed.focus||null;
+  { const b=document.getElementById('focusToggle'); if(b) b.setAttribute('aria-pressed', focus?'true':'false'); }
   addDivider('carried on from a saved transcript');
   let lastNode=null;
   restoring=true;
@@ -1442,7 +1476,7 @@ async function streamStone(message, kind, reuseNode){
   try{
     // Stateless: no quest_id. The browser sends the whole transcript + turnsSinceNudge; the server stores nothing.
     const res = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ message, history:history.slice(0,-1), goal, kind, honed, exchanges, lineage, discipline, turnsSinceNudge }) });
+      body: JSON.stringify({ message, history:history.slice(0,-1), goal, kind, honed, exchanges, lineage, discipline, turnsSinceNudge, focus }) });
     const reader=res.body.getReader(), dec=new TextDecoder(); let buf='';
     while(true){
       const {value,done}=await reader.read(); if(done) break;

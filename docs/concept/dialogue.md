@@ -338,3 +338,63 @@ transcript is theirs); the harness that runs them is public, in `scripts/flow-pr
   **What remains open** is that the curve says *where*, never *why* — a drop at depth three is a question
   to go and read — and it needs weeks of real use before it means anything. Until then, the two clearest
   signals this tool has received are still the two students who happened to mention it.
+
+
+---
+
+## The concept-only focus (v0.14.0, 12 August 2026)
+
+The learner can ask the stone to question the **idea** and not how the thing gets made. It is a switch in
+each composer, on both the enquiry and the criticism surface, and it is off by default.
+
+**The line is narrow.** Making means fabrication, tooling, material afterlife, repair, durability and
+cost-to-produce. Form, medium, styling and truth-to-materials stay askable, because those are questions
+about what the thing *is* rather than about how it is produced.
+
+**Two halves, because either alone is a control that does not control.**
+
+1. **Retrieval** drops entries marked `**register:** making` (22 of 274) from the pool, so the material
+   is not there to compose a question from. The mark is a judgement written in the corpus rather than a
+   rule inferred at query time — a vocabulary heuristic cannot separate `truth-to-materials-or-the-
+   surface`, which is dense with material words and asks about honesty, from `the-material-and-its-
+   afterlife`, which asks about disposal.
+2. **The guard** refuses a question that lands on production anyway and regenerates it once, the same
+   mechanism as the never-answer guard. A line in the prompt states the constraint too, but the prompt is
+   the cheap half: this project removed the aim block in v0.11.0 after measuring that a direction in the
+   prompt does not displace the move the model was going to make.
+
+### What the ten-round conversations showed, and the three faults they found
+
+Measured against the real endpoints on an auth-less local build, two student types, ten rounds each,
+focus off and on. For a student preoccupied with production: seven of ten questions would have been
+production questions without the switch, **zero** reached the student with it on, and making tensions in
+the curtain went from 7–10 turns out of ten to **0 of 10**. For a terse student on a project with no
+fabrication in it, the switch is invisible — 3.0 tensions retrieved per turn either way, no empty pools,
+no spurious refusals.
+
+Three faults surfaced that the unit tests could not, and each is worth keeping:
+
+- **The criticism surface was wholly broken.** `focus` was read in the request handlers but used inside
+  `askCriticismQuestion`, a different scope, so every criticism turn died with `focus is not defined`
+  while all fifteen unit tests passed. A source-level guard now asserts the flag reaches every call site.
+- **Widening the making vocabulary made the refusal rate WORSE.** The breaches were in the **warmth
+  preamble**, which says the learner's own words back to them — and invariant #1 requires that, because
+  Clean Language reuses their literal words. A student building a plywood stool says *plywood* and
+  *joinery* every turn. The check now reads the question, not the preamble.
+- **The abstract vocabulary of production is not what the stone uses.** Over ten rounds it asked about
+  tenon sizes, plywood dimensioned to standard sheet sizes, and whether the hex key stays available —
+  production every time, and caught by none of the first list's words.
+
+### Known limits
+
+- **The guard reads a finite list of marks.** A production question phrased without any of them passes.
+  The claim is "the breaches it can see", never "no making question was asked" — the same bound
+  invariant #3 states for the never-answer guard.
+- **The criticism surface emits no `curtain` event**, so what it retrieved is not observable from a
+  client. Its delivered questions can be checked; its retrieval cannot.
+- **The 22 marks are a judgement.** They were applied from the stated line and several sit close to it —
+  grassroots innovation, slow fashion and the livelihood, transparency-or-the-audit and
+  standardise-or-fit-the-place were read as politics rather than production and left askable.
+- **The two-student fixture replay has not been run.** The off path is proved structurally — retrieval is
+  byte-identical with the focus unset, and no prompt block appears — but not by replaying the two real
+  transcripts.

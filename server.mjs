@@ -439,6 +439,9 @@ app.post('/api/chat', requireUser, async (req, res) => {
     message = '', history = [], goal = '', kind = 'turn',
     honed = 0, exchanges = 0, lineage = [], discipline = 'all', turnsSinceNudge = 99,
   } = req.body || {};
+  // CONCEPT-ONLY FOCUS (12 Aug 2026). Whitelisted rather than passed through: only the exact string
+  // 'concept' turns it on, so an unknown value is no focus rather than an unspecified one.
+  const focus = req.body?.focus === 'concept' ? 'concept' : null;
 
   const goalTerms = (goal.toLowerCase().match(/[a-z0-9]+/g) || []).filter((t) => t.length > 2);
 
@@ -478,11 +481,14 @@ app.post('/api/chat', requireUser, async (req, res) => {
   ].filter(Boolean);
   const excludeIds = studentTurns.length >= 2
     ? [...new Set(recentWindows.flatMap((w) =>
-        retrieve(corpus, w, { limit: 3, extraTerms: goalTerms, discipline }).map((r) => r.id)))]
+        retrieve(corpus, w, { limit: 3, extraTerms: goalTerms, discipline, focus }).map((r) => r.id)))]
     : [];
-  let retrieved = retrieve(corpus, windowText, { limit: 3, extraTerms: goalTerms, discipline, excludeIds });
+  let retrieved = retrieve(corpus, windowText, { limit: 3, extraTerms: goalTerms, discipline, excludeIds, focus });
   if (!retrieved.length && excludeIds.length) {   // cycle-back: rotation emptied the results → re-include
-    retrieved = retrieve(corpus, windowText, { limit: 3, extraTerms: goalTerms, discipline });
+    // NOTE the focus is carried into the cycle-back too. Dropping it here would make a making entry
+    // reappear on exactly the turns where rotation had emptied the pool — the failure would be rare,
+    // silent, and would look like the guard misfiring rather than the filter leaking.
+    retrieved = retrieve(corpus, windowText, { limit: 3, extraTerms: goalTerms, discipline, focus });
   }
   const curtain = retrieved.map((r) => ({ id: r.id, snippet: r.snippet, sources: r.sources, provenance: r.provenance }));
 
@@ -644,6 +650,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
   const system = buildSystemPrompt(methodCore, goal);
   const turnContent = buildTurnContext({
     retrieved,
+    focus,                                    // concept-only: stated to the model, enforced by the guard
     posture: (felt && felt.posture) || nudge.posture || '',
     shape: formShape(exchanges, { flow: true }),
     dwell,
@@ -682,6 +689,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
       // withheld and repaired (quoted learner text stripped first). Detection at the only place a repeat
       // can actually be withheld: the guard.
       validate: (t) => validateOutput(t, {
+        focus,                                   // concept-only: a production question is withheld, not discouraged
         avoid: stoneTurns,
         banOpeners,
         noBinary: true,
@@ -798,7 +806,7 @@ async function resolveKeyForCriticism(req, res, send) {
 // Compose + stream ONE criticism question, guard it (verdict-drift, EVERY turn), and report its cost.
 // Shared by open + turn. Anchored to the artefact on every turn. Persists NOTHING — the client holds the
 // artefact, the reading, and the running transcript, and sends them back each turn.
-async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocated = null, discipline, goal, priorMessages, studentTurn }) {
+async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocated = null, discipline, goal, priorMessages, studentTurn, focus = null }) {
   // Anti-sameness on the criticism surface (Siddhi, 16 Jul: it "constantly framing 'is this a property
   // or a verdict' to whatever answer I give"). This is the SAME machinery the enquiry path got on 13 Jul
   // and which this surface never had: watch the stone repeating ITSELF (selfEcho over its own prior
@@ -815,11 +823,11 @@ async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocat
   // rotate retrieval off the previous turn's tensions when it's circling (recency filter, invariant #1 safe).
   const prevStudent = [...priorMessages].reverse().find((m) => m.role !== 'stone')?.content || '';
   const excludeIds = (selfEcho >= 0.5 && prevStudent)
-    ? retrieve(corpus, prevStudent, { limit: 3, extraTerms: goalTermsOf(goal), discipline }).map((r) => r.id)
+    ? retrieve(corpus, prevStudent, { limit: 3, extraTerms: goalTermsOf(goal), discipline, focus }).map((r) => r.id)
     : [];
-  let retrieved = retrieve(corpus, probe, { limit: 3, extraTerms: goalTermsOf(goal), discipline, excludeIds });
-  if (!retrieved.length && excludeIds.length) retrieved = retrieve(corpus, probe, { limit: 3, extraTerms: goalTermsOf(goal), discipline });
-  const system = buildCriticismSystemPrompt(criticismCore, { artefact, located, posture: pointer.aim, retrieved, goal });
+  let retrieved = retrieve(corpus, probe, { limit: 3, extraTerms: goalTermsOf(goal), discipline, excludeIds, focus });
+  if (!retrieved.length && excludeIds.length) retrieved = retrieve(corpus, probe, { limit: 3, extraTerms: goalTermsOf(goal), discipline, focus });
+  const system = buildCriticismSystemPrompt(criticismCore, { artefact, located, posture: pointer.aim, retrieved, goal, focus });
   const messages = [
     ...priorMessages.map((m) => ({ role: m.role === 'stone' ? 'assistant' : 'user', content: m.content })),
     { role: 'user', content: studentTurn || (located ? `Point me at this spot: "${located.text}"` : '(continue questioning the text)') },
@@ -832,7 +840,7 @@ async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocat
   let qCost = 0;
   const guarded = await generateGuarded({
     mode: 'criticism',
-    validate: validateCriticismOutput,                       // verdict-drift guard EVERY turn
+    validate: (t) => validateCriticismOutput(t, { focus }),  // verdict-drift guard EVERY turn (+ concept-only)
     generate: (correction) => streamQuestion({
       system,
       messages: (correction && correction.previous)
@@ -865,6 +873,7 @@ app.post('/api/criticism/open', requireUser, async (req, res) => {
   const text = typeof b.text === 'string' ? b.text.trim() : '';
   const goal = typeof b.goal === 'string' ? b.goal : '';
   const discipline = typeof b.discipline === 'string' ? b.discipline : 'all';
+  const focus = b.focus === 'concept' ? 'concept' : null;
   if (!text) { res.status(400).json({ error: 'Paste an AI text to question.' }); return; }
   if (text.length > 8000) { res.status(413).json({ error: 'That text is long — paste a passage (up to ~8000 characters) to question.' }); return; }
   sseHeaders(res);
@@ -885,7 +894,7 @@ app.post('/api/criticism/open', requireUser, async (req, res) => {
     let located = null;
     if (ids.length) { const chosen = segments.find((s) => s.id === ids[0]) || segments[ids[0]]; if (chosen) located = { text: chosen.text, why: describeLocated(chosen), stage: chosen.sdc_stage, heldBy: chosen.judgement_held_by }; }
     send('status', { t: 'composing a question…' });
-    const { qCost } = await askCriticismQuestion({ send, apiKey: key.apiKey, meter: key.meter, artefact: text, forcedLocated: located, discipline, goal, priorMessages: [], studentTurn: null });
+    const { qCost } = await askCriticismQuestion({ send, apiKey: key.apiKey, meter: key.meter, artefact: text, forcedLocated: located, discipline, goal, priorMessages: [], studentTurn: null, focus });
     // Survival curve, depth 1: the paste that opened this critique. Counts only — see db.mjs.
     noteTurnDepth({ day: utcDay(), surface: 'criticism', version: BUILD.version, depth: 1 });
     if (key.meter) { addPoolSpend(utcDay(), req.user.id, qCost, key.poolFlag); if (key.usingPool) send('pool', poolEvent(req.user.id)); }
@@ -903,6 +912,7 @@ app.post('/api/criticism/turn', requireUser, async (req, res) => {
   const goal = typeof b.goal === 'string' ? b.goal : '';
   const discipline = typeof b.discipline === 'string' ? b.discipline : 'all';
   const message = typeof b.message === 'string' ? b.message.trim() : '';
+  const focus = b.focus === 'concept' ? 'concept' : null;
   const priorMessages = Array.isArray(b.priorMessages) ? b.priorMessages : [];
   const seg = b.segment && typeof b.segment.text === 'string' ? b.segment : null;
   if (!artefact) { res.status(400).json({ error: 'No text under question.' }); return; }
@@ -915,7 +925,7 @@ app.post('/api/criticism/turn', requireUser, async (req, res) => {
     const { qCost } = await askCriticismQuestion({
       send, apiKey: key.apiKey, meter: key.meter,
       artefact, forcedLocated: located, discipline, goal,
-      priorMessages, studentTurn: message || null,
+      priorMessages, studentTurn: message || null, focus,
     });
     // Survival curve. The client's own transcript carries the depth, so no session id exists here either:
     // depth = the number of questions this critique has now delivered, counting this one. priorMessages is
@@ -980,7 +990,12 @@ app.post('/api/capture/label', requireUser, (req, res) => {
 // Debug retrieval (no API key needed).
 app.post('/api/retrieve', (req, res) => {
   const { message = '', extraTerms = [] } = req.body || {};
-  res.json({ retrieved: retrieve(corpus, message, { extraTerms }) });
+  // Honours the concept-only focus like every other retrieval site. Nothing in the UI calls this today
+  // — it is the inspection endpoint behind `npm run retrieve-test` — but an endpoint that ignores the
+  // flag is a copy of the retrieval rule that has already diverged from it, and the next caller inherits
+  // the divergence rather than the rule.
+  const focus = req.body?.focus === 'concept' ? 'concept' : null;
+  res.json({ retrieved: retrieve(corpus, message, { extraTerms, focus }) });
 });
 
 // no-cache for the HTML so a deploy is seen immediately (the inline CSS lives in index.html, so a
