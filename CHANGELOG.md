@@ -21,6 +21,39 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.14.3] — 2026-08-13
+
+### `app/scripts/` is the public shelf, and a file lands there by being declared
+
+Prayas, after the v0.14.2 publish: "make sure nothing is put in the scripts folder anymore." Then,
+when a private folder had been built to hold the overflow: "nothing to be withheld … what is ok with
+going public can go there."
+
+`publish-public.sh` copies five directories wholesale — `lib`, `corpus`, `public`, `scripts`,
+`verification` — so anything left in `scripts/` publishes whether or not anybody chose to publish it.
+It has cost twice, and neither was catchable by content: a student's 41-reply transcript staged for
+publication on 29 July, and `repair-probe.mjs` reaching the v0.14.2 manifest on 13 August with two of
+a student's sentences verbatim, their project goal in their own words, and a retrieval query naming
+their subject. **Every guard passed it** — 153 roster names checked, no hit, no forbidden filename.
+Nothing was wrong by the rules as written. A content guard refuses only what it recognises, and a
+project subject is not a name.
+
+So the check moved from what a file contains to where it sits. `scripts/` is the shelf for work that
+is fine to be public, and putting something there is the act of saying so. That declaration is a list
+in `verification/scripts-are-public.test.mjs`, which fails on any undeclared file and on any deletion
+not recorded; `publish-public.sh` aborts on the same condition, reading **that same list**, so the two
+cannot drift. Both proved by planting a file and watching them refuse, then removing it.
+
+**No private overflow folder exists, and one should not be built.** An `app/probes/` was created for
+exactly that and removed within the hour. The code stays public; the *material* moves.
+`repair-probe.mjs` now takes `--cases=<file>`, defaulting to a fixture in publish-excluded
+`docs/ops/`, and carries a synthetic set inline so it runs for anyone who clones it — announcing at
+runtime which set it is on, because a probe that silently substitutes invented material for a real
+session is measuring something else under the same name. It is the pattern `flow-probe.mjs` has always
+used with `--replay=<fixture>`.
+
+243 tests. No runtime behaviour changed.
+
 ## [0.14.2] — 2026-08-13
 
 ### The studio strip's `hidden` attribute never hid it
