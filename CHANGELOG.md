@@ -21,6 +21,33 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.14.2] — 2026-08-13
+
+### The studio strip's `hidden` attribute never hid it
+
+Prayas, looking at his own header: "stray studio word besides review". It was there for everyone
+outside the AI Club cohort — every memorability student and every personal-tier account — from the day
+the strip moved into the header on 10 August.
+
+`#navStudio` carried `hidden` in the markup and `.nav-studio` set `display:flex` in the stylesheet. An
+author rule outranks the user agent's `[hidden]{display:none}`, so the attribute was decorative and the
+element rendered always. For anyone who is not an AI Club user `buildStudioNav` never runs, so no tool
+links were appended and what remained was the kicker alone: the word *studio*, its turquoise divider,
+and nothing after it. Below 900px the media query hides the kicker too, so there it showed as a bare
+divider and a gap.
+
+The fix is `.nav-studio[hidden]{display:none}`. The same guard is written correctly four times
+elsewhere in the file — `.topbar`, `.edge`, `.dl-transcript`, and `#studioFooter`, which is the *footer
+half of this same feature*. The knowledge existed and did not travel across the move.
+
+**`verification/hidden-guard.test.mjs`** now reads the markup against the stylesheet and fails when any
+element carrying `hidden` has a bare selector that sets `display` without a matching `[hidden]` rule.
+Proved by removing the fix and watching it fail, then restoring it — a guard that has never refused
+anything has not been shown to work. 241 tests.
+
+Nothing else changed: the two gates, the tool list, and the credit meter are exactly as shipped in
+0.12.0.
+
 ## [0.14.1] — 2026-08-12
 
 ### The concept-only control, where it can actually be found

@@ -48,6 +48,10 @@ const arg = (n, d) => { const a = process.argv.find((x) => x.startsWith(`--${n}=
 const CONVOS = +arg('convos', 3);
 const ROUNDS = +arg('rounds', 12);
 const SHOW = process.argv.includes('--transcripts');
+// --focus=concept runs the replay through the concept-only path (v0.14.0). Default off, so every
+// existing invocation behaves exactly as before — which is itself the thing the two-student rule
+// is checking.
+const FOCUS = arg('focus', '') === 'concept' ? 'concept' : null;
 const STUDENT_MODEL = 'google/gemini-3.1-flash-lite';
 const STONE_MODEL = process.env.ZETIZETI_MODEL || 'google/gemini-3.1-flash-lite';
 
@@ -258,10 +262,10 @@ async function runConversation(V, seed, corpus, methodCore, replayTurns = null) 
       studentTurns[studentTurns.length - 4] || '',
     ].filter(Boolean);
     const excludeIds = studentTurns.length >= 2
-      ? [...new Set(recentWindows.flatMap((w) => retrieve(corpus, w, { limit: 3, extraTerms: goalTerms }).map((x) => x.id)))]
+      ? [...new Set(recentWindows.flatMap((w) => retrieve(corpus, w, { limit: 3, extraTerms: goalTerms, focus: FOCUS }).map((x) => x.id)))]
       : [];
-    let retrieved = retrieve(corpus, windowText, { limit: 3, extraTerms: goalTerms, excludeIds });
-    if (!retrieved.length && excludeIds.length) retrieved = retrieve(corpus, windowText, { limit: 3, extraTerms: goalTerms });
+    let retrieved = retrieve(corpus, windowText, { limit: 3, extraTerms: goalTerms, excludeIds, focus: FOCUS });
+    if (!retrieved.length && excludeIds.length) retrieved = retrieve(corpus, windowText, { limit: 3, extraTerms: goalTerms, focus: FOCUS });
 
     // change 4 — the learner's own redirect, said in the chat rather than clicked in the UI. Registered
     // exactly as a UI re-draw is: a new lineage entry (so readArc re-anchors and the lap rises) plus the
@@ -326,6 +330,7 @@ async function runConversation(V, seed, corpus, methodCore, replayTurns = null) 
       banOpeners,
       precision,
       featureInvite,
+      focus: FOCUS,
     });
 
     const system = buildSystemPrompt(methodCore, goal);
@@ -336,6 +341,7 @@ async function runConversation(V, seed, corpus, methodCore, replayTurns = null) 
 
     const result = await generateGuarded({
       validate: (t) => validateOutput(t, {
+        ...(FOCUS ? { focus: FOCUS } : {}),
         ...(V.brevity ? { maxWords: V.brevity } : {}),
         ...(V.noRepeat ? { avoid: stoneTurns } : {}),
         ...(V.fixed ? { banOpeners, noBinary: true } : {}),

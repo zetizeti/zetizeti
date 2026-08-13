@@ -268,6 +268,14 @@
      the colour marks the group as OUTBOUND — these links leave zetizeti. Same mono grammar, same hover
      as every other nav link. A hairline rule, never a pill or a card. */
   .nav-studio{display:flex; align-items:center; gap:16px; padding-left:20px; border-left:1px solid rgba(15,127,141,.45)}
+  /* An author `display` rule OUTRANKS the UA's [hidden]{display:none}, so this element ignored its
+     own hidden attribute from the day the strip moved into the header (v0.12.0, 10 Aug 2026). Every
+     signed-in user outside the AI Club cohort — the memorability students and the personal tier —
+     saw the kicker alone: the word "studio" and its divider, with no tools after it, because
+     buildStudioNav never runs for them. The same guard is written correctly four times elsewhere in
+     this file (.topbar, .edge, .dl-transcript, #studioFooter — the footer half of THIS feature).
+     Whenever a class sets display, its hidden attribute needs this line or it is decorative. */
+  .nav-studio[hidden]{display:none}
   .nav-studio .studio-kicker{font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint)}
   .nav-studio a{color:var(--turq-bright) !important}   /* full chroma, like .nav-author and .nav-admin */
   .nav-studio span.tool{color:var(--faint)}            /* no URL configured — a label, never a dead link */
