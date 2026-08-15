@@ -63,6 +63,9 @@ const PUBLIC_SCRIPTS = [
   'kimi-code-quality-test.mjs',
   'model-loop-compare-result.json',
   'model-loop-compare.mjs',
+  // Measures the reading plan against the modulo clock it replaced, scoring whether the QUESTIONS differ
+  // in kind rather than whether the route does. Carries no material: documents arrive as --docs=.
+  'plan-vs-clock.mjs',
   'qwen-multiturn-result.json',
   'qwen-multiturn-test.mjs',
   'repair-probe.mjs',
