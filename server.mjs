@@ -16,7 +16,7 @@ import {
 } from './lib/dialogue.mjs';
 import { readSensed } from './lib/sensed.mjs';
 import { qualify, toCanonSegments } from './lib/qualify.mjs';   // DETERMINISTIC, no-LLM qualification (locating)
-import { planFor, windowOf, conceptDigest } from './lib/plan.mjs';   // the reading plan — DETERMINISTIC, no LLM
+import { planFor, windowOf, briefDigest } from './lib/plan.mjs';   // the reading plan — DETERMINISTIC, no LLM
 import { docFreq, informativeOf } from './lib/reading.mjs';          // engagement sensors — planner-only, never rendered
 import {
   googleConfigured, adminConfigured, emailIsAdmin, currentUser, logout, publicUser,
@@ -778,13 +778,13 @@ const goalTermsOf = (g) => (String(g || '').toLowerCase().match(/[a-z0-9]+/g) ||
 // ever removed or bypassed, this must come back down in the same commit.
 const DOC_MAX = 25000;
 
-// The project concept, reduced to the passages that frame anything — who it is for, what it is mainly
+// The project brief, reduced to the passages that frame anything — who it is for, what it is mainly
 // for, what it commits to. Returns '' for an empty concept so every downstream `!!concept` check reads
 // false and a critique without a concept stays byte-identical to before.
-function digestConcept(text) {
+function digestBrief(text) {
   if (!text) return '';
   const segs = qualify(text).segments;
-  return conceptDigest(segs).text;
+  return briefDigest(segs).text;
 }
 
 // Key resolution for the criticism SSE endpoints: the SAME tier switch as /api/chat (lib/cohorts.mjs).
@@ -825,7 +825,7 @@ async function resolveKeyForCriticism(req, res, send) {
 // Compose + stream ONE criticism question, guard it (verdict-drift, EVERY turn), and report its cost.
 // Shared by open + turn. Anchored to the artefact on every turn. Persists NOTHING — the client holds the
 // artefact, the reading, and the running transcript, and sends them back each turn.
-async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocated = null, discipline, goal, priorMessages, studentTurn, focus = null, segments = [], blurIds = [], concept = '' }) {
+async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocated = null, discipline, goal, priorMessages, studentTurn, focus = null, segments = [], blurIds = [], brief = '' }) {
   // Anti-sameness on the criticism surface (Siddhi, 16 Jul: it "constantly framing 'is this a property
   // or a verdict' to whatever answer I give"). This is the SAME machinery the enquiry path got on 13 Jul
   // and which this surface never had: watch the stone repeating ITSELF (selfEcho over its own prior
@@ -865,10 +865,10 @@ async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocat
   // Terms of the text under question, for the anchor half of the concept guard below. Computed from the
   // WHOLE artefact rather than the window, deliberately: a question anchored in a passage the model saw on
   // an earlier turn is still anchored in the text, and refusing it would punish continuity.
-  const artefactTerms = concept ? informativeOf(artefact, docFreq(segments)) : null;
+  const artefactTerms = brief ? informativeOf(artefact, docFreq(segments)) : null;
   const system = buildCriticismSystemPrompt(criticismCore, {
     artefact: win.body, located, posture: pointer.aim, retrieved, goal, focus,
-    concept, windowNote: win.windowed ? win.skeleton : '',
+    brief, windowNote: win.windowed ? win.skeleton : '',
   });
   const messages = [
     ...priorMessages.map((m) => ({ role: m.role === 'stone' ? 'assistant' : 'user', content: m.content })),
@@ -882,7 +882,7 @@ async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocat
   let qCost = 0;
   const guarded = await generateGuarded({
     mode: 'criticism',
-    validate: (t) => validateCriticismOutput(t, { focus, concept: !!concept, artefactTerms }),  // verdict-drift EVERY turn (+ concept-only, + concept-as-object)
+    validate: (t) => validateCriticismOutput(t, { focus, brief: !!brief, artefactTerms }),  // verdict-drift EVERY turn (+ concept-only, + concept-as-object)
     generate: (correction) => streamQuestion({
       system,
       messages: (correction && correction.previous)
@@ -916,15 +916,16 @@ app.post('/api/criticism/open', requireUser, async (req, res) => {
   const goal = typeof b.goal === 'string' ? b.goal : '';
   const discipline = typeof b.discipline === 'string' ? b.discipline : 'all';
   const focus = b.focus === 'concept' ? 'concept' : null;
-  // The student's own project concept, as CONTEXT for unpacking the text (v0.15.0). Never the object of
-  // the critique — buildCriticismSystemPrompt says so and validateCriticismOutput enforces it.
-  const conceptText = typeof b.concept === 'string' ? b.concept.trim() : '';
+  // The student's own project BRIEF, as CONTEXT for unpacking the text (v0.15.0). Never the object of the
+  // critique — buildCriticismSystemPrompt says so and validateCriticismOutput enforces it. Named `brief`
+  // rather than `concept` because `focus:'concept'` already means the making filter (v0.15.2).
+  const briefText = typeof b.brief === 'string' ? b.brief.trim() : '';
   if (!text) { res.status(400).json({ error: 'Paste or open a text to question.' }); return; }
   // 8,000 → 25,000 (v0.15.0). The ceiling could only move because lib/plan.mjs windows the artefact: the
   // whole text used to enter the prompt on EVERY turn, so raising this without windowing would have
   // multiplied the per-turn cost about sixfold against a ₹12,000 lifetime ceiling sized for the old number.
   if (text.length > DOC_MAX) { res.status(413).json({ error: `That document is very long — bring up to about ${Math.round(DOC_MAX / 1000)},000 characters (roughly ten pages) to question.` }); return; }
-  if (conceptText.length > DOC_MAX) { res.status(413).json({ error: `That project concept is very long — bring up to about ${Math.round(DOC_MAX / 1000)},000 characters.` }); return; }
+  if (briefText.length > DOC_MAX) { res.status(413).json({ error: `That project brief is very long — bring up to about ${Math.round(DOC_MAX / 1000)},000 characters.` }); return; }
   sseHeaders(res);
   const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
   const key = await resolveKeyForCriticism(req, res, send); if (!key) return;
@@ -946,7 +947,7 @@ app.post('/api/criticism/open', requireUser, async (req, res) => {
     const { qCost } = await askCriticismQuestion({
       send, apiKey: key.apiKey, meter: key.meter, artefact: text, forcedLocated: located,
       discipline, goal, priorMessages: [], studentTurn: null, focus,
-      segments, blurIds: ids, concept: digestConcept(conceptText),
+      segments, blurIds: ids, brief: digestBrief(briefText),
     });
     // Survival curve, depth 1: the paste that opened this critique. Counts only — see db.mjs.
     noteTurnDepth({ day: utcDay(), surface: 'criticism', version: BUILD.version, depth: 1 });
@@ -968,9 +969,9 @@ app.post('/api/criticism/turn', requireUser, async (req, res) => {
   const focus = b.focus === 'concept' ? 'concept' : null;
   const priorMessages = Array.isArray(b.priorMessages) ? b.priorMessages : [];
   const seg = b.segment && typeof b.segment.text === 'string' ? b.segment : null;
-  const conceptText = typeof b.concept === 'string' ? b.concept.trim() : '';
+  const briefText = typeof b.brief === 'string' ? b.brief.trim() : '';
   if (!artefact) { res.status(400).json({ error: 'No text under question.' }); return; }
-  if (artefact.length > DOC_MAX || conceptText.length > DOC_MAX) { res.status(413).json({ error: 'That document is longer than this surface accepts.' }); return; }
+  if (artefact.length > DOC_MAX || briefText.length > DOC_MAX) { res.status(413).json({ error: 'That document is longer than this surface accepts.' }); return; }
   sseHeaders(res);
   const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
   const key = await resolveKeyForCriticism(req, res, send); if (!key) return;
@@ -989,7 +990,7 @@ app.post('/api/criticism/turn', requireUser, async (req, res) => {
       send, apiKey: key.apiKey, meter: key.meter,
       artefact, forcedLocated: located, discipline, goal,
       priorMessages, studentTurn: message || null, focus,
-      segments, blurIds, concept: digestConcept(conceptText),
+      segments, blurIds, brief: digestBrief(briefText),
     });
     // Survival curve. The client's own transcript carries the depth, so no session id exists here either:
     // depth = the number of questions this critique has now delivered, counting this one. priorMessages is

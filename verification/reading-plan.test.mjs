@@ -14,7 +14,7 @@ import { dirname, join } from 'node:path';
 
 import { qualify, toCanonSegments } from '../lib/qualify.mjs';
 import { readSensed } from '../lib/sensed.mjs';
-import { afford, planFor, windowOf, conceptDigest, DWELL, WINDOW_BUDGET, WINDOW_WHOLE_BELOW } from '../lib/plan.mjs';
+import { afford, planFor, windowOf, briefDigest, DWELL, WINDOW_BUDGET, WINDOW_WHOLE_BELOW } from '../lib/plan.mjs';
 import { readEngagement, regionContact, ceilingFor } from '../lib/reading.mjs';
 import { validateCriticismOutput, CRITICISM_POINTERS } from '../lib/dialogue.mjs';
 
@@ -60,8 +60,8 @@ test('the transcript download carries no engagement reading', () => {
   const i = CLIENT.indexOf('function buildCritTranscriptMd');
   assert.ok(i > 0, 'buildCritTranscriptMd must exist');
   const body = CLIENT.slice(i, i + 3000);
-  for (const leak of ['ownMaterial', 'quoting', 'touched', 'untouched', 'station', 'critConcept']) {
-    assert.ok(!body.includes(leak), `the download must not carry "${leak}" — a portable figure about a student is a grade, and their concept is not theirs-under-question`);
+  for (const leak of ['ownMaterial', 'quoting', 'touched', 'untouched', 'station', 'critBrief']) {
+    assert.ok(!body.includes(leak), `the download must not carry "${leak}" — a portable figure about a student is a grade, and their brief is not theirs-under-question`);
   }
 });
 
@@ -71,11 +71,11 @@ test('reading.mjs states plainly that it cannot see reading', () => {
   assert.match(READING, /see TYPING, not reading/i, 'the sensors must keep saying what they actually observe');
 });
 
-// ───────────────────────────── 2. the concept guard ─────────────────────────────
+// ───────────────────────────── 2. the brief guard ─────────────────────────────
 // The student brought a found text to be tested. A surface that turns round and asks them to defend their
 // own project is a different tool and one nobody agreed to. The prompt says so; this is what enforces it.
 
-test('a question that makes the concept the thing being judged is refused', () => {
+test('a question that makes the brief the thing being judged is refused', () => {
   const bad = [
     'What does your project assume about who is actually asking?',
     'How would you justify your concept here?',
@@ -83,13 +83,13 @@ test('a question that makes the concept the thing being judged is refused', () =
     'Is your concept really solving the problem you named?',
   ];
   for (const q of bad) {
-    const r = validateCriticismOutput(q, { concept: true });
+    const r = validateCriticismOutput(q, { brief: true });
     assert.equal(r.ok, false, `should have been refused: ${q}`);
     assert.ok(r.reasons.some((x) => /own project the thing being judged/.test(x)), `wrong reason for: ${q}`);
   }
 });
 
-test('using the concept as CONTEXT for a question about the text still passes', () => {
+test('using the brief as CONTEXT for a question about the text still passes', () => {
   // The intended shape, and the one a clumsy guard would break. These name the project and keep the text
   // as the object — if this test ever fails, the guard has become the thing that kills the feature.
   const good = [
@@ -99,31 +99,31 @@ test('using the concept as CONTEXT for a question about the text still passes', 
   ];
   const terms = ['users', 'frictionless', 'onboarding', 'text', 'practice', 'claim'];
   for (const q of good) {
-    const r = validateCriticismOutput(q, { concept: true, artefactTerms: terms });
+    const r = validateCriticismOutput(q, { brief: true, artefactTerms: terms });
     assert.equal(r.ok, true, `should have passed: ${q} — ${r.reasons.join('; ')}`);
   }
 });
 
-test('a question that anchors in nothing from the text is refused when a concept is present', () => {
-  const r = validateCriticismOutput('What would make this stand up?', { concept: true, artefactTerms: ['onboarding', 'checkout', 'postcode'] });
+test('a question that anchors in nothing from the text is refused when a brief is present', () => {
+  const r = validateCriticismOutput('What would make this stand up?', { brief: true, artefactTerms: ['onboarding', 'checkout', 'postcode'] });
   assert.equal(r.ok, false);
   assert.ok(r.reasons.some((x) => /does not point at the text under question/.test(x)));
   // ...and one shared term is enough, deliberately: a false refusal costs a regeneration, a miss costs the object of the critique.
-  const ok = validateCriticismOutput('What does "onboarding" decide here?', { concept: true, artefactTerms: ['onboarding', 'checkout'] });
+  const ok = validateCriticismOutput('What does "onboarding" decide here?', { brief: true, artefactTerms: ['onboarding', 'checkout'] });
   assert.equal(ok.ok, true, ok.reasons.join('; '));
 });
 
-test('without a concept the guard is byte-identical to before', () => {
+test('without a brief the guard is byte-identical to before', () => {
   // The blast radius is bounded to exactly the situation the guard exists for.
   const q = 'What does your project assume about who is asking?';
-  assert.equal(validateCriticismOutput(q, {}).ok, true, 'no concept in play → the concept rules must not fire');
-  assert.equal(validateCriticismOutput(q, { concept: false }).ok, true);
+  assert.equal(validateCriticismOutput(q, {}).ok, true, 'no brief in play → the concept rules must not fire');
+  assert.equal(validateCriticismOutput(q, { brief: false }).ok, true);
 });
 
-test('the server passes the concept flag and the anchor terms to the guard', () => {
+test('the server passes the brief flag and the anchor terms to the guard', () => {
   // A guard that is never called with its inputs enforces nothing — the failure shape this project has
   // already paid for twice. Grep the call site, not the definition.
-  assert.match(SERVER, /validateCriticismOutput\(t,\s*\{[^}]*\bconcept:\s*!!concept/, 'the guard must be told whether a concept is in play');
+  assert.match(SERVER, /validateCriticismOutput\(t,\s*\{[^}]*\bbrief:\s*!!brief/, 'the guard must be told whether a brief is in play');
   assert.match(SERVER, /validateCriticismOutput\(t,\s*\{[^}]*\bartefactTerms\b/, 'the guard must receive the artefact terms');
 });
 
@@ -331,23 +331,23 @@ test('regionContact pairs each reply with the question that preceded it', () => 
   assert.ok(c.get(1).turns.includes(1), 'reply 1 reached segment 1 with a word its question did not supply');
 });
 
-// ───────────────────────────── 6. the concept digest ─────────────────────────────
+// ───────────────────────────── 6. the brief digest ─────────────────────────────
 
 test('the digest keeps the sentence that says what the project IS', () => {
   // 🔴 Scoring alone dropped it: "This project is a wayfinding system for the campus library" trips no
   // lexicon at all, so the digest described who it was for and what was at risk while never saying what
   // it was — the one thing context is for.
-  const d = conceptDigest(segsOf('This project is a wayfinding system for the campus library. It is mainly for first-year students. They need to find a shelf without asking. The building was completed in 1974.'));
+  const d = briefDigest(segsOf('This project is a wayfinding system for the campus library. It is mainly for first-year students. They need to find a shelf without asking. The building was completed in 1974.'));
   assert.match(d.text, /wayfinding system/, 'the identity sentence must survive');
   assert.ok(!/1974/.test(d.text), 'and the irrelevant one must not');
 });
 
 test('the digest is bounded', () => {
   const long = longDoc('The project is mainly for students who need to find things and want a faster route. The risk is they give up. ', 40000);
-  const d = conceptDigest(segsOf(long));
+  const d = briefDigest(segsOf(long));
   assert.ok(d.text.length <= 3000, `digest ${d.text.length} exceeds its cap`);
 });
 
-test('an empty concept produces an empty digest, so every downstream check reads false', () => {
-  assert.match(SERVER, /function digestConcept\(text\) \{\s*if \(!text\) return '';/, 'no concept must mean the empty string, not an empty-ish object');
+test('an empty brief produces an empty digest, so every downstream check reads false', () => {
+  assert.match(SERVER, /function digestBrief\(text\) \{\s*if \(!text\) return '';/, 'no brief must mean the empty string, not an empty-ish object');
 });

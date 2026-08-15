@@ -462,7 +462,7 @@
     color:var(--goldtext); border:1px solid rgba(240,179,36,.5); background:rgba(240,179,36,.08);
     padding:9px 16px; border-radius:0; transition:color .18s, border-color .18s, background .18s}
   .crit-open button:hover{color:var(--gold-bright); border-color:var(--gold-bright); background:rgba(240,179,36,.15)}
-  /* The concept is context, not the object — subordinate treatment, no fill, so the two are not peers. */
+  /* The brief is context, not the object — subordinate treatment, no fill, so the two are not peers. */
   .crit-open button.secondary{color:rgba(244,231,200,.72); border-color:rgba(244,231,200,.28); background:none}
   .crit-open button.secondary:hover{color:var(--gold-bright); border-color:rgba(240,179,36,.6); background:rgba(240,179,36,.06)}
   /* 🔴 The raw inputs must be unreachable, not merely `hidden`. During testing a stray hidden=false put two
@@ -480,7 +480,7 @@
      stacked down the middle, which is three things this hand refuses at once — rectangular cards, a
      symmetric centred stack, and the active void filled in. It also said nothing compositionally about
      which of the two documents was under question; only the label did, and a label is not a composition.
-     So: the artefact keeps the floated sheet and stays the lone protagonist. The concept sits directly on
+     So: the artefact keeps the floated sheet and stays the lone protagonist. The brief sits directly on
      the painted ground with no border and no box, dimmer and smaller, reading as something standing
      BEHIND the specimen rather than beside it. Collapsed to two lines, because context is glanced at and
      not read. The vermilion arrives as a soft MASS bleeding from the left edge (red is a mass in this
@@ -826,12 +826,12 @@
       <!-- The student's own project, as CONTEXT for unpacking the text — never the object of the critique.
            Deliberately NOT a second specimen sheet: it sits on the ground, dimmer and clamped, so the
            composition itself says which document is under question and which is standing behind it. -->
-      <div class="crit-context" id="critConcept" hidden>
+      <div class="crit-context" id="critBrief" hidden>
         <div class="ctx-label">
-          <span>your project · context only, never questioned</span>
-          <span class="ctx-acts"><button class="ctx-act" id="critConceptMore">more</button><span class="ctx-dot">·</span><button class="ctx-act" id="critConceptClear">remove</button></span>
+          <span>your project brief · context only, never questioned</span>
+          <span class="ctx-acts"><button class="ctx-act" id="critBriefMore">more</button><span class="ctx-dot">·</span><button class="ctx-act" id="critBriefClear">remove</button></span>
         </div>
-        <div class="ctx-body" id="critConceptText"></div>
+        <div class="ctx-body" id="critBriefText"></div>
       </div>
       <main id="critChatStream"></main>
     </div>
@@ -843,13 +843,13 @@
         </div>
         <div class="crit-open" id="critOpenRow">
           <button type="button" id="critOpenDoc">open a document to question</button>
-          <button type="button" class="secondary" id="critOpenConcept">add your project concept</button>
+          <button type="button" class="secondary" id="critOpenConcept">add your project brief</button>
         </div>
         <div class="crit-ul-note" id="critUlNote" hidden></div>
         <div class="hint">read in this tab · nothing saved · <b>never scored or compared</b></div>
       </div>
       <input id="ulCritDoc" class="file-sink" type="file" accept=".pdf,application/pdf,.md,.txt,text/markdown,text/plain" tabindex="-1" aria-hidden="true" />
-      <input id="ulCritConcept" class="file-sink" type="file" accept=".pdf,application/pdf,.md,.txt,text/markdown,text/plain" tabindex="-1" aria-hidden="true" />
+      <input id="ulCritBrief" class="file-sink" type="file" accept=".pdf,application/pdf,.md,.txt,text/markdown,text/plain" tabindex="-1" aria-hidden="true" />
     </div>
   </section>
 
@@ -1134,7 +1134,7 @@ $('aboutBack').addEventListener('click', ()=>go('/'));
 // artefact + the running transcript and sends them with each turn. Endpoints: POST /api/criticism/open
 // (paste → reading + first question) and POST /api/criticism/turn (artefact + transcript → next question).
 // The chat reuses the conversation view's .turn/.composer/.edge CSS; no p5 viz.
-let critDiscipline='all', critArtefact=null, critHistory=[], critReading=null, critConcept='';
+let critDiscipline='all', critArtefact=null, critHistory=[], critReading=null, critBrief='';
 /**
  * WHAT THE STUDENT IS BRINGING. 'paste' is the surface as it existed before documents — type or paste into
  * the composer and the first send becomes the text under question. 'document' opens a file instead.
@@ -1145,7 +1145,7 @@ let critDiscipline='all', critArtefact=null, critHistory=[], critReading=null, c
  */
 let critMode='paste';
 // The filenames behind whatever is loaded, so the state line can name them rather than say "a document".
-let critDocName='', critConceptName='';
+let critDocName='', critBriefName='';
 
 // ───────────────────────── bringing a document in, entirely in this tab ─────────────────────────
 // 🔴 THE FILE NEVER REACHES THE SERVER, and that is the whole reason this is done here rather than as an
@@ -1289,14 +1289,14 @@ $('critChatInput').addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shi
 // The immersive chat — SAME layout as enquiries, minus the p5 viz. The bottom composer is the only
 // input: the FIRST send is the pasted AI text (creates the critique); later sends are your responses.
 function openNewCritique(){
-  critArtefact=null; critHistory=[]; critReading=null; critConcept='';
+  critArtefact=null; critHistory=[]; critReading=null; critBrief='';
   showView('criticism-chat');
   $('critChatStream').innerHTML='';
   $('critArtefact').hidden = true; $('critArtefactText').textContent=''; clearSpecimenDressing();
-  $('critConcept').hidden = true; $('critConcept').classList.remove('open'); $('critConceptText').textContent='';
+  $('critBrief').hidden = true; $('critBrief').classList.remove('open'); $('critBriefText').textContent='';
   $('critOpenRow').hidden = false; critNote('');
-  $('critOpenDoc').textContent='open a document to question'; $('critOpenConcept').textContent='add your project concept';
-  critMode='paste'; critDocName=''; critConceptName='';
+  $('critOpenDoc').textContent='open a document to question'; $('critOpenConcept').textContent='add your project brief';
+  critMode='paste'; critDocName=''; critBriefName='';
   const mt=$('critModeToggle'); if(mt){ mt.disabled=false; mt.title='Choose what you are bringing: something you paste or type, or a document you open.'; }
   paintCritMode();
   showCritDl(false);                             // nothing pasted yet — nothing to save
@@ -1359,13 +1359,13 @@ function clearSpecimenDressing(){
  */
 function critStateLine(){
   const reading = critArtefact ? (critDocName ? critDocName : 'what you pasted') : '';
-  const concept = critConcept ? (critConceptName || 'your project concept') : '';
-  if(reading && concept) return 'Questioning ' + reading + ', in the light of your project concept (' + concept + '). Both are read in this tab; the files go nowhere.';
-  if(reading)            return 'Questioning ' + reading + ' — no project concept, so the questions are not tied to what you are working on. Add one at any time.';
-  if(concept)            return 'Project concept loaded (' + concept + ') — context only, never questioned. Nothing is under question yet: ' + (critMode==='document' ? 'open a reading to begin.' : 'paste or type below to begin.');
+  const concept = critBrief ? (critBriefName || 'your project brief') : '';
+  if(reading && concept) return 'Questioning ' + reading + ', in the light of your project brief (' + concept + '). Both are read in this tab; the files go nowhere.';
+  if(reading)            return 'Questioning ' + reading + ' — no project brief, so the questions are not tied to what you are working on. Add one at any time.';
+  if(concept)            return 'Project brief loaded (' + concept + ') — context only, never questioned. Nothing is under question yet: ' + (critMode==='document' ? 'open a reading to begin.' : 'paste or type below to begin.');
   return critMode==='document'
-    ? 'Nothing opened yet. Open a reading to question — a project concept beside it is optional.'
-    : 'Nothing under question yet. Paste or type below — a project concept beside it is optional.';
+    ? 'Nothing opened yet. Open a reading to question — a project brief beside it is optional.'
+    : 'Nothing under question yet. Paste or type below — a project brief beside it is optional.';
 }
 function refreshCritState(){ critNote(critStateLine()); }
 
@@ -1442,19 +1442,19 @@ function lockCritMode(){ const t=$('critModeToggle'); if(t){ t.disabled=true; t.
   window.addEventListener('resize', set);
 })();
 (function wireCritUploads(){
-  const doc=$('ulCritDoc'), con=$('ulCritConcept');
+  const doc=$('ulCritDoc'), con=$('ulCritBrief');
   if(!doc||!con) return;
-  const openBtn=$('critOpenDoc'), conBtn=$('critOpenConcept'), clear=$('critConceptClear');
+  const openBtn=$('critOpenDoc'), conBtn=$('critOpenConcept'), clear=$('critBriefClear');
   if(openBtn) openBtn.addEventListener('click', ()=>doc.click());
   if(conBtn)  conBtn.addEventListener('click', ()=>con.click());
-  if(clear)   clear.addEventListener('click', ()=>{ critConcept=''; $('critConcept').hidden=true; $('critConcept').classList.remove('open'); $('critConceptText').textContent=''; $('critOpenConcept').textContent='add your project concept'; critConceptName=''; refreshCritState(); });
+  if(clear)   clear.addEventListener('click', ()=>{ critBrief=''; $('critBrief').hidden=true; $('critBrief').classList.remove('open'); $('critBriefText').textContent=''; $('critOpenConcept').textContent='add your project brief'; critBriefName=''; refreshCritState(); });
   const specMore=$('critSpecMore');
   if(specMore) specMore.addEventListener('click', ()=>{
     const b=$('critArtefactText'); const open=b.classList.toggle('open');
     specMore.textContent = open ? 'show less' : 'read the whole document';
   });
-  const more=$('critConceptMore');
-  if(more) more.addEventListener('click', ()=>{ const c=$('critConcept'); const open=c.classList.toggle('open'); more.textContent = open ? 'less' : 'more'; });
+  const more=$('critBriefMore');
+  if(more) more.addEventListener('click', ()=>{ const c=$('critBrief'); const open=c.classList.toggle('open'); more.textContent = open ? 'less' : 'more'; });
 
   const trim=(t)=>t.length>DOC_MAX_CHARS ? t.slice(0,DOC_MAX_CHARS) : t;
   // Always the FULL state, never just the file that moved. An over-long document adds its caveat on top.
@@ -1484,12 +1484,12 @@ function lockCritMode(){ const t=$('critModeToggle'); if(t){ t.disabled=true; t.
     critNote('Reading '+file.name+'…');
     try{
       const { text }=await readDocFile(file);
-      critConcept=trim(text);
-      $('critConceptText').textContent = critConcept;   // clamped to two lines in CSS; 'more' opens it
-      $('critConcept').hidden=false;
-      critConceptName=file.name;
+      critBrief=trim(text);
+      $('critBriefText').textContent = critBrief;   // clamped to two lines in CSS; 'more' opens it
+      $('critBrief').hidden=false;
+      critBriefName=file.name;
       say(file, text);
-      $('critOpenConcept').textContent='replace your project concept';
+      $('critOpenConcept').textContent='replace your project brief';
     }catch(e){ critNote(e.message, true); }
   });
 })();
@@ -1631,7 +1631,7 @@ async function critStream(url, payload, node, onReading, retry){
 
 function streamCriticismOpen(text){
   const node=critAddStone('');
-  critStream('/api/criticism/open', { text, goal:'', discipline:critDiscipline, focus:critFocus, concept:critConcept }, node,
+  critStream('/api/criticism/open', { text, goal:'', discipline:critDiscipline, focus:critFocus, brief:critBrief }, node,
     (reading)=>attachCritReading(node, reading));
 }
 function streamCriticismTurn({ message, segment }){
@@ -1642,7 +1642,7 @@ function streamCriticismTurn({ message, segment }){
   if(message) critHistory.push({role:'you', content:message});
   const node=critAddStone('');
   critStream('/api/criticism/turn',
-    { artefact:critArtefact, goal:'', discipline:critDiscipline, message:message||'', segment:segment||null, priorMessages:prior, focus:critFocus, concept:critConcept },
+    { artefact:critArtefact, goal:'', discipline:critDiscipline, message:message||'', segment:segment||null, priorMessages:prior, focus:critFocus, brief:critBrief },
     node, null);
 }
 
@@ -1661,11 +1661,11 @@ const CRIT_DEMO_READING = {
 };
 const CRIT_DEMO_Q = "“Intuitive” — names what it does, or approves of it? And “the best approach” — whose call is that, yours or the text’s?";
 function runCritDemo(){
-  critArtefact=null; critHistory=[]; critReading=CRIT_DEMO_READING; critConcept='';
+  critArtefact=null; critHistory=[]; critReading=CRIT_DEMO_READING; critBrief='';
   showView('criticism-chat');
   $('critArtefactText').textContent = CRIT_DEMO_TEXT; $('critArtefact').hidden=false;
   // The demo is canned and calls nothing, so opening a document here would do nothing and read as broken.
-  $('critConcept').hidden=true; $('critConcept').classList.remove('open'); $('critConceptText').textContent='';
+  $('critBrief').hidden=true; $('critBrief').classList.remove('open'); $('critBriefText').textContent='';
   $('critOpenRow').hidden=true; critNote('');
   showCritDl(false);              // the demo is canned — none of it is the viewer's, so there is nothing of theirs to save
   $('critChatInput').value=''; $('critChatInput').placeholder='Paste an idea, claim, or answer you want to push back on…';

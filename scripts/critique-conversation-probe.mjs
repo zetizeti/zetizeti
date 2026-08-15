@@ -15,7 +15,7 @@
 //
 // 🔴 THE MATERIAL IS AN ARGUMENT, NOT A CONSTANT. `scripts/` is the public shelf: a file lands here by
 // being declared, and anything that would carry somebody else's words goes to `docs/ops/` and is passed
-// in. Hence `--doc=` and `--concept=`. This script ships with none of anybody's text inside it.
+// in. Hence `--doc=` and `--brief=`. This script ships with none of anybody's text inside it.
 //
 // THE STUDENT IS PLAY-ACTED AND IS PERMITTED TO DISENGAGE. Following flow-probe.mjs: an agreeable
 // simulated student makes nonsense invisible, so this one may answer briefly, push back, or refuse a
@@ -29,8 +29,8 @@
 //   cd app
 //   node --env-file=.env server.mjs &      # with NODE_ENV=development ZETIZETI_ALLOW_GUEST=1
 //   node scripts/critique-conversation-probe.mjs \
-//     --doc=../docs/ops/fixtures/demo-found-running-a-website.txt \
-//     --concept=../docs/ops/fixtures/demo-concept-still-running.txt
+//     --doc=../docs/ops/fixtures/demo-reading.txt \
+//     --brief=../docs/ops/fixtures/demo-brief.txt
 
 import { readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -50,13 +50,13 @@ const arg = (k, d = null) => { const m = process.argv.find((a) => a.startsWith(`
 
 const BASE = arg('base', 'http://localhost:3999');
 const DOC = arg('doc');
-const CONCEPT = arg('concept');
+const BRIEF = arg('brief');
 const MAX_ROUNDS = Number(arg('rounds', '40'));
 const DISCIPLINE = arg('discipline', 'all');
 if (!DOC) { console.error('need --doc=<file>'); process.exit(1); }
 
 const docText = readFileSync(DOC, 'utf8').trim();
-const conceptText = CONCEPT ? readFileSync(CONCEPT, 'utf8').trim() : '';
+const briefText = BRIEF ? readFileSync(BRIEF, 'utf8').trim() : '';
 
 // ── guest session ────────────────────────────────────────────────────────────────────────────────
 let COOKIE = '';
@@ -128,7 +128,7 @@ const DECLINE = /(you already asked|already answered|don'?t understand|doesn'?t 
 
   console.log('='.repeat(78));
   console.log(`document : ${basename(DOC)}  ${docText.length} chars, ${segments.length} segments, ${blurIds.length} located blurs`);
-  console.log(`concept  : ${CONCEPT ? `${basename(CONCEPT)}  ${conceptText.length} chars` : '(none)'}`);
+  console.log(`brief    : ${BRIEF ? `${basename(BRIEF)}  ${briefText.length} chars` : '(none)'}`);
   console.log(`plan     : ${stations.stations.length} stations${stations.fellBack ? ` (FELL BACK: ${stations.fellBack})` : ''} — ${stations.stations.map((s) => s.key).join(' → ')}`);
   for (const s of stations.stations) console.log(`             ${s.key.padEnd(15)} region ${JSON.stringify(s.segmentIds).slice(0, 46)}  ${s.why}`);
   console.log('='.repeat(78));
@@ -137,7 +137,7 @@ const DECLINE = /(you already asked|already answered|don'?t understand|doesn'?t 
   const rows = [];
   let completeAt = null;
 
-  const open = await sse('/api/criticism/open', { text: docText, goal: '', discipline: DISCIPLINE, focus: null, concept: conceptText });
+  const open = await sse('/api/criticism/open', { text: docText, goal: '', discipline: DISCIPLINE, focus: null, brief: briefText });
   let question = open.filter((e) => e.event === 'token').map((e) => e.data.t).join('');
   let validation = open.find((e) => e.event === 'validation')?.data || {};
 
@@ -165,7 +165,7 @@ const DECLINE = /(you already asked|already answered|don'?t understand|doesn'?t 
     if (round === MAX_ROUNDS) break;
     const turn = await sse('/api/criticism/turn', {
       artefact: docText, goal: '', discipline: DISCIPLINE, message: reply,
-      segment: null, priorMessages: history.slice(0, -1), focus: null, concept: conceptText,
+      segment: null, priorMessages: history.slice(0, -1), focus: null, brief: briefText,
     });
     question = turn.filter((e) => e.event === 'token').map((e) => e.data.t).join('');
     validation = turn.find((e) => e.event === 'validation')?.data || {};
@@ -188,9 +188,9 @@ const DECLINE = /(you already asked|already answered|don'?t understand|doesn'?t 
   mkdirSync(outDir, { recursive: true });
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const file = join(outDir, `critique-conversation-${stamp}.json`);
-  writeFileSync(file, JSON.stringify({ doc: basename(DOC), concept: CONCEPT ? basename(CONCEPT) : null,
+  writeFileSync(file, JSON.stringify({ doc: basename(DOC), brief: BRIEF ? basename(BRIEF) : null,
     docChars: docText.length, segments: segments.length, blurIds, plan: stations, completeAt, rows }, null, 2));
   appendFileSync(join(APP, '..', 'docs', 'ops', 'flow-probe-log.md'),
-    `\n- **${stamp}** — critique conversation, \`${basename(DOC)}\`${CONCEPT ? ` + concept \`${basename(CONCEPT)}\`` : ''}: ${rows.length} rounds, ${visited.length}/${stations.stations.length} stations, complete at ${completeAt ?? '—'}, ${breaches.length} guard breaches, ${declines.length} declines. \`${basename(file)}\`\n`);
+    `\n- **${stamp}** — critique conversation, \`${basename(DOC)}\`${BRIEF ? ` + brief \`${basename(BRIEF)}\`` : ''}: ${rows.length} rounds, ${visited.length}/${stations.stations.length} stations, complete at ${completeAt ?? '—'}, ${breaches.length} guard breaches, ${declines.length} declines. \`${basename(file)}\`\n`);
   console.log(`transcript → ${file}`);
 })().catch((e) => { console.error('PROBE FAILED:', e.message); process.exit(1); });
