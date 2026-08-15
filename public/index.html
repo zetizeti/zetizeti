@@ -843,7 +843,7 @@
         </div>
         <div class="crit-open" id="critOpenRow">
           <button type="button" id="critOpenDoc">open a document to question</button>
-          <button type="button" class="secondary" id="critOpenConcept">add your project brief</button>
+          <button type="button" class="secondary" id="critOpenConcept" title="Context for the questions — your own brief. This is NOT where the reading goes; use 'open a document to question' for that.">add your project brief</button>
         </div>
         <div class="crit-ul-note" id="critUlNote" hidden></div>
         <div class="hint">read in this tab · nothing saved · <b>never scored or compared</b></div>
@@ -1156,7 +1156,7 @@ let critDocName='', critBriefName='';
 //
 // pdf.js is vendored at public/vendor/pdfjs (Apache-2.0, see the README there) rather than added to
 // package.json, because nothing on the server ever executes it.
-const PDFJS_VERSION='6.2.108';
+const PDFJS_VERSION='4.10.38-legacy';
 const DOC_MAX_CHARS=25000;                        // must match DOC_MAX in server.mjs — the server refuses past this
 let pdfjsLib=null;
 async function loadPdfJs(){
@@ -1251,7 +1251,23 @@ function readDocFile(file){
         }
         resolve({ text: clean, truncated: clean.length>DOC_MAX_CHARS ? clean.length : 0,
                   used: clean.length>DOC_MAX_CHARS ? clean.slice(0,DOC_MAX_CHARS) : clean });
-      }catch(e){ reject(new Error('That PDF could not be opened. If it is password-protected, remove the password and try again.')); }
+      }catch(e){
+        // 🔴 NEVER GUESS AT THE CAUSE. This used to say "if it is password-protected, remove the password"
+        // for EVERY failure, which on 15 August 2026 told a student their Google Doc export was encrypted
+        // when the real fault was that the vendored pdf.js required iterator helpers their browser did not
+        // have. A message that names one cause for every failure sends people to fix the wrong thing, and
+        // it cost an evening. Distinguish the two cases that actually occur, and put the real error where
+        // it can be read.
+        console.error('[zetizeti] PDF read failed:', e);
+        const msg = String(e && e.message || e);
+        if(/Iterator|withResolvers|structuredClone|is not a function|undefined is not an object|can't find variable/i.test(msg)){
+          reject(new Error('This browser is too old to read PDFs here. Open the link on a laptop, or update the browser — everything else on the page works either way. (' + msg.slice(0,80) + ')'));
+        } else if(/password|encrypt/i.test(msg)){
+          reject(new Error('That PDF is password-protected. Remove the password and open it again.'));
+        } else {
+          reject(new Error('That PDF could not be opened: ' + msg.slice(0,120) + '. Tell me and I will look.'));
+        }
+      }
     };
     if(isPdf) r.readAsArrayBuffer(file); else r.readAsText(file);
   });
@@ -1404,7 +1420,12 @@ function paintCritMode(){
   const doc = critMode==='document';
   if(t) t.setAttribute('aria-pressed', doc?'true':'false');
   if(v) v.textContent = doc ? 'a document' : 'what you paste';
-  if(openDoc) openDoc.hidden = !doc;
+  // 🔴 THE DOCUMENT CHIP IS ALWAYS VISIBLE. Hiding it in paste mode left "add your project brief" as the
+  // ONLY upload control on screen, so a student who wanted to question a reading opened it into the brief
+  // slot — the one place it would never be questioned. That happened within an hour of the link going out.
+  // A toggle may set a default; it must not remove the way to do the thing somebody came to do. Opening a
+  // document now switches the mode itself, so the toggle reports what is happening rather than gating it.
+  if(openDoc) openDoc.hidden = false;
   // The focus switch is shown only alongside a paste (Prayas, 15 Aug 2026). ⚠️ It still GOVERNS a document
   // critique — `critFocus` is sent on both endpoints either way — so hiding it hides a live constraint
   // rather than disabling one. It is reset to null on entering document mode so the hidden control can
@@ -1471,6 +1492,7 @@ function lockCritMode(){ const t=$('critModeToggle'); if(t){ t.disabled=true; t.
       const { text }=await readDocFile(file);
       if(critArtefact){ critNote('There is already a text under question here. Start a new critique to open a different one.', true); return; }
       critDocName=file.name;
+      if(critMode!=='document'){ critMode='document'; paintCritMode(); }   // the act declares the mode
       openCritDocument(trim(text));
       say(file, text);
       markSpecimenAsDocument(trim(text), file.name, text.length>DOC_MAX_CHARS);
