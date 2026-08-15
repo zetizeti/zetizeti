@@ -12,10 +12,12 @@ import { buildIndex, retrieve } from './lib/retrieval.mjs';
 import {
   loadMethodCore, buildSystemPrompt, buildTurnContext, validateOutput,
   loadCriticismCore, buildCriticismSystemPrompt, validateCriticismOutput,
-  CRITICISM_POINTERS, pickCriticismPointer, questionOpener, describeLocated,
+  CRITICISM_POINTERS, questionOpener, describeLocated,
 } from './lib/dialogue.mjs';
 import { readSensed } from './lib/sensed.mjs';
 import { qualify, toCanonSegments } from './lib/qualify.mjs';   // DETERMINISTIC, no-LLM qualification (locating)
+import { planFor, windowOf, conceptDigest } from './lib/plan.mjs';   // the reading plan — DETERMINISTIC, no LLM
+import { docFreq, informativeOf } from './lib/reading.mjs';          // engagement sensors — planner-only, never rendered
 import {
   googleConfigured, adminConfigured, emailIsAdmin, currentUser, logout, publicUser,
   beginGoogleAuth, handleGoogleCallback, guestAllowed, beginGuest,
@@ -768,6 +770,23 @@ app.post('/api/chat', requireUser, async (req, res) => {
 const sseHeaders = (res) => { res.setHeader('Content-Type', 'text/event-stream'); res.setHeader('Cache-Control', 'no-cache'); res.setHeader('Connection', 'keep-alive'); };
 const goalTermsOf = (g) => (String(g || '').toLowerCase().match(/[a-z0-9]+/g) || []).filter((t) => t.length > 2);
 
+// How much document either slot accepts — the text under question, and the project concept beside it.
+// Raised from 8,000 on 15 August 2026 so a PDF can be brought whole rather than as a hand-picked passage.
+// 🔴 THIS NUMBER IS ONLY SAFE BECAUSE OF WINDOWING. The artefact enters the system prompt on every single
+// turn; before lib/plan.mjs windowed it, raising this ceiling would have raised the per-turn bill in
+// direct proportion, against a lifetime ₹ cap that was set when the ceiling was 8,000. If windowing is
+// ever removed or bypassed, this must come back down in the same commit.
+const DOC_MAX = 25000;
+
+// The project concept, reduced to the passages that frame anything — who it is for, what it is mainly
+// for, what it commits to. Returns '' for an empty concept so every downstream `!!concept` check reads
+// false and a critique without a concept stays byte-identical to before.
+function digestConcept(text) {
+  if (!text) return '';
+  const segs = qualify(text).segments;
+  return conceptDigest(segs).text;
+}
+
 // Key resolution for the criticism SSE endpoints: the SAME tier switch as /api/chat (lib/cohorts.mjs).
 // AI_CLUB → own credit-engine key (usingPool=false); POOL_PERSONAL → the operator key, own-key billing
 // (usingPool=false, no caps); POOL_STUDENTS → the ORG key behind the hard caps; NONE → refused. Returns
@@ -806,19 +825,29 @@ async function resolveKeyForCriticism(req, res, send) {
 // Compose + stream ONE criticism question, guard it (verdict-drift, EVERY turn), and report its cost.
 // Shared by open + turn. Anchored to the artefact on every turn. Persists NOTHING — the client holds the
 // artefact, the reading, and the running transcript, and sends them back each turn.
-async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocated = null, discipline, goal, priorMessages, studentTurn, focus = null }) {
+async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocated = null, discipline, goal, priorMessages, studentTurn, focus = null, segments = [], blurIds = [], concept = '' }) {
   // Anti-sameness on the criticism surface (Siddhi, 16 Jul: it "constantly framing 'is this a property
   // or a verdict' to whatever answer I give"). This is the SAME machinery the enquiry path got on 13 Jul
   // and which this surface never had: watch the stone repeating ITSELF (selfEcho over its own prior
-  // questions), ROTATE the line of questioning (the pointer — verdict/blur is one aim among several), and
-  // de-correlate retrieval when it circles.
+  // questions), ROTATE the line of questioning, and de-correlate retrieval when it circles.
   const stoneTurns = priorMessages.filter((m) => m.role === 'stone').map((m) => m.content);
+  const studentTurns = priorMessages.filter((m) => m.role !== 'stone').map((m) => m.content);
   const selfEcho = computeSignals({ stoneTurns }).selfEcho;
-  // forcedLocated = the sensed blur on /open, or a spot the student explicitly clicked → the 'blur' line.
-  // Otherwise rotate through the pointer set (~3 questions each), advancing early if the stone is circling.
+
+  // THE PLAN (v0.15.0) — replaces `pickCriticismPointer`'s modulo clock. Which lines of questioning this
+  // document affords, over which regions, and which one is live now. Recomputed from the transcript the
+  // client posts back, so it holds no state; the walk advances early where the student's own words have
+  // reached a region and is capped by DWELL where they have not. lib/reading.mjs feeds the routing and
+  // NOTHING ELSE — it is not rendered, not persisted, and does not reach the prompt.
+  const plan = planFor({ segments, blurIds, studentTurns, stoneTurns, selfEcho });
+  // forcedLocated = the sensed blur on /open, or a spot the student explicitly CLICKED. A click is the
+  // student choosing the object, and it outranks the plan every time — the plan proposes, they dispose.
   let pointer, located;
   if (forcedLocated && forcedLocated.text) { pointer = CRITICISM_POINTERS[0]; located = forcedLocated; }
-  else { pointer = pickCriticismPointer({ stoneCount: stoneTurns.length, selfEcho }); located = null; }
+  else {
+    pointer = CRITICISM_POINTERS.find((p) => p.key === (plan.station && plan.station.key)) || CRITICISM_POINTERS[0];
+    located = null;
+  }
   const probe = (located && located.text) ? located.text : (studentTurn || artefact);
   // rotate retrieval off the previous turn's tensions when it's circling (recency filter, invariant #1 safe).
   const prevStudent = [...priorMessages].reverse().find((m) => m.role !== 'stone')?.content || '';
@@ -827,7 +856,20 @@ async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocat
     : [];
   let retrieved = retrieve(corpus, probe, { limit: 3, extraTerms: goalTermsOf(goal), discipline, excludeIds, focus });
   if (!retrieved.length && excludeIds.length) retrieved = retrieve(corpus, probe, { limit: 3, extraTerms: goalTermsOf(goal), discipline, focus });
-  const system = buildCriticismSystemPrompt(criticismCore, { artefact, located, posture: pointer.aim, retrieved, goal, focus });
+  // WINDOW the artefact. Under 8,000 characters this is byte-identical to what it always was — the whole
+  // text — so every paste that could have been made before this release behaves exactly as it did. Past
+  // that, only the live region goes in verbatim and the rest as opening words, bounded to WINDOW_BUDGET.
+  // Without this the 25,000-character ceiling would have multiplied the per-turn prompt about sixfold
+  // against a ₹12,000 lifetime cap that was sized for the old one.
+  const win = windowOf(artefact, segments, plan.region);
+  // Terms of the text under question, for the anchor half of the concept guard below. Computed from the
+  // WHOLE artefact rather than the window, deliberately: a question anchored in a passage the model saw on
+  // an earlier turn is still anchored in the text, and refusing it would punish continuity.
+  const artefactTerms = concept ? informativeOf(artefact, docFreq(segments)) : null;
+  const system = buildCriticismSystemPrompt(criticismCore, {
+    artefact: win.body, located, posture: pointer.aim, retrieved, goal, focus,
+    concept, windowNote: win.windowed ? win.skeleton : '',
+  });
   const messages = [
     ...priorMessages.map((m) => ({ role: m.role === 'stone' ? 'assistant' : 'user', content: m.content })),
     { role: 'user', content: studentTurn || (located ? `Point me at this spot: "${located.text}"` : '(continue questioning the text)') },
@@ -840,7 +882,7 @@ async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocat
   let qCost = 0;
   const guarded = await generateGuarded({
     mode: 'criticism',
-    validate: (t) => validateCriticismOutput(t, { focus }),  // verdict-drift guard EVERY turn (+ concept-only)
+    validate: (t) => validateCriticismOutput(t, { focus, concept: !!concept, artefactTerms }),  // verdict-drift EVERY turn (+ concept-only, + concept-as-object)
     generate: (correction) => streamQuestion({
       system,
       messages: (correction && correction.previous)
@@ -874,8 +916,15 @@ app.post('/api/criticism/open', requireUser, async (req, res) => {
   const goal = typeof b.goal === 'string' ? b.goal : '';
   const discipline = typeof b.discipline === 'string' ? b.discipline : 'all';
   const focus = b.focus === 'concept' ? 'concept' : null;
-  if (!text) { res.status(400).json({ error: 'Paste an AI text to question.' }); return; }
-  if (text.length > 8000) { res.status(413).json({ error: 'That text is long — paste a passage (up to ~8000 characters) to question.' }); return; }
+  // The student's own project concept, as CONTEXT for unpacking the text (v0.15.0). Never the object of
+  // the critique — buildCriticismSystemPrompt says so and validateCriticismOutput enforces it.
+  const conceptText = typeof b.concept === 'string' ? b.concept.trim() : '';
+  if (!text) { res.status(400).json({ error: 'Paste or open a text to question.' }); return; }
+  // 8,000 → 25,000 (v0.15.0). The ceiling could only move because lib/plan.mjs windows the artefact: the
+  // whole text used to enter the prompt on EVERY turn, so raising this without windowing would have
+  // multiplied the per-turn cost about sixfold against a ₹12,000 lifetime ceiling sized for the old number.
+  if (text.length > DOC_MAX) { res.status(413).json({ error: `That document is very long — bring up to about ${Math.round(DOC_MAX / 1000)},000 characters (roughly ten pages) to question.` }); return; }
+  if (conceptText.length > DOC_MAX) { res.status(413).json({ error: `That project concept is very long — bring up to about ${Math.round(DOC_MAX / 1000)},000 characters.` }); return; }
   sseHeaders(res);
   const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
   const key = await resolveKeyForCriticism(req, res, send); if (!key) return;
@@ -894,7 +943,11 @@ app.post('/api/criticism/open', requireUser, async (req, res) => {
     let located = null;
     if (ids.length) { const chosen = segments.find((s) => s.id === ids[0]) || segments[ids[0]]; if (chosen) located = { text: chosen.text, why: describeLocated(chosen), stage: chosen.sdc_stage, heldBy: chosen.judgement_held_by }; }
     send('status', { t: 'composing a question…' });
-    const { qCost } = await askCriticismQuestion({ send, apiKey: key.apiKey, meter: key.meter, artefact: text, forcedLocated: located, discipline, goal, priorMessages: [], studentTurn: null, focus });
+    const { qCost } = await askCriticismQuestion({
+      send, apiKey: key.apiKey, meter: key.meter, artefact: text, forcedLocated: located,
+      discipline, goal, priorMessages: [], studentTurn: null, focus,
+      segments, blurIds: ids, concept: digestConcept(conceptText),
+    });
     // Survival curve, depth 1: the paste that opened this critique. Counts only — see db.mjs.
     noteTurnDepth({ day: utcDay(), surface: 'criticism', version: BUILD.version, depth: 1 });
     if (key.meter) { addPoolSpend(utcDay(), req.user.id, qCost, key.poolFlag); if (key.usingPool) send('pool', poolEvent(req.user.id)); }
@@ -915,17 +968,28 @@ app.post('/api/criticism/turn', requireUser, async (req, res) => {
   const focus = b.focus === 'concept' ? 'concept' : null;
   const priorMessages = Array.isArray(b.priorMessages) ? b.priorMessages : [];
   const seg = b.segment && typeof b.segment.text === 'string' ? b.segment : null;
+  const conceptText = typeof b.concept === 'string' ? b.concept.trim() : '';
   if (!artefact) { res.status(400).json({ error: 'No text under question.' }); return; }
+  if (artefact.length > DOC_MAX || conceptText.length > DOC_MAX) { res.status(413).json({ error: 'That document is longer than this surface accepts.' }); return; }
   sseHeaders(res);
   const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
   const key = await resolveKeyForCriticism(req, res, send); if (!key) return;
   try {
     const located = seg ? { text: seg.text, why: describeLocated(seg), stage: seg.sdc_stage, heldBy: seg.judgement_held_by } : null;
+    // RE-QUALIFY EVERY TURN (v0.15.0). This endpoint never segmented the artefact before — it only ever
+    // used a spot the student had clicked — and the plan needs the document's segments to know where it is.
+    // Recomputing from the artefact the client posts back keeps the surface stateless and keeps one source
+    // of truth: qualify() is deterministic, so these are the same segments /open produced, and taking them
+    // from the client instead would mean two paths that can disagree.
+    const segments = qualify(artefact).segments;
+    const reading = readSensed({ segments: toCanonSegments(segments) });
+    const blurIds = reading.strict.conflation_segment_ids || [];
     send('status', { t: 'composing a question…' });          // the question is buffered until it passes the guard
     const { qCost } = await askCriticismQuestion({
       send, apiKey: key.apiKey, meter: key.meter,
       artefact, forcedLocated: located, discipline, goal,
       priorMessages, studentTurn: message || null, focus,
+      segments, blurIds, concept: digestConcept(conceptText),
     });
     // Survival curve. The client's own transcript carries the depth, so no session id exists here either:
     // depth = the number of questions this critique has now delivered, counting this one. priorMessages is

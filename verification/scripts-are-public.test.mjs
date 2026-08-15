@@ -43,6 +43,10 @@ const SCRIPTS = join(dirname(fileURLToPath(import.meta.url)), '../scripts');
 /** Declared fine to publish. Recorded 13 August 2026. */
 const PUBLIC_SCRIPTS = [
   'audit-criticism.mjs',
+  // Drives the real /api/criticism endpoints over many rounds with a play-acted student. Carries no
+  // material of its own — the document and the concept arrive as --doc= and --concept=, pointed at
+  // docs/ops/fixtures/, which is publish-excluded. Added 15 August 2026.
+  'critique-conversation-probe.mjs',
   'dialogue-probe.mjs',
   'featherless-arena-gens.json',
   'featherless-arena-result.json',

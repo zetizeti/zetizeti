@@ -17,7 +17,7 @@
 //   OPENROUTER_API_KEY=sk-or-... node scripts/audit-criticism.mjs
 //   OPENROUTER_API_KEY=sk-or-... node scripts/audit-criticism.mjs "paste any text to question here"
 //
-// RUN (on the blevn server, against the real env/pool key):
+// RUN (on the myplaceholder server, against the real env/pool key — the app moved off blevn 24 Jul 2026):
 //   OPENROUTER_API_KEY="$OPENROUTER_API_KEY" node scripts/audit-criticism.mjs
 //
 // WITHOUT a key: the deterministic half still runs (qualify + locate + retrieve + the `why` trail);
@@ -134,10 +134,16 @@ async function runCase(tc, i) {
   // 🔴 POSTURE — the route ALWAYS passes one, and this harness passed none until 11 Aug 2026, which
   // invalidated the 9 Aug gloss-vs-enum comparison. For a LOCATED turn the route does NOT rotate:
   // server.mjs `if (forcedLocated && forcedLocated.text) { pointer = CRITICISM_POINTERS[0]; ... }`.
-  // pickCriticismPointer runs only when located === null. So the faithful posture here is the fixed
-  // `blur` aim — and note that that aim instructs "whose call is that word making", which is the very
-  // frame the 9 Aug run scored as "collapse". It was measuring collapse with the instruction that
-  // mandates the frame switched off.
+  // The rotation runs only when located === null. So the faithful posture here is the fixed `blur` aim —
+  // and note that that aim instructs "whose call is that word making", which is the very frame the 9 Aug
+  // run scored as "collapse". It was measuring collapse with the instruction that mandates the frame
+  // switched off.
+  // ⚠️ CORRECTED 15 August 2026: this said "pickCriticismPointer runs only when located === null". That
+  // function no longer steers the route at all — lib/plan.mjs composes a per-document plan and picks the
+  // station (v0.15.0). The sentence's POINT is unchanged and still holds, because a located turn still
+  // short-circuits ahead of whatever chooses the aim. But this harness now diverges from the route on
+  // unlocated turns, where the route asks the plan and this asks nothing: a comparison run here is no
+  // longer faithful for those, and reading one as though it were would repeat the 9 August error exactly.
   const posture = located ? CRITICISM_POINTERS[0].aim : '';
   const system = buildCriticismSystemPrompt(criticismCore, { artefact: tc.text, located, posture, retrieved, goal: tc.goal });
   const messages = [

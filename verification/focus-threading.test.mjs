@@ -76,7 +76,12 @@ test('the focus is whitelisted to the exact string at every entry point', () => 
 
 // Both guards must actually receive it, or enforcement silently degrades to the prompt alone — which
 // this project has twice measured to be no enforcement at all.
+// ⚠️ The criticism assertion used to pin the EXACT argument list — `validateCriticismOutput(t, { focus })`
+// — and broke on 15 August 2026 the moment the concept guard added two more arguments to a call that was
+// still passing focus correctly. A test that pins a shape fails on every addition and says nothing about
+// the property it exists to protect. It now reads like the enquiry half beside it, which had the loose
+// form all along: focus must reach the guard, and what else travels with it is not this test's business.
 test('both validators are called with the focus', () => {
   assert.match(SERVER, /validateOutput\(t,\s*\{[^}]*\bfocus\b/s, 'the enquiry guard must receive focus');
-  assert.match(SERVER, /validateCriticismOutput\(t,\s*\{\s*focus\s*\}\)/, 'the criticism guard must receive focus');
+  assert.match(SERVER, /validateCriticismOutput\(t,\s*\{[^}]*\bfocus\b/s, 'the criticism guard must receive focus');
 });

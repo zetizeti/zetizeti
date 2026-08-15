@@ -87,6 +87,7 @@
   .topbar{position:fixed; top:0; left:0; right:0; z-index:7; display:flex; align-items:center; justify-content:space-between;
     padding:14px 28px; background:linear-gradient(var(--cobalt) 60%, transparent)}
   .topbar[hidden]{display:none}
+  html{scroll-padding-top:86px}
   .topbar .tb-brand{display:flex; align-items:center; gap:12px; cursor:pointer}
   .topbar .tb-brand h1{font-family:var(--display); font-weight:400; font-size:24px; color:var(--bone); line-height:1}
   .topbar .tb-brand .tb-logo{height:28px; width:auto; display:block}
@@ -104,7 +105,14 @@
   /* composer clearance ONLY where a fixed composer floats over the text — the conversation and
      critique-chat views. Anywhere else 230px of phantom bottom space forces a scrollbar on
      views that would otherwise fit the screen. */
-  #view-conversation .wrap, #view-criticism-chat .wrap, #view-author .wrap{padding-bottom:230px}
+  #view-conversation .wrap, #view-author .wrap{padding-bottom:230px}
+  /* 🔴 THE CRITIQUE COMPOSER IS TALLER THAN THE OTHERS AND ITS HEIGHT VARIES, so its clearance is
+     MEASURED, never guessed. It carries two extra rows the enquiry composer does not — the open-a-document
+     links and the note that reports which file was opened — and that note wraps to one or two lines
+     depending on the filename. A static 230px was correct before those rows existed and silently became
+     40px short after: the fixed composer then sat on top of the stone's latest question, which is a
+     failure only visible by rendering. --composer-h is set from a ResizeObserver below. */
+  #view-criticism-chat .wrap{padding-bottom:calc(var(--composer-h, 230px) + 56px)}
   .wrap.short{padding-bottom:90px}
   /* the landing is ONE screen — topbar is hidden here, so use the full viewport and centre the
      content; never inherit the composer-clearance bottom padding that would force a scroll. */
@@ -357,6 +365,23 @@
     66%{transform:scale(1.03,1.00) rotate(-1.1deg)}
     100%{transform:scale(1,1) rotate(0deg)}}
   @media(prefers-reduced-motion:reduce){ .edge::before{animation:none} }
+  /* 🔴 THE WASH BEHIND THE CRITIQUE SPECIMEN IS SOFTENED, and this is a signature fix rather than a
+     compromise of one. `edgeBlob` breathes the painted mass by up to 11% vertically over 16s — right, and
+     unnoticeable while the panel held a short pasted paragraph. A document panel holds a HARD-BORDERED
+     specimen box, so the reader has two edges to compare and reads the breathing gap between them as the
+     container's padding growing and shrinking. Prayas, 15 Aug 2026: "the padding keeps reducing/increasing."
+     The cause is `filter:blur(1px)` — a 1px blur on a large mass is a geometric SHAPE with a definite edge,
+     which is what the skill's "soft-edged colour masses, not hard geometric shapes" rules out. Blurred
+     properly it becomes a wash again, and a wash has no boundary to measure a rectangle against. The
+     amplitude is eased too, so the breath stays and the pulse does not. Scoped to this panel; the enquiry
+     surface's edge is untouched. */
+  #critArtefact::before{filter:blur(16px); opacity:.92; animation:edgeBlobSoft 22s ease-in-out infinite}
+  @keyframes edgeBlobSoft{
+    0%{transform:scale(1,1) rotate(0deg)}
+    33%{transform:scale(1.03,1.05) rotate(.6deg)}
+    66%{transform:scale(1.02,1.00) rotate(-.5deg)}
+    100%{transform:scale(1,1) rotate(0deg)}}
+  @media(prefers-reduced-motion:reduce){ #critArtefact::before{animation:none} }
   .edge[hidden]{display:none}
   .edge-label{font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:rgba(244,231,200,.62); margin-bottom:9px}
   .edge-text{font-family:var(--text); font-weight:400; font-style:italic; font-size:19px; line-height:1.5; color:var(--goldtext); max-width:54ch}
@@ -425,6 +450,82 @@
   .send:hover{transform:translateY(-2px)} .send:disabled{opacity:.4; cursor:default; transform:none}
   .hint{margin-top:12px; font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; color:var(--faint)}
   .hint b{color:var(--goldtext); font-weight:500}
+  /* bringing a document in — the critique surface only. Hard edges, mono, no rounded box: the brand's
+     rule, and these sit in the composer beside .hint so they must read as the same family of machinery. */
+  /* BRINGING A DOCUMENT IN IS THE POINT OF THIS SURFACE, so it gets a real affordance rather than a 10px
+     underlined word. These share the grammar of `.dl-transcript` — the established chip idiom on this page
+     — because they do the same job at the same level (correction (c), 3 Jun 2026: same-job components must
+     share grammar, and any difference must be conscious and nameable). Hard edges, no radius. */
+  .crit-open{margin-top:12px; display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+  .crit-open[hidden]{display:none}
+  .crit-open button{font-family:var(--mono); font-size:11.5px; letter-spacing:.09em; cursor:pointer;
+    color:var(--goldtext); border:1px solid rgba(240,179,36,.5); background:rgba(240,179,36,.08);
+    padding:9px 16px; border-radius:0; transition:color .18s, border-color .18s, background .18s}
+  .crit-open button:hover{color:var(--gold-bright); border-color:var(--gold-bright); background:rgba(240,179,36,.15)}
+  /* The concept is context, not the object — subordinate treatment, no fill, so the two are not peers. */
+  .crit-open button.secondary{color:rgba(244,231,200,.72); border-color:rgba(244,231,200,.28); background:none}
+  .crit-open button.secondary:hover{color:var(--gold-bright); border-color:rgba(240,179,36,.6); background:rgba(240,179,36,.06)}
+  /* 🔴 The raw inputs must be unreachable, not merely `hidden`. During testing a stray hidden=false put two
+     native "Choose file" buttons on the page, and a native control is the one thing on this surface that
+     cannot be made to look like it belongs. Clipped out of the layout entirely. */
+  .file-sink{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
+    clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; border:0}
+  .crit-ul-note{margin-top:8px; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; line-height:1.5; color:rgba(244,231,200,.62); max-width:none}
+  .crit-ul-note[hidden]{display:none}
+  .crit-ul-note.bad{color:var(--vermilion)}
+  .edge-clear{font-family:var(--mono); font-size:10px; letter-spacing:.1em; color:var(--vermilion); cursor:pointer; margin-left:12px}
+  .edge-clear:hover{color:var(--gold-bright)}
+  /* THE CONCEPT IS GROUND, NOT A SECOND SHEET.
+     First version made it a second bordered specimen box under the artefact: two equal hard rectangles
+     stacked down the middle, which is three things this hand refuses at once — rectangular cards, a
+     symmetric centred stack, and the active void filled in. It also said nothing compositionally about
+     which of the two documents was under question; only the label did, and a label is not a composition.
+     So: the artefact keeps the floated sheet and stays the lone protagonist. The concept sits directly on
+     the painted ground with no border and no box, dimmer and smaller, reading as something standing
+     BEHIND the specimen rather than beside it. Collapsed to two lines, because context is glanced at and
+     not read. The vermilion arrives as a soft MASS bleeding from the left edge (red is a mass in this
+     hand, never a line) — enough to mark the passage as the student's own material. */
+  /* 🔴 ALIGNS WITH THE CONVERSATION, NOT WITH THE SHEET. Three left edges were running down this page —
+     the stone's questions at the wrap's own margin, the specimen inset by the floated sheet's 40px padding,
+     and this block at 26px, aligned to neither. Things that sit ON the ground share the ground's edge; the
+     sheet is inset because it is a sheet. The vermilion mass moves out into the page margin, which is a
+     better place for it anyway: a mark in the margin rather than an indent pushing the text right. */
+  .crit-context{position:relative; margin:6px 0 26px; padding:2px 0; isolation:isolate}
+  .crit-context[hidden]{display:none}
+  .crit-context::before{content:""; position:absolute; left:-40px; top:-8px; width:74px; bottom:-8px;
+    z-index:-1; background:radial-gradient(60% 50% at 22% 50%, rgba(216,72,48,.46), rgba(216,72,48,.14) 55%, transparent 72%);
+    filter:blur(9px)}
+  .crit-context .ctx-label{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase;
+    color:rgba(244,231,200,.5); display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
+  .crit-context .ctx-body{font-family:var(--text); font-style:italic; font-size:14.5px; line-height:1.55;
+    color:rgba(244,231,200,.62); max-width:52ch; margin-top:5px;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+  .crit-context.open .ctx-body{-webkit-line-clamp:unset; max-height:22vh; overflow:auto}
+  .ctx-act{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase;
+    color:rgba(244,231,200,.5); background:none; border:0; padding:0; cursor:pointer}
+  .ctx-act:hover{color:var(--gold-bright)}
+  .spec-head{margin:2px 0 4px}
+  .spec-head[hidden]{display:none}
+  .spec-title{font-family:var(--display); font-weight:400; font-size:23px; line-height:1.2; color:var(--goldtext)}
+  .spec-meta{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+    color:rgba(244,231,200,.46); margin-top:6px}
+  /* A DOCUMENT IS CLAMPED; A PASTE IS NOT. Unclamped, a long document made the panel tall enough to push
+     the page into a scroll, which slid the save/focus controls under the TRANSLUCENT topbar — they showed
+     half-cut, which reads as missing padding rather than as scrolling. Clamping removes the cause. */
+  /* Clamp on the LINE GRID, not with -webkit-line-clamp: the vendor box computed as flow-root here, so the
+     clamp silently did nothing and the box cut mid-line — which reads as a rendering fault rather than as
+     "there is more below". line-height is 1.62, so six lines is 9.72em exactly, and a mask fades the last
+     one instead of slicing it. */
+  .crit-specimen.doc{max-height:9.72em; overflow:hidden;
+    -webkit-mask-image:linear-gradient(#000 76%, transparent 99%); mask-image:linear-gradient(#000 76%, transparent 99%)}
+  .crit-specimen.doc.open{max-height:42vh; overflow:auto; -webkit-mask-image:none; mask-image:none}
+  .spec-more{margin-top:9px}
+  .spec-more[hidden]{display:none}
+  .ctx-acts{display:inline-flex; align-items:baseline; gap:8px; margin-left:6px}
+  .ctx-dot{color:rgba(244,231,200,.28)}
+  /* On a short viewport the specimen plus the stream plus the fixed composer collide, and the first
+     question ends up UNDER the composer — which is where this landed before it was rendered and looked at. */
+  @media(max-height:860px){ .crit-specimen{max-height:22vh} .crit-context .ctx-body{-webkit-line-clamp:1} }
   .backlink{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--muted); cursor:pointer; display:inline-block; margin-bottom:6px}
   /* the transcript download — since nothing is saved server-side, this is the ONLY way a
      student's work survives the tab. Lifted from a faint footnote into a gold machinery chip. */
@@ -449,14 +550,44 @@
     letter-spacing:.09em; text-transform:uppercase; color:var(--turq); cursor:pointer;
     border:1px solid rgba(24,192,192,.42); background:rgba(24,192,192,.07); padding:7px 13px;
     margin-left:14px; transition:border-color .18s, background .18s}
+  .focus-toggle[hidden]{display:none}
   .focus-toggle:hover{border-color:var(--turq); background:rgba(24,192,192,.14)}
   .focus-toggle .sw{width:9px; height:9px; flex:none; align-self:center; border:1px solid var(--turq);
     background:transparent; transition:background .18s, box-shadow .18s}
   .focus-toggle .lbl{color:var(--faint); letter-spacing:.11em}
-  .focus-toggle .val{color:var(--turq)}
+  /* 🔴 THE WIDTH IS RESERVED ARITHMETICALLY. A toggle whose two labels differ in width reflows its own row
+     on every click — the control jumps, its neighbour slides, the top row flashes.
+     Two wrong fixes preceded this one and both are worth remembering. MEASURING the labels at runtime
+     needed the element visible, so it landed a beat late and the first click still jumped. Reserving with a
+     hidden `::before` carrying the longer string was worse: `display:block` puts the real label on a SECOND
+     LINE even at zero height, which doubled the height of both toggles, wrapped the whole top row onto two
+     lines, and pushed the stone's question back under the composer.
+     These labels are set in a MONOSPACE face, so their width is exact arithmetic and needs no box and no
+     measurement: n characters at (1ch + the letter-spacing). The character counts are named below; if a
+     label is reworded, recount it. */
+  .focus-toggle .val{color:var(--turq); display:inline-block; text-align:left}
+  #focusVal, #critFocusVal{min-width:calc(12 * (1ch + 0.09em))}   /* "concept only" — 12 chars, the wider of the two */
+  #critModeVal{min-width:calc(14 * (1ch + 0.09em))}               /* "what you paste" — 14 chars, the wider of the two */
   .focus-toggle[aria-pressed="true"]{border-color:var(--turq); background:rgba(24,192,192,.16)}
   .focus-toggle[aria-pressed="true"] .sw{background:var(--turq); box-shadow:0 0 10px rgba(24,192,192,.8)}
   .focus-toggle[aria-pressed="false"] .val{color:var(--muted)}
+  /* THE MODE TOGGLE shares .focus-toggle's grammar exactly — switch dot, mono label, hard edges — because
+     they are the same job at the same level (correction (c), 3 Jun 2026). The difference is conscious and
+     nameable: the focus toggle constrains WHAT MAY BE ASKED and lives in turquoise; this one chooses WHAT
+     YOU BRING and lives in the gold register, with the document chips it governs. Two switches in the same
+     colour side by side would read as one control with two halves. */
+  .crit-controls{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin:14px 0 2px}
+  .crit-controls .focus-toggle{margin-left:0}
+  .mode-toggle{color:var(--goldtext); border-color:rgba(240,179,36,.42); background:rgba(240,179,36,.07)}
+  .mode-toggle:hover{border-color:var(--gold-bright); background:rgba(240,179,36,.14)}
+  .mode-toggle .sw{border-color:var(--gold-bright)}
+  .mode-toggle .val{color:var(--gold-bright)}
+  .mode-toggle[aria-pressed="true"]{border-color:var(--gold-bright); background:rgba(240,179,36,.16)}
+  .mode-toggle[aria-pressed="true"] .sw{background:var(--gold-bright); box-shadow:0 0 10px rgba(240,179,36,.75)}
+  .mode-toggle[aria-pressed="false"] .val{color:var(--goldtext)}
+  /* Locked once a critique has started — the object cannot change under a conversation about it. */
+  .mode-toggle[disabled]{opacity:.42; cursor:default; border-color:rgba(240,179,36,.22); background:none}
+  .mode-toggle[disabled]:hover{border-color:rgba(240,179,36,.22); background:none}
 
   @keyframes rise{from{opacity:0; transform:translateY(13px)} to{opacity:1; transform:none}}
   @media(max-width:640px){ .mark h1{font-size:32px} .turn.stone .body{font-size:20px} .edge-text{font-size:17px} .topbar{padding:12px 16px} .topbar nav{gap:14px} }
@@ -557,7 +688,7 @@
     <div class="wrap">
       <span class="backlink" id="convBack">‹ new enquiry</span>
       <span class="dl-transcript" id="dlTranscript" hidden><span class="dl-lead">↓ save your transcript</span> <a id="dlMd">.md</a> <span class="dl-sep">·</span> <a id="dlPdf">.pdf</a></span>
-      <button class="focus-toggle" id="focusToggle" aria-pressed="false" title="Ask about the idea only — not how it would be made, produced, repaired, or what it would cost to produce."><span class="sw" aria-hidden="true"></span><span class="lbl">asking about</span> <span class="val" id="focusVal">everything</span></button>
+      <button class="focus-toggle" id="focusToggle" aria-pressed="false" title="Ask about the idea only — not how it would be made, produced, repaired, or what it would cost to produce."><span class="sw" aria-hidden="true"></span><span class="lbl">asking about</span> <span class="val" id="focusVal" data-widest="concept only">everything</span></button>
       <div class="edge" id="edge" hidden>
         <div class="edge-label">the edge — what you're sharpening</div>
         <div class="edge-text" id="edgeText"></div>
@@ -672,10 +803,35 @@
     <div class="wrap">
       <span class="backlink" id="critChatBack">‹ back</span>
       <span class="dl-transcript" id="dlCritTranscript" hidden><span class="dl-lead">↓ save your critique</span> <a id="critDlMd">.md</a> <span class="dl-sep">·</span> <a id="critDlPdf">.pdf</a></span>
-      <button class="focus-toggle" id="critFocusToggle" aria-pressed="false" title="Question the idea only — not how the thing would be made, produced, repaired, or what it would cost to produce."><span class="sw" aria-hidden="true"></span><span class="lbl">asking about</span> <span class="val" id="critFocusVal">everything</span></button>
+      <!-- The two switches are a SETTINGS ROW of their own. Inline beside ‹back and the save chip they
+           overflowed the column and wrapped, and the wrap point moved as the labels changed — so the row
+           re-laid itself out on every toggle. A deliberate second row cannot wrap and cannot surprise. -->
+      <div class="crit-controls">
+        <button class="focus-toggle mode-toggle" id="critModeToggle" aria-pressed="false" title="Choose what you are bringing: something you paste or type, or a document you open."><span class="sw" aria-hidden="true"></span><span class="lbl">questioning</span> <span class="val" id="critModeVal" data-widest="what you paste">what you paste</span></button>
+        <button class="focus-toggle" id="critFocusToggle" aria-pressed="false" title="Question the idea only — not how the thing would be made, produced, repaired, or what it would cost to produce."><span class="sw" aria-hidden="true"></span><span class="lbl">asking about</span> <span class="val" id="critFocusVal" data-widest="concept only">everything</span></button>
+      </div>
       <div class="edge" id="critArtefact" hidden>
         <div class="edge-label">the text you're questioning</div>
+        <!-- A DOCUMENT MUST SAY WHAT IT IS. A pasted paragraph is self-evident in the box; ten pages of
+             extracted PDF in a scrollbox is a wall that answers none of "is this a summary? an excerpt?
+             the whole thing?". This header appears ONLY when a document was opened — a paste renders
+             exactly as it always has. -->
+        <div class="spec-head" id="critSpecHead" hidden>
+          <div class="spec-title" id="critSpecTitle"></div>
+          <div class="spec-meta" id="critSpecMeta"></div>
+        </div>
         <div class="edge-text crit-specimen" id="critArtefactText"></div>
+        <button class="ctx-act spec-more" id="critSpecMore" hidden>read the whole document</button>
+      </div>
+      <!-- The student's own project, as CONTEXT for unpacking the text — never the object of the critique.
+           Deliberately NOT a second specimen sheet: it sits on the ground, dimmer and clamped, so the
+           composition itself says which document is under question and which is standing behind it. -->
+      <div class="crit-context" id="critConcept" hidden>
+        <div class="ctx-label">
+          <span>your project · context only, never questioned</span>
+          <span class="ctx-acts"><button class="ctx-act" id="critConceptMore">more</button><span class="ctx-dot">·</span><button class="ctx-act" id="critConceptClear">remove</button></span>
+        </div>
+        <div class="ctx-body" id="critConceptText"></div>
       </div>
       <main id="critChatStream"></main>
     </div>
@@ -685,8 +841,15 @@
           <textarea id="critChatInput" rows="1" placeholder="Paste an idea, claim, or answer you want to stress-test…"></textarea>
           <button class="send" id="critChatSend" title="Send">→</button>
         </div>
-        <div class="hint">nothing saved · <b>never scored or compared</b></div>
+        <div class="crit-open" id="critOpenRow">
+          <button type="button" id="critOpenDoc">open a document to question</button>
+          <button type="button" class="secondary" id="critOpenConcept">add your project concept</button>
+        </div>
+        <div class="crit-ul-note" id="critUlNote" hidden></div>
+        <div class="hint">read in this tab · nothing saved · <b>never scored or compared</b></div>
       </div>
+      <input id="ulCritDoc" class="file-sink" type="file" accept=".pdf,application/pdf,.md,.txt,text/markdown,text/plain" tabindex="-1" aria-hidden="true" />
+      <input id="ulCritConcept" class="file-sink" type="file" accept=".pdf,application/pdf,.md,.txt,text/markdown,text/plain" tabindex="-1" aria-hidden="true" />
     </div>
   </section>
 
@@ -971,7 +1134,128 @@ $('aboutBack').addEventListener('click', ()=>go('/'));
 // artefact + the running transcript and sends them with each turn. Endpoints: POST /api/criticism/open
 // (paste → reading + first question) and POST /api/criticism/turn (artefact + transcript → next question).
 // The chat reuses the conversation view's .turn/.composer/.edge CSS; no p5 viz.
-let critDiscipline='all', critArtefact=null, critHistory=[], critReading=null;
+let critDiscipline='all', critArtefact=null, critHistory=[], critReading=null, critConcept='';
+/**
+ * WHAT THE STUDENT IS BRINGING. 'paste' is the surface as it existed before documents — type or paste into
+ * the composer and the first send becomes the text under question. 'document' opens a file instead.
+ *
+ * 🔴 'paste' IS THE DEFAULT AND MUST STAY THE DEFAULT. It is the behaviour every existing user has, and the
+ * whole reason documents could be added without disturbing them: on this setting the surface is what it
+ * always was, down to the placeholder. A student who never touches this toggle sees no change at all.
+ */
+let critMode='paste';
+// The filenames behind whatever is loaded, so the state line can name them rather than say "a document".
+let critDocName='', critConceptName='';
+
+// ───────────────────────── bringing a document in, entirely in this tab ─────────────────────────
+// 🔴 THE FILE NEVER REACHES THE SERVER, and that is the whole reason this is done here rather than as an
+// upload endpoint. It is the same path parseTranscriptMd already uses to pick up a saved critique: chosen
+// with a hidden <input type=file>, read with FileReader, parsed in the browser. Only the EXTRACTED TEXT
+// travels, in the turn body, exactly as a paste always has — so the ephemeral pivot is untouched and needs
+// no new claim defending it. The service cannot retain a document it never receives.
+//
+// pdf.js is vendored at public/vendor/pdfjs (Apache-2.0, see the README there) rather than added to
+// package.json, because nothing on the server ever executes it.
+const PDFJS_VERSION='6.2.108';
+const DOC_MAX_CHARS=25000;                        // must match DOC_MAX in server.mjs — the server refuses past this
+let pdfjsLib=null;
+async function loadPdfJs(){
+  if(pdfjsLib) return pdfjsLib;
+  pdfjsLib=await import('./vendor/pdfjs/pdf.min.mjs');
+  pdfjsLib.GlobalWorkerOptions.workerSrc='./vendor/pdfjs/pdf.worker.min.mjs';
+  return pdfjsLib;
+}
+/**
+ * Extract the text layer, page by page, with a blank line between pages so segmentation does not run the
+ * last sentence of one page into the first of the next.
+ *
+ * 🔴 THE ITEMS ARE NOT WORDS, AND JOINING THEM WITH A SPACE CORRUPTS THE TEXT. pdf.js splits a run
+ * wherever the PDF changes kerning, so "progressive" arrives as "progr" + "essive"; joined with a space it
+ * became "progr essive disclosure" on the very first PDF tested. That is not cosmetic here — everything
+ * downstream is exact-word matching. `progressive` would miss its lexicon, the segment would tag wrong, the
+ * affordance rules would not fire, and the whole plan would quietly be built on damaged text while every
+ * test still passed, because the tests use pasted strings.
+ *
+ * So spacing is decided by GEOMETRY, not by joining: a new line when the baseline moves, a space when the
+ * horizontal gap is wide enough to be one, and direct concatenation otherwise. Both failure directions are
+ * real — PDFs that carry explicit space characters, and PDFs that space words only by position — and this
+ * reads the position either way.
+ */
+async function pdfToText(buf){
+  const lib=await loadPdfJs();
+  const doc=await lib.getDocument({ data:buf }).promise;
+  const pages=[];
+  for(let p=1;p<=doc.numPages;p++){
+    const page=await doc.getPage(p);
+    const content=await page.getTextContent();
+    let out='', prev=null;
+    for(const it of content.items){
+      if(typeof it.str!=='string') continue;
+      if(it.str===''){ if(it.hasEOL) prev=null, out+='\n'; continue; }
+      const x=it.transform ? it.transform[4] : 0, y=it.transform ? it.transform[5] : 0;
+      const size=it.height || 10;
+      if(prev){
+        if(Math.abs(y-prev.y) > size*0.5){ out+='\n'; }                       // baseline moved — a new line
+        else {
+          const gap = x - (prev.x + (prev.w||0));
+          const needsSpace = gap > size*0.2 && !/\s$/.test(out) && !/^\s/.test(it.str);
+          if(needsSpace) out+=' ';
+        }
+      }
+      out+=it.str;
+      prev={ x, y, w: it.width||0 };
+      if(it.hasEOL){ out+='\n'; prev=null; }
+    }
+    // Rejoin a word the typesetter hyphenated across a line break, THEN turn soft-wrapped lines into
+    // spaces; a blank line stays a paragraph break.
+    //
+    // ⚠️ A KNOWN AND UNFIXABLE LIMIT, recorded rather than papered over. A line break with no hyphen is
+    // indistinguishable from a word boundary, so a PDF that wraps mid-word without hyphenating comes out
+    // with a space inside the word — "progr essive". Joining every broken line without a space would be far
+    // worse, since a line break IS a word boundary almost every time. Properly typeset PDFs (Word, InDesign,
+    // LaTeX, the md-to-pdf route) break at word boundaries or hyphenate, and both are handled. Fixed-width
+    // renderings of plain text are the case that suffers, and no dictionary-free rule can tell them apart.
+    pages.push(out
+      .replace(/[ \t]+/g,' ')
+      .replace(/([A-Za-z])-\n([a-z])/g,'$1$2')       // hyphenated across a break → one word
+      .replace(/([^\n])\n(?!\n)/g,'$1 ')             // soft wrap → space
+      .replace(/ +\n/g,'\n')
+      .trim());
+  }
+  return pages.filter(Boolean).join('\n\n');
+}
+/**
+ * Read a chosen file to text. Resolves {text} or rejects with a message a student can act on.
+ *
+ * 🔴 A SCANNED PDF IS REFUSED, NOT PASSED THROUGH. A PDF of photographed pages has no text layer, so
+ * extraction returns nothing or a handful of stray characters. Sending that on would open a critique
+ * against an empty document: the locator would find no spots, the plan would fall back to its rotation,
+ * and the stone would ask perfectly well-formed questions about nothing at all — a failure that looks
+ * exactly like the tool working. Better to say plainly that the file has no text in it.
+ */
+function readDocFile(file){
+  return new Promise((resolve,reject)=>{
+    const name=(file.name||'').toLowerCase();
+    const isPdf = file.type==='application/pdf' || name.endsWith('.pdf');
+    const r=new FileReader();
+    r.onerror=()=>reject(new Error('That file could not be read. Try opening it again.'));
+    r.onload=async ()=>{
+      try{
+        const text = isPdf ? await pdfToText(new Uint8Array(r.result)) : String(r.result||'');
+        const clean=text.replace(/\r\n?/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+        if(clean.length<40){
+          reject(new Error(isPdf
+            ? 'That PDF has no text in it — it is probably a scan or photographs of pages. This reads text, not images, so it cannot open that one.'
+            : 'That file is empty, or too short to question.'));
+          return;
+        }
+        resolve({ text: clean, truncated: clean.length>DOC_MAX_CHARS ? clean.length : 0,
+                  used: clean.length>DOC_MAX_CHARS ? clean.slice(0,DOC_MAX_CHARS) : clean });
+      }catch(e){ reject(new Error('That PDF could not be opened. If it is password-protected, remove the password and try again.')); }
+    };
+    if(isPdf) r.readAsArrayBuffer(file); else r.readAsText(file);
+  });
+}
 
 // ───────── the CONCEPT-ONLY focus (12 Aug 2026) ─────────
 // "a switch to ask the stone to focus only on concept not making." Each surface holds its own state:
@@ -1005,22 +1289,218 @@ $('critChatInput').addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shi
 // The immersive chat — SAME layout as enquiries, minus the p5 viz. The bottom composer is the only
 // input: the FIRST send is the pasted AI text (creates the critique); later sends are your responses.
 function openNewCritique(){
-  critArtefact=null; critHistory=[]; critReading=null;
+  critArtefact=null; critHistory=[]; critReading=null; critConcept='';
   showView('criticism-chat');
   $('critChatStream').innerHTML='';
-  $('critArtefact').hidden = true; $('critArtefactText').textContent='';
+  $('critArtefact').hidden = true; $('critArtefactText').textContent=''; clearSpecimenDressing();
+  $('critConcept').hidden = true; $('critConcept').classList.remove('open'); $('critConceptText').textContent='';
+  $('critOpenRow').hidden = false; critNote('');
+  $('critOpenDoc').textContent='open a document to question'; $('critOpenConcept').textContent='add your project concept';
+  critMode='paste'; critDocName=''; critConceptName='';
+  const mt=$('critModeToggle'); if(mt){ mt.disabled=false; mt.title='Choose what you are bringing: something you paste or type, or a document you open.'; }
+  paintCritMode();
   showCritDl(false);                             // nothing pasted yet — nothing to save
-  const node=critAddStone('Paste an idea in the box below — something you concluded, or a claim from anywhere — and I’ll question the text, not you: pointing to where it quietly decided something. You judge.');
+  const node=critAddStone(critOpeningLine());
   const inp=$('critChatInput'); inp.value=''; inp.placeholder='Paste an idea, claim, or answer you want to push back on…';
   setTimeout(()=>inp.focus(), 50);
 }
+/**
+ * A short title for an opened document.
+ *
+ * The extractor folds soft line breaks into running prose, so "the first line" is the whole first page and
+ * cannot be used. Take the first sentence when it is short enough to BE a title — "Still running." — and
+ * otherwise the first eight words, which is what a heading usually is before the body runs into it.
+ */
+function docTitleOf(text){
+  const t=String(text||'').trim().replace(/\s+/g,' ');
+  if(!t) return 'the document';
+  const sentence=(t.match(/^[\s\S]*?[.!?](?=\s)/)||[])[0];
+  if(sentence && sentence.length<=60) return sentence.replace(/[.!?]$/,'');
+  // md-to-pdf and most templates put a DATE on the line under the title, and the extractor folds it into
+  // the same run — so "A Title: the Short Version 12 August 2026 The body then begins…". Cut before it.
+  const beforeDate=t.split(/\s(?=\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})/)[0];
+  if(beforeDate && beforeDate.length>=8 && beforeDate.length<=70) return beforeDate;
+  const words=t.split(' ');
+  return words.slice(0,8).join(' ')+(words.length>8?'…':'');
+}
+const wordCount=(t)=>(String(t||'').trim().match(/\S+/g)||[]).length;
+
+/**
+ * Dress the specimen panel as an opened DOCUMENT: give it a title, say where it came from and how much of
+ * it there is, and clamp it behind an expander. Called only on the document path — a paste goes through
+ * `openCritDocument`'s caller without this, and renders byte-identically to before.
+ */
+function markSpecimenAsDocument(text, filename, truncated){
+  $('critSpecTitle').textContent = docTitleOf(text);
+  $('critSpecMeta').textContent = [
+    'from '+filename,
+    wordCount(text).toLocaleString()+' words',
+    truncated ? 'the first 25,000 characters are in play' : 'the whole document is here',
+  ].join(' · ');
+  $('critSpecHead').hidden=false;
+  const body=$('critArtefactText'); body.classList.add('doc'); body.classList.remove('open');
+  const more=$('critSpecMore'); more.hidden=false; more.textContent='read the whole document';
+}
+function clearSpecimenDressing(){
+  const h=$('critSpecHead'); if(h) h.hidden=true;
+  const b=$('critArtefactText'); if(b) b.classList.remove('doc','open');
+  const m=$('critSpecMore'); if(m) m.hidden=true;
+}
+
+/**
+ * SAY WHAT IS LOADED, ALWAYS AND IN FULL.
+ *
+ * Prayas, 15 August: *"say clearly when you upload a reading and a project concept and when you upload as
+ * reading or project concept only."* The note used to report only the LAST file touched, so after opening
+ * two files it said one thing and left the other invisible, and after opening one it never said what was
+ * missing. Every one of the four states now reads as a sentence: nothing, a reading only, a concept only,
+ * or both. What is ABSENT is stated too — a concept that is not loaded changes how the questions land, and
+ * a student cannot know that from a panel that simply is not there.
+ */
+function critStateLine(){
+  const reading = critArtefact ? (critDocName ? critDocName : 'what you pasted') : '';
+  const concept = critConcept ? (critConceptName || 'your project concept') : '';
+  if(reading && concept) return 'Questioning ' + reading + ', in the light of your project concept (' + concept + '). Both are read in this tab; the files go nowhere.';
+  if(reading)            return 'Questioning ' + reading + ' — no project concept, so the questions are not tied to what you are working on. Add one at any time.';
+  if(concept)            return 'Project concept loaded (' + concept + ') — context only, never questioned. Nothing is under question yet: ' + (critMode==='document' ? 'open a reading to begin.' : 'paste or type below to begin.');
+  return critMode==='document'
+    ? 'Nothing opened yet. Open a reading to question — a project concept beside it is optional.'
+    : 'Nothing under question yet. Paste or type below — a project concept beside it is optional.';
+}
+function refreshCritState(){ critNote(critStateLine()); }
+
+// The note under the composer — the load state, or a transient error while one is being read.
+function critNote(msg, bad){
+  const n=$('critUlNote'); if(!n) return;
+  n.textContent=msg||''; n.classList.toggle('bad', !!bad); n.hidden = !msg;
+}
+// Opening the TEXT UNDER QUESTION from a file behaves exactly as pasting it does — same path, same
+// endpoint, same statelessness. The composer is bypassed, nothing else is.
+function openCritDocument(text){
+  $('critChatStream').innerHTML='';
+  $('critArtefactText').textContent=text; $('critArtefact').hidden=false;
+  $('critChatInput').placeholder='Respond, or sit with the question…';
+  critArtefact=text; critHistory=[];
+  lockCritMode();
+  showCritDl(true);
+  streamCriticismOpen(text);
+}
+// Keep --composer-h equal to the critique composer's real height. It changes when the note wraps, when
+// a document is opened, and when the textarea grows — so measuring once at load is not enough.
+/**
+ * Paint the mode. The toggle governs ONE thing — where the text under question comes from — so it shows the
+ * document chip or hides it, and sets the composer's prompt to match. The project concept is deliberately
+ * available in BOTH modes: it is context for the questioning either way, and tying it to the document mode
+ * would mean a student who pastes a claim cannot say what they are working on.
+ */
+/** The opening line follows the mode, so it never advertises a way in that is currently switched off. */
+function critOpeningLine(){
+  return critMode==='document'
+    ? 'Open a document below — a PDF, a markdown file, anything with text in it — and I’ll question the text, not you: pointing to where it quietly decided something. You judge.'
+    : 'Paste an idea in the box below — something you concluded, or a claim from anywhere — and I’ll question the text, not you: pointing to where it quietly decided something. You judge.';
+}
+function paintCritMode(){
+  const t=$('critModeToggle'), v=$('critModeVal'), openDoc=$('critOpenDoc'), inp=$('critChatInput');
+  const doc = critMode==='document';
+  if(t) t.setAttribute('aria-pressed', doc?'true':'false');
+  if(v) v.textContent = doc ? 'a document' : 'what you paste';
+  if(openDoc) openDoc.hidden = !doc;
+  // The focus switch is shown only alongside a paste (Prayas, 15 Aug 2026). ⚠️ It still GOVERNS a document
+  // critique — `critFocus` is sent on both endpoints either way — so hiding it hides a live constraint
+  // rather than disabling one. It is reset to null on entering document mode so the hidden control can
+  // never be silently in force, which is the only version of this that is honest.
+  const ft=$('critFocusToggle');
+  if(ft) ft.hidden = doc;
+  if(doc && critFocus){ critFocus=null; const fv=$('critFocusVal'); if(fv) fv.textContent='everything'; if(ft) ft.setAttribute('aria-pressed','false'); }
+  if(inp && !critArtefact) inp.placeholder = doc
+    ? 'Open a document below — or switch back to paste and type here…'
+    : 'Paste an idea, claim, or answer you want to push back on…';
+}
+function setCritMode(mode){
+  if(critArtefact) return;                 // locked once there is something under question
+  critMode = mode==='document' ? 'document' : 'paste';
+  paintCritMode();
+  refreshCritState();
+  // Nothing has been questioned yet, so the opening line is still the only thing in the stream — rewrite it.
+  const only=$('critChatStream').querySelectorAll('.turn');
+  if(only.length===1){ const b=only[0].querySelector('.body'); if(b) b.textContent=critOpeningLine(); }
+}
+function lockCritMode(){ const t=$('critModeToggle'); if(t){ t.disabled=true; t.title='The mode is fixed once a critique has started — begin a new one to change it.'; } }
+(function wireCritMode(){
+  const t=$('critModeToggle'); if(!t) return;
+  t.addEventListener('click', ()=>setCritMode(critMode==='document'?'paste':'document'));
+})();
+
+(function watchComposerHeight(){
+  const comp=document.querySelector('#view-criticism-chat .composer'); if(!comp) return;
+  // 🔴 IGNORE A ZERO. The view is display:none until it is opened, so the first measurement is 0 — and a
+  // variable SET to 0px defeats its own fallback, which took the clearance from 230px down to 56px and made
+  // the overlap worse than the bug being fixed. A degenerate measurement must be discarded, never stored.
+  const set=()=>{ const h=comp.getBoundingClientRect().height; if(h>0) document.documentElement.style.setProperty('--composer-h', h+'px'); };
+  set();
+  if(window.ResizeObserver) new ResizeObserver(set).observe(comp);
+  window.addEventListener('resize', set);
+})();
+(function wireCritUploads(){
+  const doc=$('ulCritDoc'), con=$('ulCritConcept');
+  if(!doc||!con) return;
+  const openBtn=$('critOpenDoc'), conBtn=$('critOpenConcept'), clear=$('critConceptClear');
+  if(openBtn) openBtn.addEventListener('click', ()=>doc.click());
+  if(conBtn)  conBtn.addEventListener('click', ()=>con.click());
+  if(clear)   clear.addEventListener('click', ()=>{ critConcept=''; $('critConcept').hidden=true; $('critConcept').classList.remove('open'); $('critConceptText').textContent=''; $('critOpenConcept').textContent='add your project concept'; critConceptName=''; refreshCritState(); });
+  const specMore=$('critSpecMore');
+  if(specMore) specMore.addEventListener('click', ()=>{
+    const b=$('critArtefactText'); const open=b.classList.toggle('open');
+    specMore.textContent = open ? 'show less' : 'read the whole document';
+  });
+  const more=$('critConceptMore');
+  if(more) more.addEventListener('click', ()=>{ const c=$('critConcept'); const open=c.classList.toggle('open'); more.textContent = open ? 'less' : 'more'; });
+
+  const trim=(t)=>t.length>DOC_MAX_CHARS ? t.slice(0,DOC_MAX_CHARS) : t;
+  // Always the FULL state, never just the file that moved. An over-long document adds its caveat on top.
+  const say=(file,text)=>{
+    const over = text.length>DOC_MAX_CHARS;
+    critNote(critStateLine() + (over ? ` (${file.name} runs to about ${Math.round(text.length/1000)},000 characters; the first 25,000 are in play.)` : ''));
+  };
+
+  doc.addEventListener('change', async ()=>{
+    const file=doc.files && doc.files[0]; if(!file) return;
+    doc.value='';                                   // so the same file can be opened twice
+    critNote('Reading '+file.name+'…');
+    try{
+      const { text }=await readDocFile(file);
+      if(critArtefact){ critNote('There is already a text under question here. Start a new critique to open a different one.', true); return; }
+      critDocName=file.name;
+      openCritDocument(trim(text));
+      say(file, text);
+      markSpecimenAsDocument(trim(text), file.name, text.length>DOC_MAX_CHARS);
+      $('critOpenDoc').textContent='document opened · start a new critique to change it';
+    }catch(e){ critNote(e.message, true); }
+  });
+
+  con.addEventListener('change', async ()=>{
+    const file=con.files && con.files[0]; if(!file) return;
+    con.value='';
+    critNote('Reading '+file.name+'…');
+    try{
+      const { text }=await readDocFile(file);
+      critConcept=trim(text);
+      $('critConceptText').textContent = critConcept;   // clamped to two lines in CSS; 'more' opens it
+      $('critConcept').hidden=false;
+      critConceptName=file.name;
+      say(file, text);
+      $('critOpenConcept').textContent='replace your project concept';
+    }catch(e){ critNote(e.message, true); }
+  });
+})();
 function sendCritTurn(){
   const inp=$('critChatInput'); const t=inp.value.trim(); if(!t) return; inp.value='';
   if(!critArtefact){                             // first send = the pasted AI text → open the critique
     $('critChatStream').innerHTML='';            // drop the opening line; the specimen takes over
-    $('critArtefactText').textContent=t; $('critArtefact').hidden=false;
+    $('critArtefactText').textContent=t; $('critArtefact').hidden=false; clearSpecimenDressing();
     inp.placeholder='Respond, or sit with the question…';
     critArtefact=t; critHistory=[];
+    lockCritMode(); refreshCritState();
     showCritDl(true);                            // from the paste onward there is something to carry away
     streamCriticismOpen(t);
   } else {                                        // a response in the ongoing critique
@@ -1029,6 +1509,29 @@ function sendCritTurn(){
 }
 
 // render helpers — reuse the conversation .turn/.stone/.you classes (look identical to enquiries).
+/**
+ * Bring the latest turn fully above the fixed composer.
+ *
+ * 🔴 SCROLLING TO document.body.scrollHeight IS NOT ENOUGH HERE and measurably failed: with a document
+ * open, the specimen is clamped and the header appears AFTER the question lands, so the page height the
+ * scroll aimed at is stale by the time it applies. Measured on 15 August: scrollY stayed 0 and 412px of
+ * the question sat under the composer. Aim at the ELEMENT, on the next frame, with the composer's real
+ * height as the bottom margin — immune to whatever the layout does afterwards.
+ */
+function scrollTurnClear(node){
+  if(!node) return;
+  const aim=(behavior)=>{
+    const comp=document.querySelector('#view-criticism-chat .composer');
+    const pad=(comp?comp.getBoundingClientRect().height:230)+52;   // air, not a hairline — 28 left the curtain toggle touching the composer edge
+    const want=node.getBoundingClientRect().bottom + window.scrollY - (window.innerHeight - pad);
+    if(want>window.scrollY+1) window.scrollTo({top:Math.min(want, document.documentElement.scrollHeight), behavior});
+  };
+  requestAnimationFrame(()=>aim('smooth'));
+  // A second, INSTANT correction once the curtain and any late layout have settled. The smooth scroll can
+  // be interrupted or aimed at a height that changed underneath it; measured on 15 August, the first pass
+  // left 58px of the turn under the composer and the curtain toggle entirely beneath it.
+  setTimeout(()=>aim('auto'), 420);
+}
 function critAddStone(text){
   const node=el(`<div class="turn stone"><div class="who">the stone</div><div class="body">${text?esc(text):'<span class="thinking"><span class="bead"></span> reading the text</span>'}</div></div>`);
   $('critChatStream').appendChild(node); scroll(); return node;
@@ -1100,7 +1603,7 @@ async function critStream(url, payload, node, onReading, retry){
         const type=m[1], data=JSON.parse(m[2]);
         if(type==='reading'){ reading=data; critReading=data; }
         else if(type==='status'){ if(!full) body.innerHTML=`<span class="thinking"><span class="bead"></span> ${esc(data.t)}</span>`; }
-        else if(type==='token'){ if(!full) body.textContent=''; full+=data.t; body.textContent=full; scroll(); }
+        else if(type==='token'){ if(!full) body.textContent=''; full+=data.t; body.textContent=full; scroll(); scrollTurnClear(node); }
         else if(type==='validation'){ guard=data; }
         else if(type==='capture'){ captureLabelUI(node, data.id); }
         else if(type==='pool'){ poolTurnsLeft=data.turnsLeft; if(data.budget) poolBudget=data.budget; renderPoolCount(); renderPoolBudget(); }
@@ -1111,6 +1614,9 @@ async function critStream(url, payload, node, onReading, retry){
       }
     }
   }catch(err){ errored=true; body.innerHTML=`<span style="color:var(--muted);font-style:italic">connection lost — ${esc(String(err))}</span>`; }
+  // The curtain toggle is attached after the question lands, so the scroll taken at token-time is short by
+  // its height and the toggle ends up under the composer. Re-aim once the turn is finally complete.
+  scrollTurnClear(node);
   // the stream ended with no question and no surfaced error → don't leave a silent spinner.
   if(!full && !errored) body.innerHTML=`<span style="color:var(--muted);font-style:italic">the model didn't return a question — try again.</span>`;
   // The guard's verdict, shown rather than discarded (until 24 Jul 2026 this variable was assigned and
@@ -1125,7 +1631,7 @@ async function critStream(url, payload, node, onReading, retry){
 
 function streamCriticismOpen(text){
   const node=critAddStone('');
-  critStream('/api/criticism/open', { text, goal:'', discipline:critDiscipline, focus:critFocus }, node,
+  critStream('/api/criticism/open', { text, goal:'', discipline:critDiscipline, focus:critFocus, concept:critConcept }, node,
     (reading)=>attachCritReading(node, reading));
 }
 function streamCriticismTurn({ message, segment }){
@@ -1136,7 +1642,7 @@ function streamCriticismTurn({ message, segment }){
   if(message) critHistory.push({role:'you', content:message});
   const node=critAddStone('');
   critStream('/api/criticism/turn',
-    { artefact:critArtefact, goal:'', discipline:critDiscipline, message:message||'', segment:segment||null, priorMessages:prior, focus:critFocus },
+    { artefact:critArtefact, goal:'', discipline:critDiscipline, message:message||'', segment:segment||null, priorMessages:prior, focus:critFocus, concept:critConcept },
     node, null);
 }
 
@@ -1155,9 +1661,12 @@ const CRIT_DEMO_READING = {
 };
 const CRIT_DEMO_Q = "“Intuitive” — names what it does, or approves of it? And “the best approach” — whose call is that, yours or the text’s?";
 function runCritDemo(){
-  critArtefact=null; critHistory=[]; critReading=CRIT_DEMO_READING;
+  critArtefact=null; critHistory=[]; critReading=CRIT_DEMO_READING; critConcept='';
   showView('criticism-chat');
   $('critArtefactText').textContent = CRIT_DEMO_TEXT; $('critArtefact').hidden=false;
+  // The demo is canned and calls nothing, so opening a document here would do nothing and read as broken.
+  $('critConcept').hidden=true; $('critConcept').classList.remove('open'); $('critConceptText').textContent='';
+  $('critOpenRow').hidden=true; critNote('');
   showCritDl(false);              // the demo is canned — none of it is the viewer's, so there is nothing of theirs to save
   $('critChatInput').value=''; $('critChatInput').placeholder='Paste an idea, claim, or answer you want to push back on…';
   const stream=$('critChatStream'); stream.innerHTML='';
