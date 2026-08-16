@@ -40,12 +40,27 @@ test('every public surface still carries the admission', () => {
   }
 });
 
-test('the corpus figures in the copy match the corpus', () => {
+// 🔴 THE FIGURE IS NOT ON EVERY SURFACE, AND THAT IS DELIBERATE (Prayas, 16 August 2026, within hours of
+// it shipping: *"dont say this. students will not use it then."*). It was on the landing page and the
+// about page and it is now only in the README. Two reasons, and the second is the one that matters more.
+// The audience differs — a prospective student reading "201 of 274 entries have not been read by a
+// person" hears *nothing here has been checked* and closes the tab, which costs the tool the very
+// students the admission was written to be honest with. And the sentence was WRONG in what it implied:
+// every citation in those entries is verified before the entry ships (invariant #0, an absolute gate),
+// and what is pending is Prayas's sign-off on the FRAMING. The curtain already states which of the two
+// states each entry is in, per entry, in the learner's own view. So the figure survives where a reader
+// wants that resolution and is stated with the distinction intact.
+//
+// ⚠️ What this test therefore checks is NOT "every surface carries a number". It is: wherever a figure
+// appears it must be true, and at least one surface must still carry one, or the admission has quietly
+// become unfalsifiable — which is the failure mode the whole thing was written against.
+test('every corpus figure in the copy matches the corpus, and at least one surface carries it', () => {
   const { entries, pending } = countCorpus();
   assert.ok(entries > 0 && pending > 0, 'corpus count came back empty — the counter is broken, not the copy');
+  let found = 0;
   for (const s of SURFACES) {
     const claims = [...s.text.matchAll(/(\d+)\s+of\s+the\s+(\d+)\s+(?:entries|corpus entries)/g)];
-    assert.ok(claims.length > 0, `${s.name} states no corpus figure; the admission must stay checkable`);
+    found += claims.length;
     for (const [whole, claimedPending, claimedTotal] of claims) {
       assert.equal(Number(claimedPending), pending,
         `${s.name} says "${whole}" but ${pending} entries are pending. The corpus moved and the copy did not — correct the copy, do not relax this test.`);
@@ -53,6 +68,7 @@ test('the corpus figures in the copy match the corpus', () => {
         `${s.name} says "${whole}" but the corpus holds ${entries} entries.`);
     }
   }
+  assert.ok(found > 0, 'no public surface states a corpus figure any more — the admission has lost the one part of it a reader could check, and an unfalsifiable admission is the performance it was written against');
 });
 
 // The admission's whole defence is that a reader can go and check it, so a figure that cannot be

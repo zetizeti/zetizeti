@@ -39,7 +39,7 @@ told, they borrow.
 
 It works for students who stay patient with it and loses the others. That is the bar the versioning ladder calls 1.0. This does not clear it.
 
-201 of the 274 corpus entries are still waiting on a human read; the curtain states this per entry. The method core (Part A) is a single note where it should be many. The reading plan on the criticism surface was measured against the clock it replaced and came back null on question quality: it changes the route, not what gets asked. Until v0.16.0 that surface asked two-box questions, which handed the student a menu instead of a question. It was found because a student said it felt off and could not say why.
+201 of the 274 corpus entries are still awaiting sign-off on their framing. Their citations are verified — that gate is absolute and no entry ships without it — and the curtain states which of the two states each entry is in, per entry, in the learner's own view. The method core (Part A) is a single note where it should be many. The reading plan on the criticism surface was measured against the clock it replaced and came back null on question quality: it changes the route, not what gets asked. Until v0.16.0 that surface asked two-box questions, which handed the student a menu instead of a question. It was found because a student said it felt off and could not say why.
 
 ## The two voices
 

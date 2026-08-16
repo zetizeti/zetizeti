@@ -21,6 +21,18 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.16.2] — 2026-08-16
+
+### The corpus figure comes off the student-facing surfaces, and is corrected where it stays
+
+Shipped in 0.16.1, off again within the hour. Prayas: *"201 of the 274 entries in its corpus have not been read by a person. -- dont say this. students will not use it then."* Two faults, and the second is the more serious.
+
+**It would have cost the tool the students the admission was written for.** A prospective user reading that line hears *nothing here has been checked* and closes the tab. An admission made to be honest with students must not be the reason those students never arrive — a tool nobody opens has not been honest with anybody. The qualitative admission stays on every surface. The one figure that only frightens now sits in the README alone, where a reader has come looking for that resolution. ⚠️ That is a real limit on *all public surfaces* and not a loophole to widen later.
+
+🔴 **And the sentence was wrong.** *Have not been read by a person* implies the entries are unvetted. They are not: **every citation is verified before an entry ships — invariant #0, an absolute gate — and what is pending is the sign-off on the FRAMING**, which the curtain already states per entry in the learner's own view. The README now says that with the distinction intact. **A self-critical sentence gets the least scrutiny of anything on a page, because nobody suspects it of flattering.** Overstating a fault is not the safe direction to be wrong in; it is still a false statement about the tool, and this one would have been paid for in users.
+
+`verification/admission-figures.test.mjs` no longer requires a figure on every surface. It now checks that wherever a figure appears it is true, and that at least one surface still carries one — an admission with nothing checkable left in it has become the performance it was written against. Re-proved by planting a wrong figure.
+
 ## [0.16.1] — 2026-08-16
 
 ### Every public surface says what the tool does not yet do
