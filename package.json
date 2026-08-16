@@ -1,6 +1,6 @@
 {
   "name": "zetizeti",
-  "version": "0.16.0",
+  "version": "0.16.1",
   "private": true,
   "type": "module",
   "description": "zetizeti \u2014 a Socratic inquiry toolkit for design students. It won't answer; it sharpens.",

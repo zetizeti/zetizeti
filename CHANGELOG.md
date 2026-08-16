@@ -21,6 +21,24 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.16.1] — 2026-08-16
+
+### Every public surface says what the tool does not yet do
+
+Prayas, 16 August 2026: *"not good enough yet - admit on all public surfaces that we do not do what we claim to do yet."* The landing page, the about page and the README each now carry it, and no public surface may claim more than the tool has earned. It is a standing rule. It comes down when the 1.0 bar is cleared, and it comes down because he says so.
+
+**What it says, on all three:** it works for students who stay patient with it and loses the others — which is the versioning ladder's own definition of the 1.0 bar, unmet. Then the specifics. 201 of the 274 corpus entries have not been read by a person, and the curtain already says which on each entry. The method core is one note where it should be many. The reading plan measured null on question quality against the clock it replaced. And the criticism surface asked two-box menu questions until v0.16.0.
+
+🔴 **No counts of use, here or anywhere.** What prompted this was a number, and the number stays in the private record. A usage figure on a public page becomes a benchmark, which is the precise thing the not-knowing position exists to prevent. The qualitative claim is the stronger one in any case: *it loses the students who are not patient with it* cannot be argued down by a better quarter.
+
+🔴 **The failure mode the copy was written against is PERFORMED HUMILITY.** An admission made to look trustworthy converts a confession into a credibility play, and a reader sharp enough to value it is sharp enough to smell it. The cold-read on the first draft found the fault in three of four paragraph endings, all of them telling the reader how to feel rather than handing over a fact, and the clearest case was a sentence declaring the section was not humility furniture — a denial of the performance being the performance. Four such sentences were cut. The test applied to every remaining one: does it give the reader something checkable they could use *against* the tool? Both closing paragraphs that drew the moral were removed on the same principle. State the fault; do not draw the lesson from it in the same breath.
+
+**`verification/admission-figures.test.mjs` makes it self-enforcing.** Two things needed holding and neither holds itself. The admission has to still be there — a later session reading self-deprecating copy will tidy it away in good faith, because nothing on a page says it is deliberate. And `201 of 274` is a figure written into prose, generated once and then static, which nothing rebuilds and no test would catch drifting. So the count is read from `corpus/domain/` and compared against what each surface claims: sign one entry off and the suite fails until the copy is corrected. Proved by planting a wrong figure and watching it refuse. It caught a real fault on its first run — the README's copy of the 1.0-bar sentence carried a comma the other two did not, and that sentence is quoted identically wherever the bar is named because it is a standard rather than prose.
+
+⚠️ **The README badge had been claiming 61 passing tests.** It is 282. Generated once, static ever after, asserting the wrong number on the public repo for weeks — the exact shape the docs-are-half-the-ship rule names, found only because this release went looking at the public surfaces.
+
+**Renders checked at 1024×768, 1440×900, 1512×982 and 1920×1200.** The landing's one-screen rule is scoped by `@media (min-width:768px)` and holds at all of them with the admission in place.
+
 ## [0.16.0] — 2026-08-16
 
 ### The criticism surface stops handing the student a menu

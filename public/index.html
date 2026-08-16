@@ -159,6 +159,13 @@
   .lede{margin-top:clamp(10px,2.2vh,24px); color:var(--bone-dim); max-width:58ch; font-size:clamp(13.5px,1.62vh,18px); line-height:1.6}
   .lede b{color:var(--goldtext); font-weight:500; font-style:italic}
   .nameline{margin-top:clamp(8px,1.8vh,20px); font-family:var(--mono); font-size:clamp(10px,1.1vh,12px); letter-spacing:.03em; color:var(--faint); max-width:66ch; line-height:1.6}
+  /* The admission. Its own grammar on purpose (Prayas, 16 Aug 2026): it is the one statement on the page
+     made against the tool, so it does not share the nameline's decorative register. Colour arrives as a
+     soft vermilion MASS behind the text, never as a rule or a left border — red is a mass, not a line. */
+  .notyet{position:relative; margin-top:clamp(10px,2vh,22px); padding:11px 15px; max-width:60ch;
+    font-family:var(--mono); font-size:clamp(10.5px,1.15vh,12.5px); letter-spacing:.03em; line-height:1.7;
+    color:var(--bone-dim); background:rgba(232,67,31,.10)}
+  .notyet b{color:var(--vermilion); font-weight:400}
   /* second tagline line — the quieter clause that names the second voice */
   .ethos-sub{display:block; margin-top:clamp(4px,.7vh,8px); font-family:var(--text); font-style:italic; font-size:clamp(13px,1.8vh,20px); color:var(--bone-dim)}
   .aboutlink{color:var(--gold); cursor:pointer; white-space:nowrap}
@@ -638,6 +645,7 @@
         <span class="ethos-sub">One voice helps you <em>develop</em> an idea; the other <em>stress-tests</em> it — to see if it holds.</span>
         <p class="lede">A questioning partner for design students. Name the edge you're trying to <b>develop</b> and the stone asks back, grounded in the real tensions of your discipline — or bring an idea you want to <b>stress-test</b>, and it questions <em>that</em> to see whether it holds, pointing to where the text quietly decided for you. It never hands you the answer; the thinking stays <b>yours</b>.</p>
         <p class="nameline">The name doubles <em>zeti</em>, from the Greek <em>zetetic</em> — "proceeding by inquiry" — with an echo of the Sanskrit <em>neti neti</em>, "not this, not this". <a id="aboutLink" class="aboutlink">What the two voices are →</a></p>
+        <p class="notyet"><b>It does not do this well enough yet.</b> It works for students who stay patient with it and loses the others. 201 of the 274 entries in its corpus have not been read by a person.</p>
         <div class="signin">
           <a class="btn-google" href="/auth/google" id="googleBtn">
             <svg width="18" height="18" viewBox="0 0 48 48" fill="#1a1206" aria-hidden="true">
@@ -776,6 +784,18 @@
         <div class="about-tag">what holds across both</div>
         <h3>Questions only. The thinking stays yours.</h3>
         <p>The second voice is not a looser version of the first — it is the same discipline, held tighter. Both speak in questions and nothing else. Both reuse your exact words rather than paraphrasing them. Neither explains, advises, reassures, concludes, or scores. There are no grades here, no leaderboards, no percent-complete — only the edge getting sharper, which is private to you. <b>It asks the questions; you do the thinking — whether the premature answer came from you, or from a machine.</b></p>
+      </div>
+
+      <div class="about-mode crit">
+        <div class="about-tag">what it does not do yet</div>
+        <h3>It is not yet good enough at this</h3>
+        <p>Everything above is what zetizeti is for. It is not yet good enough at it.</p>
+        <p>It works for students who stay patient with it and loses the others. That is the bar it has not cleared, and clearing it is what a 1.0 would mean here.</p>
+        <p class="about-want">201 of the 274 entries in the corpus have not been read by a person, and the curtain says which on each entry. The method core, Part A, is one note where it should be many. Until v0.16.0 the second voice asked two-box questions: is it this, or is it that. A student picked from those boxes instead of describing what was in front of them. It ran that way for months. It was found because a student said it felt off and could not say why.</p>
+      </div>
+
+      <div class="about-mode">
+        <div class="about-tag">where it comes from</div>
         <p class="about-credit">All of this is open and checkable — the code, the corpus, the locating rules, and the full verification records (citation ledgers, adversarial passes, sign-off sheets): <a href="https://github.com/zetizeti/zetizeti" target="_blank" rel="noopener">github.com/zetizeti/zetizeti</a> (AGPL-3.0). Nothing here asks to be trusted; it asks to be read.</p>
         <p class="about-credit"><b>The framework underneath is <a href="https://splitdomaincognition.org" target="_blank" rel="noopener">split-domain cognition</a>.</b> Language work and judgement work are two unlike kinds of thinking, and a tool that runs both through one channel ends up doing the judging for you. So the model here only phrases the question. The locating, the guard and the sign-off are code, or a person. Every refusal on this page follows from that split, not from taste.</p>
         <p class="about-credit">zetizeti was built alongside <b><a href="https://koher.app" target="_blank" rel="noopener">Koher</a></b>, a ten-year practice of free open-source tools. Koher holds that a tool separating language from judgement has to show its architecture, and the curtain on this page is that habit: the retrieved tensions, the sources, and whether a person has read each one yet. The engine and the corpus are zetizeti's own.</p>

@@ -12,7 +12,7 @@
   <a href="https://zetizeti.com"><img src="https://img.shields.io/badge/live-zetizeti.com-0f7d72?style=flat-square" alt="live at zetizeti.com"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/zetizeti/zetizeti?style=flat-square&color=173a8c" alt="AGPL-3.0"></a>
   <a href="https://github.com/zetizeti/zetizeti/releases"><img src="https://img.shields.io/github/v/release/zetizeti/zetizeti?style=flat-square&color=f0b324" alt="release"></a>
-  <img src="https://img.shields.io/badge/tests-61%20passing-0f7d72?style=flat-square" alt="61 tests passing">
+  <img src="https://img.shields.io/badge/tests-285%20passing-0f7d72?style=flat-square" alt="285 tests passing">
 </p>
 
 <p align="center">
@@ -34,6 +34,12 @@ told, they borrow.
 <p align="center">
   <img src="docs/images/landing.webp" alt="The zetizeti landing — name an edge, the stone asks back" width="760">
 </p>
+
+## What it does not do yet
+
+It works for students who stay patient with it and loses the others. That is the bar the versioning ladder calls 1.0. This does not clear it.
+
+201 of the 274 corpus entries are still waiting on a human read; the curtain states this per entry. The method core (Part A) is a single note where it should be many. The reading plan on the criticism surface was measured against the clock it replaced and came back null on question quality: it changes the route, not what gets asked. Until v0.16.0 that surface asked two-box questions, which handed the student a menu instead of a question. It was found because a student said it felt off and could not say why.
 
 ## The two voices
 
