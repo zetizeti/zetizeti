@@ -80,6 +80,20 @@ went **41% → 90%** on the transcript that prompted it.
 background sounds → anxiety — and the aim-driven engine followed none of it, because the aim was chosen
 by a counter rather than by his reply.
 
+**And it now reads its own zero (v0.17.0, 17 August 2026).** For a year the signal was computed every turn
+and only ever *used* when it was non-empty: a block was added when new material existed and silently
+omitted when it did not. So the tool could see that a reply had brought nothing new and did nothing with
+it. There are two grades now, with one consumer each, because they are different facts about a learner:
+
+- **stalled** — not one content word is new. Read twice across 87 replies of real transcripts. Its only
+  consumer is the precision gate below.
+- **repeated** — the reply *is* the previous reply, normalised for case and punctuation, or its exact token
+  set reordered. Read **zero** times across those same 87 replies. Its only consumer is dwell.
+
+A repeat is deliberately not a similarity measure. Few new words and *the same words* are different
+objects, and conflating them would rotate away from the terse learner on every second turn — which is the
+error dwell exists to prevent.
+
 ### Dwell — persistence is heat, not exhaustion
 
 `lib/arc.mjs → readDwell`. The learner's most-returned-to concrete word becomes the **anchor**; it does
@@ -101,6 +115,33 @@ Bounded, because dwell without a bound is the loop wearing the opposite argument
 - **`NONMATERIAL`** — hedges, light verbs, comparatives and interrogatives can never become an anchor.
   Real sessions anchored on *"don't"*, *"more"*, *"gets"* and *"where"* before this list existed, and
   that is what produced drift into the learner's personal life rather than their project.
+  🔴 **It was leaking on two seams until v0.17.0, and only a conversation could show it.** The list is
+  hand-written, so `make` was on it and `makes` was not; and it carried `dont`/`arent`/`isnt` — the
+  apostrophe-less spellings — while the tokeniser keeps apostrophes, so every contraction a student
+  actually types walked past it. Three ten-round probe runs anchored on `like`, `probably`, `makes` and
+  `aren't`. No unit test could have found this: they assert an anchor is well-formed, never what it *is*
+  over a conversation. ⚠️ `see`, `look`, `feel`, `need` and `use` were measured and left out on purpose —
+  in a design tutorial they can be the material itself, and a list that eats those is worse than the gaps.
+- **A verbatim repeat retires the anchor at once (v0.17.0)** — and does not wait out `ANCHOR_MAX`. The
+  reasoning above still holds for a learner who keeps *working* on one thing; it does not hold for one who
+  has stopped producing sentences. Repeating yourself is the strongest evidence available that a line has
+  been exhausted, and it is the one form of it that cannot be confused with persistence.
+
+**What a repeat reaches for instead, and why it is not the next-hottest word.** The goal tether — a
+concrete thing named in the learner's own goal that no question has touched yet — existed since v0.11.0
+and was **unreachable while anything at all was live**, because it sat behind *nothing left to anchor on*.
+In the session that prompted this, something was always live, so it never ran once in nineteen questions
+while four things the learner had named in her own opening went unasked. On a repeat the tether is now
+*preferred*, not merely available.
+
+⚠️ **Anchor rotation is per word, and a word is not a subject.** In that session four different words held
+the anchor in succession — every rotation satisfying the theme ledger — and all four named parts of the
+same small mechanism, so seven consecutive questions sat inside one detail. Rotating the anchor kept the
+subject. This is the criticism surface's 16 August finding in mirror, where rotating the station kept the
+menu. **A frequency rule over the tool's own past questions is the wrong fix**: the most-repeated word
+across those seven questions was the central noun of the whole project, and banning it would have been
+worse than the rut. A frequency rule cannot tell the subject of an idea from a groove worn into it. The
+goal can, because the learner wrote it.
 
 ### Traversal — walk the parts of the idea, don't orbit one
 
@@ -199,6 +240,12 @@ would overfit to the second.
 **The register follows the evidence of the current turn, so nobody is modelled.** The same person meets
 pointed asks in a rich stretch and the gentle footing at a wordless moment.
 
+🔴 **Volume was never the thing (v0.17.0).** The gate read word count alone, so a reply repeated verbatim —
+thirty words, no refusal — held it fully open. In the 17 August session it licensed demands for particulars
+at exactly the moment the learner had none left: her exhaustion presented to the gate as capacity, because
+a repeated reply has the same volume as a fresh one. Word count was a proxy for *having particulars ready
+to give*, and the stalled reading measures that directly, so the gate now requires both.
+
 ### Form and opener — sameness prevented structurally
 
 **`FLOW_SHAPES`** rotates the sentence's form each turn. Every shape constrains only toward *plainness* —
@@ -224,6 +271,24 @@ A question sharing any five-word run with an earlier question — quoted learner
 withheld and repaired. Rotation prevents *scheduled* repeats; this catches *composed* ones.
 
 ### The shapes a question may not take
+
+🔴 **They apply to BOTH surfaces as of v0.17.0, and until then they did not.** `validateCriticismOutput`
+took three options and none of them were these, so the opener ban, the frame-repeat gate, the
+closed-question refusal and the length cap existed on the enquiry surface only. A ten-round critique opened
+*"When you say…"* on nine of ten questions. The six checks now have one implementation that both validators
+call, and `verification/guard-parity.test.mjs` fails when a check reaches one surface and not the other —
+including when a route accepts an option and never sends it, which is how the gap shipped twice.
+**`BINARY_DEMAND` also learned the comparison form**: *"what is the difference between A and B"* hands over
+the same two boxes and had been passing.
+
+🔴 **And INVENTION is refused rather than requested (v0.17.0).** The rule that a particular must belong to
+something the learner actually said had lived in the system prompt since v0.11.2 — an instruction to the
+model that is doing the inventing. It let through *"the specific moment when the repair has shifted … to an
+artisanal one"*, asked of a student who had described no shift. A fluent invented question passes every rule
+aimed at clumsiness, and its precision makes the invention sound established. Two narrow constructions are
+refused: the pinpoint of a change the learner never named, and a `this`/`that` naming a thing nobody named.
+⚠️ `the` is not a trigger — English needs it constantly, and the draft that included it refused a warmth
+clause made entirely of the learner's own words.
 
 Three forms are refused outright, whatever they are asking about. All three came from reading one real
 ten-turn session; none of them is steered by any aim, approach or form — **the model falls into them on
@@ -318,6 +383,12 @@ transcript is theirs); the harness that runs them is public, in `scripts/flow-pr
 
 ## Known limits
 
+- **A hand-written word list cannot be finished, and `NONMATERIAL` is one.** Three separate gaps surfaced in
+  a single day of conversation probes — inflections (`make` listed, `makes` not), apostrophe forms (`dont`
+  listed, `don't` not) and the modals — and a fourth (`there`) is known and unpatched. Each was invisible
+  because nothing asserts what an anchor *is* across a conversation, and each was measured against the real
+  fixtures before being added. The probe now reports weak anchors every run, which is the durable answer:
+  extending the list one word per run is the failure mode, and a visible gap beats a silent one.
 - Association joins still misfire on roughly 15–20% of firings — a pairing the learner rejects as
   unrelated. Distance and salience are not sufficient to make a pair worth joining, and the missing term
   is not yet known.
@@ -340,8 +411,26 @@ transcript is theirs); the harness that runs them is public, in `scripts/flow-pr
   build version, with no user, no session id and no text. The drop between depth *N* and *N+1* is the
   number of conversations that ended on the *N*th question. See `evaluation.md`.
   **What remains open** is that the curve says *where*, never *why* — a drop at depth three is a question
-  to go and read — and it needs weeks of real use before it means anything. Until then, the two clearest
-  signals this tool has received are still the two students who happened to mention it.
+  to go and read — and it needs weeks of real use before it means anything. Until then, the clearest
+  signals this tool has received are still the students who happened to mention it.
+- 🔴 **EVERY DETECTOR OF "THIS IS GOING WRONG" REQUIRED THE LEARNER TO SAY SO — and one did not** (17 August
+  2026). Refusal, correction and redirect all read a *declaration*: "i don't know", "that's not what i
+  meant", "you asked that twice", "let's move back". Each was built from a transcript in which a student
+  said one of those things, so the whole family shares an assumption nobody stated — that a learner in
+  trouble complains. A student who is fluent and agreeable does not. She answered nineteen questions,
+  repeated two of her replies word for word rather than object, then stopped answering, and every
+  instrument read the session as healthy.
+  **The repeat reading closes the one case where silence leaves a deterministic trace.** It does not close
+  the class. A learner who keeps producing fresh, polite, thinning sentences while getting nothing out of
+  the conversation is still invisible here, and no mechanism on this page can see it.
+- ⚠️ **A guard against interpretation was a vocabulary test, and vocabulary is not provenance of a claim.**
+  The preamble rule compares how many of the clause's words are the learner's; an interpretation *assembled
+  out of their own nouns* therefore passes while asserting something they never said. Two such clauses were
+  delivered to a real student and both passed correctly by that test. Refusing the interpretive verbs
+  directly (v0.17.0) catches the constructions listed in `PREAMBLE_TELLS` and nothing else — a lexicon
+  refuses only what it recognises, which is the same bound invariant #3 states about the never-answer guard.
+  This is the third time a vocabulary rule has failed to draw a judgement line here; the making/concept
+  register is the same lesson, and the answer there was to put the judgement in the corpus instead.
 
 
 ---

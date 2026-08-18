@@ -117,7 +117,40 @@ async function studentReply(history, question) {
 // ── run ──────────────────────────────────────────────────────────────────────────────────────────
 const DECLINE = /(you already asked|already answered|don'?t understand|doesn'?t make sense|not sure what you|same question|no idea|confus)/i;
 
+
+// 🔴 VERIFY WHICH BUILD IS ANSWERING BEFORE MEASURING IT (17 Aug 2026). A probe run reported on a server
+// that had crashed on a port collision, leaving an OLDER process still bound and still answering — so the
+// numbers described a build that no longer existed, and two of them were "fixed" faults that had simply
+// not been restarted. This is the project's own deploy rule arriving locally: a green log is not evidence
+// that anything shipped, so ask the destination what it is running and compare it with the tree you edited.
+async function assertLiveBuild() {
+  const r = await fetch(`${BASE}/api/version`).catch(() => null);
+  const live = r && r.ok ? await r.json() : null;
+  if (!live) throw new Error('no /api/version — is the server up?');
+  // The build string cannot separate a fresh server from a stale one: the failure that prompted this had
+  // the SAME commit and older code in memory. Only the start time can, compared with the source mtimes.
+  const { statSync, readdirSync } = await import('node:fs');
+  const roots = ['server.mjs', 'lib'];
+  let newest = 0, newestFile = '';
+  const walk = (rel) => {
+    const abs = join(APP, rel);
+    const st = statSync(abs);
+    if (st.isDirectory()) { for (const f of readdirSync(abs)) walk(join(rel, f)); return; }
+    if (st.mtimeMs > newest) { newest = st.mtimeMs; newestFile = rel; }
+  };
+  for (const rel of roots) walk(rel);
+  const started = Date.parse(live.startedAt || 0);
+  console.log(`server   : ${live.build || live.version}  started ${live.startedAt || '(unknown)'}`);
+  if (!started) throw new Error('the server does not report startedAt — it predates this check; restart it');
+  if (newest > started) {
+    throw new Error(`${newestFile} changed after the server started (${new Date(newest).toISOString()} > `
+      + `${live.startedAt}) — RESTART IT. Measuring a server that is not running the code you edited is how `
+      + 'two "fixed" faults were reported as still failing.');
+  }
+}
+
 (async () => {
+  await assertLiveBuild();
   await signInAsGuest();
 
   // The probe recomputes the plan independently, for OBSERVATION ONLY. planFor is pure and stateless, so

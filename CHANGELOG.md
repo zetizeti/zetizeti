@@ -21,6 +21,232 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.17.0] — 2026-08-17
+
+**A student repeated herself twice and left, and nothing was watching for that.** A real AI Club enquiry
+session (private record in `docs/ops/`): nineteen questions, eighteen answered, two of the replies word-for-word
+identical to the reply before them, and the nineteenth left alone. The last seven questions sat inside one
+small detail of her idea while four things she had named in her own opening were never asked about. She did
+not complain — she said afterwards that it was better than before.
+
+That last fact is the finding. **Every detector this engine had required the learner to declare the problem**
+— refusal, correction, redirect all read a sentence like *"you asked that twice"* — because each was built
+from a transcript where a student said exactly that. A fluent, agreeable learner does not, and the whole
+family was blind to her.
+
+### Added
+
+- **The two grades of succession** (`lib/arc.mjs`, `server.mjs`). `newMaterial` has been computed on every
+  turn since v0.11.0 and its zero state did nothing: a prompt block was added when it was non-empty and
+  silently omitted when it was empty. Now **stalled** (no content word is new) and **repeated** (the reply
+  *is* the previous reply) are read, with exactly one consumer each.
+- **`isRepeatOf` / `readRepeat`** — normalised equality, plus an identical token set for a reordered
+  restatement. Deliberately *not* a similarity measure: few new words and the same words are different
+  facts, and conflating them would rotate away from a terse learner constantly.
+- **`verification/succession-repeat.test.mjs`** (synthetic, published) and
+  **`test/succession-real.test.mjs`** (the real session, publish-excluded). Both exist because a probe that
+  silently substitutes invented material for a real one measures something else under the same name.
+
+### Changed
+
+- **A verbatim repeat retires the dwell anchor immediately**, without waiting out `ANCHOR_MAX`. Pressing a
+  live thread one turn too long still beats abandoning it — that decision is untouched — but a learner who
+  has stopped producing sentences is not persisting.
+- **The goal tether is promoted from a fallback to a preference.** It has existed since v0.11.0 behind
+  *nothing left to anchor on*, so it was unreachable while anything was live; in that session something
+  always was, and it never ran. On a repeat the tool now prefers an untouched thing the learner named over
+  the next-hottest word in the rut.
+- **The precision gate reads more than volume.** It granted pointed asks on word count alone, so a reply
+  repeated verbatim — thirty words, no refusal — held it fully open, licensing demands for particulars at
+  the moment she had none left. Her exhaustion presented to the gate as capacity.
+- **The interpretive preamble is refused on the tell, not counted in a ratio** (`PREAMBLE_TELLS`,
+  `lib/dialogue.mjs`). The `ownWords` rule compares how many of the clause's words are the learner's, so an
+  interpretation *built out of her own nouns* passed it — one clause by a single word. Both clauses she
+  received asserted a transformation she never described. A tell she used herself is hers and still passes.
+- **One `topicLabel` for both transcript surfaces** (`public/index.html`). The enquiry title's truncation
+  guard sat on the fallback branch only, so a set goal came back whole: her hundred-word opening became the
+  18pt title and printed again as the first body block, and the filename cut mid-word. The critique surface
+  had solved this in v0.13.0, sentence-aware and tested, and the knowledge did not travel — the same shape
+  as the `hidden` guard written correctly four times and missed once. The critique behaviour is the one kept.
+
+### Added — the instrument that should have existed first
+
+- **`scripts/enquiry-conversation-probe.mjs`** — a whole enquiry, ten rounds, against the REAL `/api/chat`.
+  The enquiry surface has never had one. It reads the CONVERSATION rather than the turn: distinct anchors,
+  weak anchors, goal coverage, the longest rut and the word it is on, student repeats, tells, breaches.
+  Two personas, and the second is the point: **`agreeable` never complains** and restates when she has
+  nothing new. `flow-probe.mjs`'s student is instructed to say "you already asked me that", so that harness
+  could only ever find faults that make a student complain — the same assumption `isDecline`,
+  `isCorrection` and `isRedirect` are built on, and the exact reason a real session was invisible.
+- **`--force-repeat-at=N`.** A unit test on `readDwell` proves the function answers a repeat and proves
+  nothing about whether the route ever hands it one. That wiring is the link this project has twice found
+  broken with every test green. Forcing a repeat through the live endpoint is the only proof, and it moved
+  the anchor off a spent word onto an untouched thing in the learner's own goal.
+
+### Fixed — found by that probe, on its first run
+
+- **`NONMATERIAL` had inflection gaps and no contractions.** `make` was on the list and `makes` was not.
+  It carried `dont`, `arent`, `isnt` — the apostrophe-*less* spellings — while `content()` keeps the
+  apostrophe, so every contraction a student actually types walked past a list built to stop it. Across
+  three ten-round runs the anchor was `like`, `probably`, `makes` or `aren't` on half the turns: a session
+  anchored on a hedge, which is precisely the drift this list exists to prevent, and nothing has ever
+  asserted what an anchor IS across a conversation.
+  Measured against all four real fixtures: the hedges and inflections change **5 of 87 turns** and every one
+  moves from a light verb to the learner's own material (`getting`→`space`, `making`→`app`); the
+  contractions change **0 of 87**. Weak anchors in a ten-round run went from six to three.
+  ⚠️ `see`, `look`, `feel`, `need` and `use` were measured and deliberately **left out** — in a design
+  tutorial they can be the material itself. The probe still reports them, so the judgement stays visible
+  rather than being silently encoded. Two of the three weak anchors remaining in the last run are these.
+
+### Fixed — the two surfaces had disjoint guard sets
+
+**`validateOutput` passed `avoid`, `banOpeners`, `noBinary`, `noClosed`, `ownWords` and `mustHold`.
+`validateCriticismOutput` took `{ focus, brief, artefactTerms }` and nothing else.** So the opener rotation
+enforced on enquiry since 29 July had never reached the criticism surface, and neither had the frame-repeat
+gate, the closed-question refusal or the length cap. A ten-round critique opened **"When you say…" on nine
+of ten questions** — the identical failure the enquiry ban was built against — and built three of ten on
+*"what is the difference between A and B"*, a two-box menu the widened `BINARY_DEMAND` did not recognise.
+
+This is the second instance of the defect fixed on 16 August, when `BINARY_DEMAND` turned out to be
+unreachable from that same function. One parameter list away from the first, one day later.
+
+- **Six form checks now have one implementation** (`sharedFormChecks`) that both validators call: length,
+  the menu, the closed opener, the opener ban, the frame-repeat gate, the interpretive tell.
+- **`BINARY_DEMAND` widened to the comparison form** — *"the difference between A and B"* is the same two
+  boxes stated as a comparison, and the student's replies to all three were the shortest in that run.
+- **Both routes now SEND every shared guard.** The criticism route builds `banOpeners` from its own last two
+  questions and an `ownWords` licence of the student's words *union the artefact's* — the union is the point,
+  since this surface legitimately says the text back.
+- **`maxWords` fired for the first time on either surface.** It was written 28 July as "brevity as a
+  condition of delivery" and neither route ever passed it. 34 on enquiry (measured mean 18.3, longest 32
+  across fifty probe questions), 45 on criticism, which quotes the text inside the question.
+- **`verification/guard-parity.test.mjs`** — seven shapes both validators must refuse, plus a route-level
+  assertion that both call sites actually pass every shared option. A validator that accepts an option
+  nobody sends is inert, which is precisely how this shipped twice.
+
+**Measured after:** the criticism surface went from nine identical openers to **ten distinct** ones, three
+comparisons to zero, and five of six stations to six of six. Enquiry: zero weak anchors, one delivered
+breach. ⚠️ Three criticism questions still ship flagged on the frame gate — the model swapped one tic for
+another and the gate caught that too, but `generateGuarded` repairs only once, so a persistent tic is
+delivered visible rather than fixed. That is the design working as written, and it is worth revisiting.
+⚠️ The interpretive *invention* is still prompt-only and still fires: one enquiry question invented the word
+"artisanal" and asserted a shift the student never described. `PREAMBLE_TELLS` catches the clause before the
+question; it does not catch a noun invented inside it.
+
+### Fixed — invention, and a repair that could not reach what was wrong
+
+- **The invent-no-premise rule is a guard now, not an instruction.** It has been in the system prompt since
+  v0.11.2 — addressed to the model that is doing the inventing, which is the same shape as a guard that
+  only reports. A probe asked *"…the specific moment when the rider realises the repair has shifted from a
+  fast service to an artisanal one?"* about a student who had described no shift and never said
+  "artisanal". Every existing rule passed it: not a menu, not closed, not too long, preamble clean, content
+  words mostly the learner's. **Its precision is what made it dangerous.** Two narrow constructions, both
+  in `sharedFormChecks` so both surfaces get them: the *pinpoint of an undescribed change* (a
+  moment/point/threshold question naming a transformation the learner never named — either half alone is
+  fine), and the *deictic invention* ("this pharmacy of components", where `this`/`that` presupposes a
+  thing nobody named). `the` is deliberately not a trigger; English needs it constantly.
+- **The second correction escalates.** `generateGuarded` repaired once and handed back the same words, so a
+  model fighting its own tic simply produced it again — three questions shipped flagged after the opener
+  ban, because it had dropped "When you say…" and invented a replacement construction immediately. Attempts
+  raised 2 → 3 (two corrections), and the second one constrains **shape** rather than subject: one clause,
+  no second question joined with "and", a different opening word. Both surfaces get the same budget — the
+  retry policy is not a per-surface difference, and making it one would be a new asymmetry of exactly the
+  kind `guard-parity.test.mjs` exists to prevent. A clean turn still costs one generation.
+- **`NONMATERIAL` gained the modals** — `would`, `could`, `should`, `might`, `must`, `shall`. A student
+  describing a design speaks almost entirely in them, so they recur constantly and are the emptiest words
+  in a reply; a probe anchored two of ten turns on `would` and `could`. Zero of 87 fixture turns change.
+  `will`, `can` and `may` stay out: each is also an ordinary noun.
+
+**Measured, same document and probe, before → after:** criticism breaches **5 → 0**, declines 4 → 2,
+questions 30.7 → 23.0 words, nine identical openers → nine distinct. Enquiry weak anchors **5 → 1**, longest
+rut **10 → 4**. ⚠️ The deictic rule misfired twice on its own first live run and was narrowed both times —
+it refused "that accountability" where the text said "accountable", and read the verb in "this word
+deciding" as an invented thing. Both are regression-tested. ⚠️ Enquiry's remaining breaches are `mustHold`
+association misfires, the known 15–20% rate, untouched by any of this. ⚠️ One anchor still landed on
+"there", which is not in `NONMATERIAL`. Reported by the probe rather than patched: extending a hand-written
+list one word per run is the failure mode, and the reading now makes the gaps visible.
+
+### Fixed — the join demanded hedges, and the probes measured a server nobody was running
+
+- **`mustHold` required the model to say a hedge back.** `assoc.mjs` filters `NONMATERIAL` in four places —
+  its own comment says a hedge may never become a carried word — and the route then built the guard's
+  demand from unfiltered content words. Two of ten probe questions were refused for failing to *"reuse one
+  word from each"* when the words on offer were `maybe/paper/receipt` and `good/point/hadn't`. The module
+  had the discipline; the route threw it away at the last step, which is this release's recurring shape.
+  `flow-probe.mjs` mirrors the route and was aligned in the same commit, since a mirror that drifts measures
+  a build nobody runs. ⚠️ This is not the whole of the known 15–20% join misfire rate — only the part the
+  guard was manufacturing itself.
+- 🔴 **`/api/version` now reports `startedAt`, and both probes refuse a stale server.** A ten-round run was
+  reported against a server that had crashed on a port collision, leaving an OLDER process still bound and
+  still answering: the numbers described a build that no longer existed, and two already-fixed faults were
+  written up as still failing. The build string cannot reveal this — same commit, older code in memory — so
+  the probes now compare the server's start time against the newest mtime under `lib/` and `server.mjs` and
+  abort. **This is the deploy rule arriving locally: a green log is not evidence that anything shipped.**
+
+### Narrowed — five times, each after it refused a question that was fine
+
+The deictic half of the invention guard was wrong in five distinct ways, and every one of them refused a
+GOOD question rather than letting a bad one through. Kept as a list because the pattern is the lesson: a
+rule about language written by reading it is a rule that has not met language yet.
+
+1. `the` as a trigger — ate a warmth clause made entirely of the learner's own words.
+2. A lazy middle group — skipped the head noun and flagged an adverb three tokens later ("hold **instead**").
+3. A preposition read as the head noun ("That guess **about** the rider's budget").
+4. Order — with `theirs` tested first, the learner's own noun let the scan walk through to the verb after it.
+5. `that` as a trigger — a relative pronoun far more often than a determiner ("the information **that
+   tells** them"), and questions are where that use clusters. Dropped, accepting that "that X" inventions
+   are no longer caught.
+
+⚠️ `gap` came out of the widened menu rule for the same reason: *"the gap between what is promised and what
+is delivered"* asks about a gap rather than handing over two boxes, and a gap is ordinary vocabulary in the
+register this surface works in.
+
+### Fixed — criticism breaches to zero, without loosening a single gate
+
+Three changes, in the order the runs forced them.
+
+- 🔴 **The composing layer was never told what the guard would refuse.** The opener ban reached this
+  surface earlier in the day and was enforced with the prompt silent, so the model was refused for opening
+  with a word it had no way to know was spent. The enquiry prompt has carried `openerBlock` since 29 July.
+  This is the 16 August lesson arriving as **silence rather than contradiction**, and it has the same
+  effect: a rule the composing layer has not been given is a repair loop, not a guard. The criticism prompt
+  now carries the banned openers and the shapes already used — *named*, because "do not repeat a frame" is
+  unactionable and "you have already asked in these shapes" is. **One list feeds both the prompt and the
+  guard**, so they cannot disagree.
+- 🔴 **One question per turn, enforced.** Every question that survived the opener ban and still shipped had
+  the same shape: a first question, then *", and what would it take to…"*. Rotating the opener changed the
+  first clause and left the second — **the frame was never the opening, it was the join.** Both modes'
+  repair instructions have always demanded ONE question; neither was ever code. Now `noCompound` refuses a
+  second interrogative joined with "and", and a second question mark, on both surfaces. Quoted spans are
+  exempt: the text under question may itself contain a question.
+- **The repair budget is 4 generations (three corrections)**, raised across the day as the guards arrived.
+  Each extra generation is spent only on a turn that has breached every time before it, so the cost lands
+  exactly where the breaches are and is near zero on a surface that rarely breaches.
+  🔴 **The budget is the right lever and the gates are not.** Reaching zero by loosening the frame gate or
+  the opener ban would buy the number by giving up the thing being measured.
+
+**Verified, fresh server, ten rounds each: criticism 0, 0, 0 breaches across three runs.** Enquiry 0–1,
+and both remaining kinds are the guard working — a closed "can …?" refused, and an association join whose
+two sides could not both be held. ⚠️ Station coverage varies 3–5 of 6 run to run and is not improved by
+this; the plan's own measurement stands.
+
+### Notes
+
+- **Measured before it was written:** across 87 replies of real transcripts — both students the two-student
+  rule names — there are **zero** consecutive verbatim repeats. The repeat path therefore fires nowhere in
+  any session anybody has, which is the two-student rule discharged by construction rather than by argument.
+  The stalled reading fires twice in the same 87, which is why it gets the weaker response.
+- **Not wired into `validateCriticismOutput`, deliberately.** There the preamble points at a text rather
+  than at a person's words, there is no `ownWords` to acquit a verb against, and verdict-drift is already
+  that surface's own guard. Recorded in the source so it reads as a decision and not as the 16 August
+  oversight repeating.
+- **Unmeasured against the clock.** Every claim above is about what the tool now *sees*; none is a claim
+  that it asks better questions. `readArc` and the reading plan were both measured null on exactly that.
+  306 assertions pass.
+- ⚠️ **The four probe runs are four different conversations, not an A/B.** Distinct anchors 4→8 and mean
+  overlap with the previous question 2.78→0.89 point the right way and are not a controlled comparison;
+  only the weak-anchor count is directly attributable, because those words are now unable to anchor at all.
+
 ## [0.16.2] — 2026-08-16
 
 ### The corpus figure comes off the student-facing surfaces, and is corrected where it stays

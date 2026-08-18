@@ -1772,11 +1772,45 @@ function openingQuestion(){ addStone(OPENING, null, null, {opening:true}); }
 
 // ---- download idea transcript (MD + PDF) — carries the student's thinking to the AI Club making tools.
 // The student's OWN responses are the substance; the stone's questions are kept as light context (~80/20).
-function transcriptTopic(){
-  const g=(goal||'').trim(); if(g) return g;
-  const firstStudent=history.find(h=>h.role==='student'); return (firstStudent?firstStudent.content:'enquiry').slice(0,120);
+// 🔴 THE TRUNCATION GUARD EXISTED ON ONE BRANCH OF TWO (17 August 2026). `.slice(0,120)` sat on the
+// FALLBACK branch only, so whenever a goal WAS set it came back whole — and a student whose goal is her
+// whole edge paragraph got a hundred-word title set at 18pt bold, then the same paragraph again as the
+// first body block, because the body loop starts at history[0]. Found on a real student's download (private
+// record in docs/ops/), and this is the file a student hands a teacher.
+// The defect class is the one plan.mjs already names: the guard written on one path of two.
+//
+// 🔴 AND THE CRITIQUE SURFACE HAD ALREADY SOLVED IT — `critTranscriptTopic`, sentence-aware, tested since
+// v0.13.0 ("never end the topic on half a word"). The knowledge existed in this same file and did not
+// travel, exactly as the `hidden` guard was written correctly four times and missed once. So there is now
+// ONE label function and both surfaces call it: same-job components share grammar (3 Jun correction c),
+// and a divergence nobody chose is the thing that rule exists to prevent. The critique behaviour is the
+// one kept, unchanged and still under its own tests — 110 characters, a whole first sentence when one
+// fits, otherwise the last whole word.
+function topicLabel(text, fallback, max){
+  const a=String(text||'').trim().replace(/\s+/g,' ');
+  if(!a) return fallback;
+  if(a.length<=max) return a;
+  const stop=a.slice(0,max).match(/^[\s\S]*?[.!?](?=\s)/);          // a whole first sentence, if there is one
+  if(stop && stop[0].length>28) return stop[0];
+  return a.slice(0,max).replace(/\s+\S*$/,'')+'…';                  // else the last whole word
 }
-function transcriptName(ext){ return 'idea-transcript-'+(transcriptTopic().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,48)||'enquiry')+'.'+ext; }
+function transcriptTopic(){
+  const g=(goal||'').trim();
+  const firstStudent=history.find(h=>h.role==='student');
+  return topicLabel(g || (firstStudent?firstStudent.content:''), 'enquiry', 110);
+}
+// ⚠️ The BODY is deliberately left printing from history[0]. The duplication was a symptom of the
+// unbounded title, and bounding it cures it: a 120-character label above the full first paragraph is not a
+// repetition. Dropping that paragraph instead would break resumption — `parseTranscriptMd` takes the edge
+// from the FIRST STUDENT PARAGRAPH, so removing it would make every saved transcript resume with somebody
+// else's opening as the edge, and nothing would error.
+// The filename carried the same divergence: a blind .slice(48) ended a real student's download on half a
+// word, while critTranscriptName has trimmed to a whole word since v0.13.0. Same trim here.
+function transcriptName(ext){
+  const slug=transcriptTopic().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  const cut=slug.length>48 ? slug.slice(0,48).replace(/-[^-]*$/,'') : slug;   // never end on half a word
+  return 'idea-transcript-'+(cut||'enquiry')+'.'+ext;
+}
 function buildTranscriptMd(){
   const topic=transcriptTopic().replace(/\s+/g,' ');
   const turns=history.filter(h=>h.role==='student').length;
@@ -1828,14 +1862,7 @@ function downloadTranscriptPdf(){
 // The enquiry's topic is a goal the student wrote, usually short. A critique's is a PASTED PARAGRAPH,
 // so a blind slice truncates mid-word every single time ("…prefer a minimal int") — the enquiry's
 // exception is this surface's rule. Cut on the first sentence, and otherwise on a word boundary.
-function critTranscriptTopic(artefact){
-  const a=String(artefact||'').trim().replace(/\s+/g,' ');
-  if(!a) return 'critique';
-  if(a.length<=110) return a;
-  const stop=a.slice(0,110).match(/^[\s\S]*?[.!?](?=\s)/);          // a whole first sentence, if there is one
-  if(stop && stop[0].length>28) return stop[0];
-  return a.slice(0,110).replace(/\s+\S*$/,'')+'…';                   // else the last whole word
-}
+function critTranscriptTopic(artefact){ return topicLabel(artefact, 'critique', 110); }
 function critTranscriptName(ext){
   const slug=critTranscriptTopic(critArtefact).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
   const cut=slug.length>48 ? slug.slice(0,48).replace(/-[^-]*$/,'') : slug;   // never end on half a word

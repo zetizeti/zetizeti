@@ -28,7 +28,7 @@ import { writeFileSync, readFileSync, appendFileSync, mkdirSync } from 'node:fs'
 import { buildIndex, retrieve } from '../lib/retrieval.mjs';
 import { computeSignals } from '../lib/signals.mjs';
 import { decideNudge, formShape } from '../lib/nudge.mjs';
-import { readArc, aimBlock, readDwell, isRedirect, isDecline, isCorrection, lastSubstantive } from '../lib/arc.mjs';
+import { readArc, aimBlock, readDwell, isRedirect, isDecline, isCorrection, lastSubstantive, NONMATERIAL } from '../lib/arc.mjs';
 import { loadMethodCore, buildSystemPrompt, buildTurnContext, validateOutput, questionFrames, questionOpener } from '../lib/dialogue.mjs';
 import { generateGuarded } from '../lib/guard.mjs';
 import { readAssociation, associationBlock, associatesPrompt, pickAssociate, widenBlock } from '../lib/assoc.mjs';
@@ -345,9 +345,11 @@ async function runConversation(V, seed, corpus, methodCore, replayTurns = null) 
         ...(V.brevity ? { maxWords: V.brevity } : {}),
         ...(V.noRepeat ? { avoid: stoneTurns } : {}),
         ...(V.fixed ? { banOpeners, noBinary: true } : {}),
+        // Filtered to material, exactly as server.mjs does (17 Aug 2026) — a mirror that drifts from the
+        // route measures a build nobody runs, which is the reason this harness exists at all.
         ...(V.fixed && assoc && !widenPair ? { mustHold: {
-          a: [...new Set(contentWords(assoc.earlyText))].slice(0, 8),
-          b: [...new Set(contentWords(assoc.liveText))].slice(0, 8),
+          a: [...new Set(contentWords(assoc.earlyText))].filter((w) => !NONMATERIAL.has(w)).slice(0, 8),
+          b: [...new Set(contentWords(assoc.liveText))].filter((w) => !NONMATERIAL.has(w)).slice(0, 8),
         } } : {}),
       }),
       generate: (correction) => {

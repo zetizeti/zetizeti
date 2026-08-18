@@ -44,7 +44,7 @@ import {
 import { streamQuestion } from './lib/llm.mjs';
 import { generateGuarded } from './lib/guard.mjs';           // the guard's ENFORCEMENT layer (invariant #3)
 import { computeSignals, content as contentWords } from './lib/signals.mjs';
-import { readDwell, isDecline, isCorrection, lastSubstantive } from './lib/arc.mjs';
+import { readDwell, isDecline, isCorrection, lastSubstantive, readRepeat, NONMATERIAL } from './lib/arc.mjs';
 import { readAssociation, associationBlock } from './lib/assoc.mjs';
 import { semanticFreshness, refineFresh } from './lib/novelty.mjs';   // SHADOW ONLY — measured, not wired (see novelty.mjs)           // the enquiry surface's dynamic arc (line of questioning)
 import { decideNudge, feltPosture, formShape } from './lib/nudge.mjs';
@@ -249,7 +249,13 @@ const STUDIO = { zetizeti: (process.env.STUDIO_URL_ZETIZETI || '').trim(), mindm
 
 // Build version — the traceable SemVer build string (e.g. "0.9.0" or "0.9.0+3.g<sha>"), plus the raw
 // describe fields for tooling. No auth needed; carries nothing sensitive.
-app.get('/api/version', (req, res) => res.json(BUILD));
+// `startedAt` is not decoration (17 Aug 2026). A probe reported ten rounds of measurements against a
+// server that had crashed on a port collision, leaving an OLDER process still bound and still answering.
+// The build string could not reveal it — same commit, older code in memory — so the only fact that
+// separates a fresh server from a stale one is when it started, compared with when the source last
+// changed. Cheap, and it makes "which build answered this?" a question anybody can settle.
+const STARTED_AT = new Date().toISOString();
+app.get('/api/version', (req, res) => res.json({ ...BUILD, startedAt: STARTED_AT }));
 
 app.get('/api/config', (req, res) => res.json({
   version: BUILD.build,
@@ -602,7 +608,22 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // for a particular: a thing, a moment, a person, a number" — replaced. That shape contradicted the
   // method core's own section "Never require the precise word", and it was the measurable source of the
   // browbeating.
-  const dwellRead = readDwell({ studentTurns, stoneTurns, goal });
+  // SUCCESSION, NOW IN TWO GRADES (17 Aug 2026). `newMaterial` — the words in this reply the learner had
+  // not used before — has been computed on every turn since v0.11.0, and its ZERO state did nothing at all:
+  // its only consumer (`successionBlock`, dialogue.mjs) adds a block when the array is non-empty and is
+  // silently omitted when it is empty. The exhaustion signal was calculated every turn and never read.
+  // Two grades now, ONE consumer each, because they are different objects and must not share a response:
+  //   stalled  — not one content word is new. Fires twice across 87 real fixture replies. Consumer: the
+  //              precision gate below, and nothing else.
+  //   repeated — the reply IS the previous reply, normalised. Fires ZERO times across those same 87.
+  //              Consumer: readDwell, which retires the anchor at once and reaches for an untouched thing
+  //              in the learner's own goal (arc.mjs).
+  // Computed here, above the dwell read, because the dwell read now depends on it.
+  const earlierWords = new Set(studentTurns.slice(0, -1).flatMap((t) => contentWords(t)));
+  const newMaterial = [...new Set(contentWords(message))].filter((w) => !earlierWords.has(w)).slice(0, 4);
+  const stalled = !newMaterial.length;
+  const repeated = readRepeat(studentTurns);
+  const dwellRead = readDwell({ studentTurns, stoneTurns, goal, repeated });
   const featureInvite = !!(dwellRead && dwellRead.invite);
   const dwell = featureInvite ? null : dwellRead;
   // The learner has declined this question. Outranks everything: nothing is built on words that carry no
@@ -631,12 +652,16 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // replies show particulars ready to give: median material of the last three replies ≥ 10 content
   // words and no refusal in the last two. Two real students, opposite needs; the register follows the
   // session's own evidence.
+  // 🔴 AND IT MUST READ MORE THAN VOLUME (17 Aug 2026). This gate gave pointed asks on word count alone,
+  // so a verbatim repeat — thirty words, no refusal — kept it fully open. In her session it licensed
+  // demands for particulars at exactly the moment she had none left: her exhaustion presented to the gate
+  // as capacity, because a repeated reply has the same volume as a fresh one. Volume was never the thing;
+  // it was a proxy for having particulars ready to give, and `stalled` reads that directly.
   const recent = studentTurns.slice(-3).map((t) => contentWords(t).length).sort((a, b) => a - b);
   const precision = recent.length >= 2
     && recent[Math.floor(recent.length / 2)] >= 10
+    && !stalled
     && !studentTurns.slice(-2).some((t) => isDecline(t));
-  const earlierWords = new Set(studentTurns.slice(0, -1).flatMap((t) => contentWords(t)));
-  const newMaterial = [...new Set(contentWords(message))].filter((w) => !earlierWords.has(w)).slice(0, 4);
   // Tell the client a posture fired even when there is nothing to SHOW. The refractory lives in the
   // client (the service is stateless — it sends `turnsSinceNudge` back each turn), and it used to reset
   // only on a nudge that carried a `surface` line. Most postures carry none, so the refractory was dead
@@ -698,13 +723,29 @@ app.post('/api/chat', requireUser, async (req, res) => {
         // noClosed — a question answerable "yes" is withheld and re-asked open (30 Jul 2026: three of
         // ten in a real session, and both of its thin replies followed one).
         noClosed: true,
+        // maxWords — written 28 July as "brevity as a condition of delivery" and never passed by this
+        // route, so it has never once fired. 34 against a measured mean of 18.3 and a longest of 32
+        // across fifty probe questions: it refuses the outlier, not the ordinary question.
+        maxWords: 34,
+        // ONE question, which both modes' repair text has always demanded and neither ever enforced.
+        noCompound: true,
         // ownWords — the warmth clause may only say back words the learner used. Their whole transcript
         // is the licence, so a clause reaching back to turn 2 still passes; only material that is
         // nowhere in their own words counts as the tool's own reading.
         ownWords: new Set([...studentTurns, message].flatMap((t) => contentWords(t))),
+        // 🔴 THE JOIN'S REQUIREMENT MUST BE MATERIAL, NOT HEDGES (17 Aug 2026). `assoc.mjs` filters
+        // NONMATERIAL in four places — its own comment says a hedge may never become a carried word —
+        // and this route then built the guard's demand from unfiltered `contentWords`, throwing that
+        // discipline away at the last step. Two of ten probe questions were refused for failing to
+        // "reuse one word from each" when the words on offer were `maybe/paper/receipt` and
+        // `good/point/hadn't`: the guard was requiring the model to say "maybe" or "hadn't" back, which
+        // is unsatisfiable in any question worth asking and is against invariant #1's whole point —
+        // Clean Language reuses their MATERIAL, and a hedge is not material.
+        // ⚠️ This is not the whole of the known 15–20% join misfire rate. It is the part of it the guard
+        // was manufacturing itself, which is the part that was never about association at all.
         mustHold: assoc ? {
-          a: [...new Set(contentWords(assoc.earlyText))].slice(0, 8),
-          b: [...new Set(contentWords(assoc.liveText))].slice(0, 8),
+          a: [...new Set(contentWords(assoc.earlyText))].filter((w) => !NONMATERIAL.has(w)).slice(0, 8),
+          b: [...new Set(contentWords(assoc.liveText))].filter((w) => !NONMATERIAL.has(w)).slice(0, 8),
         } : null,
       }),
       generate: (correction) => streamQuestion({
@@ -733,7 +774,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
     // situation → the question, so a chat can be replayed by the 2.0 "sounds-like-Prayas" harness. The
     // returned id lets the local UI attach an on-voice/off-voice label to this exact question. The guard's
     // work is captured too (a repaired question is a different kind of specimen from a first-pass one).
-    const capId = capture({ mode: 'enquiry', chatKey: studentTurns[0] || goal, goal, discipline, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, dwell: featureInvite ? 'INVITE' : dwell ? `${dwell.anchor}×${dwell.returns}` : null, joined: assoc ? assoc.distance : null, declined: !!declined, corrected, newMaterial: newMaterial.slice(0, 3), shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
+    const capId = capture({ mode: 'enquiry', chatKey: studentTurns[0] || goal, goal, discipline, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, dwell: featureInvite ? 'INVITE' : dwell ? `${dwell.anchor}×${dwell.returns}` : null, joined: assoc ? assoc.distance : null, declined: !!declined, corrected, repeated, stalled, newMaterial: newMaterial.slice(0, 3), shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
       // Logged side by side so the comparison the todo doc asks for can be made on real transcripts
       // before anything is wired again. Local capture only — never in production (capture.mjs).
       sem: fs && fs.semFresh ? +fs.semFresh[fs.semFresh.length - 1].toFixed(3) : null,
@@ -866,9 +907,16 @@ async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocat
   // WHOLE artefact rather than the window, deliberately: a question anchored in a passage the model saw on
   // an earlier turn is still anchored in the text, and refusing it would punish continuity.
   const artefactTerms = brief ? informativeOf(artefact, docFreq(segments)) : null;
+  // The composing layer is told what the guard will refuse (17 Aug 2026). Enquiry has done this since
+  // 29 July; here the ban was enforced and never communicated, so the model could not comply with it.
+  const critStoneEarly = priorMessages.filter((m) => m.role === 'stone').map((m) => m.content);
+  const critBans = [...new Set(critStoneEarly.slice(-2).map((q) => questionOpener(q)).filter(Boolean))];
   const system = buildCriticismSystemPrompt(criticismCore, {
     artefact: win.body, located, posture: pointer.aim, retrieved, goal, focus,
     brief, windowNote: win.windowed ? win.skeleton : '',
+    banOpeners: critBans,
+    // the first clause of each recent question — enough for the model to see the shape it has been using
+    avoidFrames: critStoneEarly.slice(-4).map((q) => String(q).replace(/\s+/g, ' ').trim().slice(0, 60)),
   });
   const messages = [
     ...priorMessages.map((m) => ({ role: m.role === 'stone' ? 'assistant' : 'user', content: m.content })),
@@ -880,9 +928,28 @@ async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocat
   // it and nothing to show it. Now a breach is repaired once, and a surviving breach is surfaced.
   // Cost sums across attempts so a repaired turn is metered honestly.
   let qCost = 0;
+  // 🔴 THE FORM GUARDS THIS ROUTE NEVER SENT (17 August 2026). The enquiry route has passed an opener ban,
+  // a frame-repeat gate and a closed-question refusal since 29–30 July; this one passed none of them, so a
+  // ten-round critique opened "When you say…" on NINE of ten questions and built three of ten on "what is
+  // the difference between A and B". Same defect as the 16 August BINARY_DEMAND finding, one parameter list
+  // away from it. The material is assembled here exactly as the enquiry route assembles it.
+  const critStone = priorMessages.filter((m) => m.role === 'stone').map((m) => m.content);
+  const critStudent = priorMessages.filter((m) => m.role !== 'stone').map((m) => m.content);
+  const critBanOpeners = critBans;                      // one list, so prompt and guard cannot disagree
+  // ⚠️ The licence for a preamble here is the student's words UNION the text's — this surface legitimately
+  // says the artefact back, which is the method working. A clause made of neither is the tool's own reading.
+  const critOwnWords = new Set([
+    ...critStudent.flatMap((t) => contentWords(t)),
+    ...contentWords(artefact),
+    ...(studentTurn ? contentWords(studentTurn) : []),
+  ]);
   const guarded = await generateGuarded({
     mode: 'criticism',
-    validate: (t) => validateCriticismOutput(t, { focus, brief: !!brief, artefactTerms }),  // verdict-drift EVERY turn (+ concept-only, + concept-as-object)
+    // maxWords 45, not the enquiry cap: this surface quotes the text verbatim inside the question, which
+    // is the method, and the measured mean here is 30.7 words against enquiry's 18.3.
+    validate: (t) => validateCriticismOutput(t, { focus, brief: !!brief, artefactTerms,
+      maxWords: 45, avoid: critStone, banOpeners: critBanOpeners, noClosed: true, ownWords: critOwnWords,
+      noCompound: true }),
     generate: (correction) => streamQuestion({
       system,
       messages: (correction && correction.previous)

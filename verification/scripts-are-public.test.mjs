@@ -47,6 +47,11 @@ const PUBLIC_SCRIPTS = [
   // material of its own — the document and the concept arrive as --doc= and --concept=, pointed at
   // docs/ops/fixtures/, which is publish-excluded. Added 15 August 2026.
   'critique-conversation-probe.mjs',
+  // The enquiry equivalent, added 17 August 2026 — drives the real /api/chat over many rounds and reads
+  // the CONVERSATION (anchor movement, goal coverage, the rut, student repeats) rather than the turn.
+  // Its second persona never complains, which is the student every earlier instrument was blind to.
+  // Carries no material: the edge is invented in-file or arrives as --edge= / --edge-file=.
+  'enquiry-conversation-probe.mjs',
   'dialogue-probe.mjs',
   'featherless-arena-gens.json',
   'featherless-arena-result.json',
