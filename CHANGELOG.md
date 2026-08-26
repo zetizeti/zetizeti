@@ -21,6 +21,22 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.18.0] — 2026-08-26
+
+**Being on two lists refused you, and the refusal was silent.** Precedence between the cohort tiers was written as a preference order and behaved as an exclusive assignment. An email on both the AI Club allowlist and the personal allowlist resolved to the AI Club tier, asked the credit engine for that student's own key, was told there was none, and stopped there — never reaching the operator key it had been put on the personal list to use. Nothing errored, nothing logged, and the person simply could not generate. It was Prayas's own Anant account, among others.
+
+`tiersForUser()` in `lib/cohorts.mjs` now returns every tier an email qualifies for, in preference order, and both key-resolution paths — `/api/chat` and the criticism endpoints — walk it and take the first tier that can actually produce a key. `tierForUser()` is unchanged and still returns the head, so the status endpoints and everything else behave exactly as before.
+
+**Only a missing key falls through, and the distinction is the whole safety of it.** Fall-through answers *this tier cannot pay for you*. It must never answer *this tier said no about you* — so a revoked student stays refused rather than escaping to another wallet, and a ₹ ceiling that has been reached is still a ceiling.
+
+**A keyless student was being told she was not registered.** The credit engine distinguishes `NO_KEY` — on the roster, no OpenRouter key yet — from `NOT_REGISTERED`, which means the roster has never heard of the email. zetizeti's client read neither code, fell through to the bare 404, and reported both as `NOT_REGISTERED`. An enrolled student who had simply not made a key yet was told she was not registered for her own course. The code is now mapped and has its own message, which says what to actually do about it.
+
+**A maintenance door, on the operator's instruction.** `POST /maint/session` mints an admin session directly from the bearer token in `ZETIZETI_MAINT_TOKEN` — no Google round-trip, no membership of `ZETIZETI_ADMIN_EMAILS`, and, unlike the guest door, no refusal in production, because reaching the deployed app is the entire point of it. Every other gate is off on that path by instruction, which leaves the token carrying the whole weight, so it is built to: a minimum length enforced rather than advised (under 32 characters disables the door instead of guarding it weakly), a timing-safe comparison over a fixed-length digest, a 404 rather than a 403 when unconfigured so the route never admits it exists, and a two-hour session rather than the thirty days a person gets.
+
+**What the door deliberately cannot do.** It cannot spend. The maintenance identity is on no cohort allowlist, so the classifier resolves it to `NONE` and every generation path refuses it — admin surfaces are readable, no wallet is reachable. That is not a promise in prose: `test/fallthrough-and-maint.test.mjs` asserts it against the live classifier, and would fail the day somebody put that address on a list.
+
+Seventeen new tests, and eleven of them are refusals — a wrong token, a missing header, a truncated token, an empty string — because a guard nobody has watched refuse has not been shown to work.
+
 ## [0.17.0] — 2026-08-17
 
 **A student repeated herself twice and left, and nothing was watching for that.** A real AI Club enquiry

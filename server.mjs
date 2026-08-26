@@ -21,12 +21,13 @@ import { docFreq, informativeOf } from './lib/reading.mjs';          // engageme
 import {
   googleConfigured, adminConfigured, emailIsAdmin, currentUser, logout, publicUser,
   beginGoogleAuth, handleGoogleCallback, guestAllowed, beginGuest,
+  beginMaint, maintConfigured, userIsMaint,
   personalAllowlistConfigured, personalAllowlistSize,
   studentsAllowlistConfigured, studentsAllowlistSize,
   aiClubAllowlistConfigured, aiClubAllowlistSize,
 } from './lib/auth.mjs';
 import { resolveAiClubKey, forgetKey, creditEngineConfigured } from './lib/credit-engine.mjs';
-import { TIER, tierForUser, cohortSummary } from './lib/cohorts.mjs';
+import { TIER, tierForUser, tiersForUser, cohortSummary } from './lib/cohorts.mjs';
 import {
   // EPHEMERAL (privacy, 11 Jul 2026): zetizeti stores no conversation. The Socratic chat and the
   // critique surface both generate statelessly from the transcript the browser sends each turn, and
@@ -182,19 +183,33 @@ const EMPTY_MSG = "The interlocutor didn't answer that time — send that again.
 // their access withdrawn, or the credit service itself being unreachable (an operator-side problem).
 const AICLUB_EXHAUSTED_MSG = 'Your AI Club credit is used up. Speak to the person running the studio about topping it up.';
 const AICLUB_NOT_REG_MSG   = "Your AI Club account isn't set up yet — please contact the person running the studio.";
+// A student who IS on the roster and simply has no OpenRouter key yet. Distinct from NOT_REGISTERED,
+// which says the roster has never heard of them — the two were one message until 26 August 2026, so an
+// enrolled student who had not yet made a key was told she was not registered for her own course.
+const AICLUB_NO_KEY_MSG    = "You're on the AI Club roster, but no OpenRouter key is registered against your name yet. Add your key and the studio tools will start working.";
 const AICLUB_REVOKED_MSG   = 'Your AI Club access has been withdrawn — please contact the person running the studio.';
 const AICLUB_SERVICE_MSG   = 'The AI Club credit service is unavailable right now — please try again shortly.';
 // Map a credit-engine resolve-failure code → a { code, message } the client can show. ENGINE_AUTH /
 // ENGINE_ERROR / ENGINE_UNREACHABLE all read as the same "service unavailable" to the student (the
 // distinction is operator-facing and lives in the engine's logs, never in a key-bearing surface).
 const aiClubResolveError = (code) => {
+  if (code === 'NO_KEY')         return { code: 'AICLUB_NO_KEY', message: AICLUB_NO_KEY_MSG };
   if (code === 'NOT_REGISTERED') return { code: 'AICLUB_NOT_REGISTERED', message: AICLUB_NOT_REG_MSG };
   if (code === 'REVOKED')        return { code: 'AICLUB_REVOKED', message: AICLUB_REVOKED_MSG };
   return { code: 'AICLUB_SERVICE', message: AICLUB_SERVICE_MSG };
 };
+// Does an AI Club miss mean "this tier cannot pay for you" (fall through to the next tier the email is
+// on) or "this tier said no about you" (stop here)? Only the first may fall through — see the note at
+// the top of lib/cohorts.mjs. REVOKED is a decision about the person and must never be escaped by
+// dropping to another wallet; a missing key, or an engine that is simply unreachable, is not.
+const aiClubMissMayFallThrough = (code) => code !== 'REVOKED';
 // Which cohort tier is this signed-in user in? The SINGLE classifier (lib/cohorts.mjs) — the chat path,
 // the criticism path, and the status endpoints all ask this, so the tiering never drifts between them.
 const tierOf = (email) => tierForUser(email, { personalEnabled, studentsEnabled });
+// EVERY tier this email qualifies for, in preference order. The two key-resolution paths walk this so a
+// user on more than one list falls through to their next wallet when the first cannot produce a key,
+// rather than dead-ending on the highest-precedence one. The status endpoints keep reading `tierOf`.
+const tiersOf = (email) => tiersForUser(email, { personalEnabled, studentsEnabled });
 // A generation error is mapped to the AI-Club "credit used up" message when it came from an AI-Club turn
 // and OpenRouter refused for want of credit (402 / insufficient). On that path the cached key is dropped
 // so a re-issued key is resolved fresh next turn. Otherwise the raw error message passes through as before
@@ -242,6 +257,10 @@ app.use(express.json());
 app.get('/auth/google', beginGoogleAuth);
 app.get('/auth/google/callback', handleGoogleCallback);
 app.get('/auth/guest', beginGuest);          // dev-only (refuses in production)
+// The maintenance door (26 Aug 2026). POST-only, bearer-token, 404 when ZETIZETI_MAINT_TOKEN is unset or
+// too short. Unlike /auth/guest above this one DOES work in production — that is what it is for. See the
+// long note in lib/auth.mjs for what it deliberately cannot do.
+app.post('/maint/session', beginMaint);
 app.post('/auth/logout', (req, res) => { logout(req, res); res.json({ ok: true }); });
 
 // Sibling AI Club app URLs for the footer strip (AI Club students only). Unset → shown as a label, no link.
@@ -334,8 +353,17 @@ function requireUser(req, res, next) {
   req.user = u;
   next();
 }
-// Admin gate: a signed-in user whose verified Google email is on ZETIZETI_ADMIN_EMAILS.
+// Admin gate: a signed-in user whose verified Google email is on ZETIZETI_ADMIN_EMAILS — OR the
+// maintenance identity, which reached a session by presenting ZETIZETI_MAINT_TOKEN and is admitted here
+// by instruction (26 Aug 2026: *"remove gates for mantainence"*). The token was the gate; asking it to
+// also appear on an email list would be the gate twice.
+//
+// 🔴 This admits a MAINTENANCE session, never a student one. The check widens by exactly one identity,
+// recognised by its google_sub — a value Google cannot issue — and not by loosening what counts as an
+// admin email. Do not restate this as "sessions marked admin may pass": that phrasing is what lets the
+// next change quietly admit a second kind of caller.
 function requireAdmin(req, res, next) {
+  if (userIsMaint(req.user)) { next(); return; }
   if (!emailIsAdmin(req.user.email)) { res.status(403).json({ error: 'not an admin' }); return; }
   next();
 }
@@ -525,11 +553,23 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // ₹ ceiling, 0 records it as personal (monitor only). usingPool stays the "shared students pool" marker
   // that gates the caps + the budget-header event.
   let apiKey = null, usingPool = false, aiClubEmail = null, meter = false, poolFlag = 1;
-  const tier = tierOf(req.user.email);
+  // Preference order, not an exclusive assignment (26 Aug 2026 — see lib/cohorts.mjs). If the AI Club
+  // tier cannot produce a key and this email is also on another list, drop to that list's wallet instead
+  // of refusing. A REVOKED student is a decision, not a payment problem, so that one never falls through.
+  const tiers = tiersOf(req.user.email);
+  let tier = tiers[0];
   if (tier === TIER.AI_CLUB) {
     const r = await resolveAiClubKey(req.user.email);
-    if (!r.ok) { send('error', aiClubResolveError(r.code)); return res.end(); }
-    apiKey = r.key; aiClubEmail = req.user.email;            // usingPool = false — their own credit, metered at OpenRouter
+    if (r.ok) {
+      apiKey = r.key; aiClubEmail = req.user.email;          // usingPool = false — their own credit, metered at OpenRouter
+    } else if (tiers.length > 1 && aiClubMissMayFallThrough(r.code)) {
+      tier = tiers[1];                                       // fall through to the next wallet they are on
+    } else {
+      send('error', aiClubResolveError(r.code)); return res.end();
+    }
+  }
+  if (apiKey) {
+    /* AI Club key resolved above — nothing further to decide. */
   } else if (tier === TIER.POOL_PERSONAL) {
     // Operator's own key — own-key billing: no ₹ ceiling, no per-user caps (usingPool stays false). But we
     // DO meter it (poolFlag = 0) so personal usage shows in the admin monitor, kept apart from the shared
@@ -834,11 +874,18 @@ function digestBrief(text) {
 // {apiKey, usingPool} or sends a clear error event, ends the response, and returns null. Async, so
 // callers must await. (function declaration → hoisted.)
 async function resolveKeyForCriticism(req, res, send) {
-  const tier = tierOf(req.user.email);
+  // Same preference-order walk as /api/chat (26 Aug 2026 — see lib/cohorts.mjs). This path and the chat
+  // path must never diverge on who can pay: they did once, on the POOL_USER_TURNS guard, and it refused
+  // the whole students cohort for thirteen days because the operator sat on a tier that returned earlier.
+  const tiers = tiersOf(req.user.email);
+  let tier = tiers[0];
   if (tier === TIER.AI_CLUB) {
     const r = await resolveAiClubKey(req.user.email);
-    if (!r.ok) { send('error', aiClubResolveError(r.code)); res.end(); return null; }
-    return { apiKey: r.key, usingPool: false, meter: false, poolFlag: 0 };  // their own credit, metered at OpenRouter
+    if (r.ok) return { apiKey: r.key, usingPool: false, meter: false, poolFlag: 0 };  // their own credit, metered at OpenRouter
+    if (!(tiers.length > 1 && aiClubMissMayFallThrough(r.code))) {
+      send('error', aiClubResolveError(r.code)); res.end(); return null;
+    }
+    tier = tiers[1];                                          // fall through to the next wallet they are on
   }
   if (tier === TIER.POOL_PERSONAL) {
     return { apiKey: POOL_KEY, usingPool: false, meter: true, poolFlag: 0 };  // operator key — own-key billing, no caps; metered for the monitor only
