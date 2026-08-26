@@ -21,6 +21,24 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.19.1] — 2026-08-26
+
+**A student's turn died mid-question and the tool could not have known.** She was signed in and mid-conversation on the enquiry surface when the stone came back `connection lost — TypeError: Failed to fetch`, with no partial text. That string comes from one place: the catch around the whole SSE read in `public/index.html`. It fires when the transport itself fails, never when the server answers — any HTTP response, including a proxy's own error page, would have taken the other branch and read *the model didn't return a question — try again*. So the connection broke rather than replied.
+
+**The gap it exposed is the cost of invariant #3, and nothing had ever paid it.** The guard buffers the question — generate, validate, repair up to twice, deliver whole — because a question cannot be withheld after it has been read. That creates an interval in which the response is open and nothing at all travels down it: after `curtain` and `signals`, before the single `token`. zetizeti.com sits behind Cloudflare, a proxy cuts a stream that has gone quiet, and the browser then throws from `reader.read()` with nothing yet painted. There was no heartbeat, no keepalive, no timer anywhere in `server.mjs`.
+
+**Every SSE stream now carries a keepalive, and opening a stream is what starts it.** `lib/heartbeat.mjs` writes an SSE comment frame every fifteen seconds while the response is open, and stops itself on `close` and `finish` so none of the handler's nine early returns can leak a timer. `/api/chat` had been setting the three SSE headers inline, a few hundred lines from the `sseHeaders` every criticism route used — so a stream-wide fix would have reached two surfaces of three, one copy away from the guard-parity fault this project has already paid for twice. There is now one opener, it starts the heartbeat inside itself, and a test fails if any route sets `text/event-stream` by hand again.
+
+**Every call to the credit engine is bounded.** Neither the key resolve nor the roster fetch carried an abort signal, so a hung engine was held for undici's five-minute default with the student's stream open and silent throughout. Eight seconds now, against the ~110ms the engine answers in when it is well. The timeout lands on a path already handled: an abort returns `ENGINE_UNREACHABLE`, which falls through to any other wallet the student is listed for. A slow engine reads as a payment failure, which is what it is.
+
+**What was not established, and is recorded rather than smoothed over.** The server did not restart under her — `startedAt` spans the incident continuously — and the engine is healthy. But her own network would produce a byte-identical failure, and there are no logs to separate the two, by rule and rightly. This closes the mechanism the project owns. It does not diagnose that instance.
+
+**A turn that dies here is invisible to the one instrument built to see people leave.** `turn_depth` is written on delivered turns only, so a dead turn writes no row and the survival curve records a shorter conversation — indistinguishable from a student who had had enough. That, rather than the incident, is why this was worth closing rather than watching.
+
+**What it costs.** A turn that is genuinely stuck will now keep a student waiting instead of failing in front of her. A wait is legible and recoverable; a dead socket mid-question is neither.
+
+Proved live on the auth-less local build against the real model, not from a green suite: the raw stream reads `curtain`, `signals`, three keepalive frames, `token`. Both guards proved by removing the fix and watching them fail. 368 tests.
+
 ## [0.19.0] — 2026-08-26
 
 **Two lists held the same roster and nothing kept them in step.** zetizeti carried the AI Club membership in `ZETIZETI_AICLUB_ALLOWLIST` while the credit engine held the same roster in its own table. On 26 August they had drifted: a student seeded on the engine on 15 August was absent from the env list eleven days later. She held a funded OpenRouter key, resolved perfectly at `/resolve`, and could not sign in at all — no error on either side, and she would have discovered it in front of a classroom.

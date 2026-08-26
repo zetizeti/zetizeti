@@ -66,6 +66,8 @@ Then `lib/guard.mjs`: **buffer → validate → repair once with the guard's own
 question is not streamed token by token, deliberately — a question cannot be withheld after it has been
 read. That cost was paid consciously in v0.9.1.
 
+**It has a second cost, and it went unpaid until v0.19.1 (26 August 2026).** Buffering opens an interval in which the response is live and nothing travels down it: after `curtain` and `signals`, before the single `token`. Proxies cut a stream that has gone quiet, and the browser then throws from its own read — the learner sees *connection lost* with no partial text, because no token had arrived. A student met that mid-conversation. `lib/heartbeat.mjs` now writes an SSE comment frame every fifteen seconds for as long as any stream is open, and starting one is part of opening a stream rather than something a route remembers to do. What it costs in turn: a genuinely stuck turn keeps a learner waiting instead of failing in front of her.
+
 ---
 
 ## The mechanisms

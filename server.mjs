@@ -44,6 +44,7 @@ import {
 } from './lib/db.mjs';
 import { streamQuestion } from './lib/llm.mjs';
 import { generateGuarded } from './lib/guard.mjs';           // the guard's ENFORCEMENT layer (invariant #3)
+import { startHeartbeat } from './lib/heartbeat.mjs';       // keeps the guard's SILENT interval alive (see the file)
 import { computeSignals, content as contentWords } from './lib/signals.mjs';
 import { readDwell, isDecline, isCorrection, lastSubstantive, readRepeat, NONMATERIAL } from './lib/arc.mjs';
 import { readAssociation, associationBlock } from './lib/assoc.mjs';
@@ -528,9 +529,11 @@ app.post('/api/chat', requireUser, async (req, res) => {
   }
   const curtain = retrieved.map((r) => ({ id: r.id, snippet: r.snippet, sources: r.sources, provenance: r.provenance }));
 
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
+  // 🔴 ONE opener for every SSE stream (26 Aug 2026). This route used to set the three headers inline,
+  // identically to `sseHeaders` and a few hundred lines away from it, which is exactly how the heartbeat
+  // would have reached the criticism surface and not this one — the guard-parity fault, one copy away.
+  // Opening a stream and keeping it alive are now the same act and cannot be done by halves.
+  sseHeaders(res);
   const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
 
   // Curtain + signals stream regardless of key — even a keyless visitor sees the tensions + the edge.
@@ -848,7 +851,18 @@ app.post('/api/chat', requireUser, async (req, res) => {
 // describeLocated now lives in lib/dialogue.mjs and is IMPORTED — see the note there. It was
 // duplicated in scripts/audit-criticism.mjs and the two drifted (11 Aug 2026).
 
-const sseHeaders = (res) => { res.setHeader('Content-Type', 'text/event-stream'); res.setHeader('Cache-Control', 'no-cache'); res.setHeader('Connection', 'keep-alive'); };
+// Open an SSE stream. 🔴 THE HEARTBEAT IS PART OF OPENING ONE, not a thing a route remembers to add.
+// Both surfaces go completely silent while the guard buffers, validates and repairs the question
+// (invariant #3), and a proxy cuts a stream that has gone quiet — see lib/heartbeat.mjs for what that
+// cost a student on 26 August 2026. Every SSE route in this file goes through here; adding another one
+// that sets these headers by hand reintroduces the fault, and `verification/heartbeat.test.mjs` fails
+// if any route does. The heartbeat stops itself on 'close'/'finish', so no caller owns its lifetime.
+const sseHeaders = (res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  startHeartbeat(res);
+};
 const goalTermsOf = (g) => (String(g || '').toLowerCase().match(/[a-z0-9]+/g) || []).filter((t) => t.length > 2);
 
 // How much document either slot accepts — the text under question, and the project concept beside it.
