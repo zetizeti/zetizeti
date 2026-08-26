@@ -24,9 +24,9 @@ import {
   beginMaint, maintConfigured, userIsMaint,
   personalAllowlistConfigured, personalAllowlistSize,
   studentsAllowlistConfigured, studentsAllowlistSize,
-  aiClubAllowlistConfigured, aiClubAllowlistSize,
+  aiClubAllowlistConfigured, aiClubAllowlistSize, setAiClubRoster, aiClubRosterSource,
 } from './lib/auth.mjs';
-import { resolveAiClubKey, forgetKey, creditEngineConfigured } from './lib/credit-engine.mjs';
+import { resolveAiClubKey, forgetKey, creditEngineConfigured, fetchAiClubRoster } from './lib/credit-engine.mjs';
 import { TIER, tierForUser, tiersForUser, cohortSummary } from './lib/cohorts.mjs';
 import {
   // EPHEMERAL (privacy, 11 Jul 2026): zetizeti stores no conversation. The Socratic chat and the
@@ -1211,7 +1211,36 @@ app.listen(PORT, () => {
   // leaves felt off for the process and harms nothing else.
   const t0 = Date.now();
   warmEmbeddings().then((ok) => console.log(`[felt] embedding backend ${ok ? `warm in ${Date.now() - t0}ms` : 'unavailable — felt-shift disabled for this process'}`));
+  startAiClubRosterRefresh();
 });
+
+// ---- the AI Club roster, pulled from the engine (26 August 2026) --------------------------------
+// zetizeti no longer keeps its own copy of who is in the AI Club. It asks the engine, which is the one
+// place that roster lives, and refreshes on a timer. The env var is a break-glass for a cold start
+// during an engine outage and is never consulted once a real answer has arrived — see the long note
+// above AICLUB_ALLOWLIST in lib/auth.mjs for the drift that made this necessary.
+//
+// 🔴 A FAILED REFRESH CHANGES NOTHING. fetchAiClubRoster returns null on any failure, and null is not
+// an empty cohort — we keep whatever we already hold. Treating a network blip as "nobody is enrolled"
+// would lock out the entire class silently, which is a worse failure than the one being fixed.
+const ROSTER_REFRESH_MS = (Number(process.env.ZETIZETI_ROSTER_REFRESH_SEC) || 300) * 1000;
+async function refreshAiClubRoster() {
+  const emails = await fetchAiClubRoster('ai-club');
+  if (!emails) return false;                       // hold what we have — see above
+  setAiClubRoster(emails);
+  return true;
+}
+function startAiClubRosterRefresh() {
+  if (!creditEngineConfigured) {
+    console.log('[zetizeti] ai-club roster: engine not configured — the env allowlist stands');
+    return;
+  }
+  refreshAiClubRoster().then((ok) => {
+    console.log(`[zetizeti] ai-club roster: ${ok ? 'loaded from engine' : 'ENGINE DID NOT ANSWER — falling back to the env allowlist, which may be stale'} (source:${aiClubRosterSource()})`);
+  });
+  const t = setInterval(refreshAiClubRoster, ROSTER_REFRESH_MS);
+  if (typeof t.unref === 'function') t.unref();    // never hold the process open for a refresh
+}
 // Capture status — loud when ON so it's never a surprise, silent otherwise. It CANNOT be on in
 // production (hard guard in lib/capture.mjs); this only ever prints on a local dev instance.
 if (captureEnabled) console.log(`[zetizeti] 🔴 TEST-CHAT CAPTURE ON → ${process.env.ZETIZETI_CAPTURE_DIR}/zetizeti-testchats.jsonl (local build tool; never in production)`);

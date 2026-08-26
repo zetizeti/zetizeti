@@ -21,6 +21,20 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.19.0] — 2026-08-26
+
+**Two lists held the same roster and nothing kept them in step.** zetizeti carried the AI Club membership in `ZETIZETI_AICLUB_ALLOWLIST` while the credit engine held the same roster in its own table. On 26 August they had drifted: a student seeded on the engine on 15 August was absent from the env list eleven days later. She held a funded OpenRouter key, resolved perfectly at `/resolve`, and could not sign in at all — no error on either side, and she would have discovered it in front of a classroom.
+
+**The fix is that there is no longer a second list.** The engine grew `POST /cohort/members`, and zetizeti now fetches the roster on boot and every five minutes. While that snapshot is present the env var is never read. A drift alarm was the obvious alternative and was rejected: a guard that only reports enforces nothing, and the two copies would have gone on disagreeing while something dutifully mentioned it.
+
+**Depending on the engine costs no availability, which is what makes this safe rather than merely tidy.** If the engine is unreachable an AI Club student cannot generate anyway — the key resolve fails and the turn is refused. Gating membership on the same service surrenders nothing that was not already lost. The env list survives only for a cold start during an outage, and `/api/config` reports `aiClub.source` as `engine` or `env` so a fall back to the stale copy is visible rather than silent.
+
+**A failed refresh changes nothing.** `fetchAiClubRoster` returns `null` on every failure path, and `null` is not an empty cohort. The tempting `setAiClubRoster(result || [])` would empty the roster on one network blip and lock out the whole class — a worse failure than the one being fixed. There is a test for it.
+
+**And a test that fails when the version drifts.** `package-lock.json` had read 0.14.3 while `package.json` read 0.17.0 — three releases behind, in a file that publishes publicly, unnoticed because the running version comes from `git describe` and nothing reads the lockfile's field at all. A value nobody reads is a value nobody checks. `verification/version-consistency.test.mjs` is the thing that now reads it.
+
+**498 macOS AppleDouble files had accumulated in the tree**, including inside `app/scripts/`, which the publish script ships wholesale. The publish guard was already refusing them, which is the guard working. They are deleted and gitignored.
+
 ## [0.18.0] — 2026-08-26
 
 **Being on two lists refused you, and the refusal was silent.** Precedence between the cohort tiers was written as a preference order and behaved as an exclusive assignment. An email on both the AI Club allowlist and the personal allowlist resolved to the AI Club tier, asked the credit engine for that student's own key, was told there was none, and stopped there — never reaching the operator key it had been put on the personal list to use. Nothing errored, nothing logged, and the person simply could not generate. It was Prayas's own Anant account, among others.
