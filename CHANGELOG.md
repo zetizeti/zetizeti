@@ -21,6 +21,28 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.20.0] — 2026-08-28 *(built; not tagged, deployed or published — awaiting go-ahead)*
+
+**Enquiry mode takes a prep sheet, and walks you into an area you do not work in yet.** Attach a glossary or briefing when you begin an enquiry and the conversation opens differently: instead of asking about the edge you named, the stone walks six lines of questioning through the document you brought — what the field calls things, where it came from, what you need before you can start, what is hard here, what is already to hand, and what the field says about itself. Then it stops, and the enquiry is yours again, in an area you now have words for.
+
+**It preps by asking and never by teaching**, which is the constraint the whole feature is shaped by and the one a later reading will be tempted to relax. You brought the document; the document does the telling. `noDefine` withholds a question that glosses a term in the tool's own voice, while a quote from your own sheet passes — you have it open, and quoting a text the learner brought is the criticism surface's method rather than an assertion.
+
+**Three parts, meant for three sittings, with no state stored anywhere.** Two lines of questioning a part. Each part ends by putting the task for the gap in front of you and asking how you will meet it; each later part opens by asking what actually happened. Nothing is kept between sittings: you save your transcript and bring it back, which is the machinery built on 30 July for continuing an ended conversation, and the walk resumes because the transcript is what says how far it got. There is no account, no saved plan and no resume code, and the ephemeral pivot needs no new argument defending it.
+
+**The tasks are pre-set by a document and the stone never writes one.** Whoever prepared the material decides what is worth going away and doing; the stone reads the task out as it stands and asks one question about how this particular person will meet it. Where no tasks document is attached, the closing turn asks the learner to name something small themselves.
+
+**Asking another model is worked around by the questions rather than by a detector.** Students will paste prep questions into another window, and reading their replies for signs of it would be a judgement about the learner that invariant #7 keeps out of this system — built, besides, from a phrase list that could only find students who write like the one it was written from. So every question asks for something that exists nowhere but in the person answering: what they took a word to mean before today, what they can already do, what is on their desk this week, what actually happened when they did the task. A question with no *you* in it is withheld before it is read.
+
+**The worth-and-hype line never says what is hype.** Its lexicon finds promotional language in the document — a sentence in which the field makes a large claim about itself — and the stone points at it and asks what the learner makes of it. `noHypeVerdict` withholds a question that has already decided. The acquittal is per word, after the first version acquitted a whole pattern if the learner had used any of its words, so one use of "hype" licensed the stone to call something "just marketing".
+
+**Two faults were found by running things rather than reading them.** The worth-hype aim originally asked for *"what would you need to see"*, which trips a forbidden pattern guarding the never-answer invariant since the beginning — every turn of that station would have been repaired. The fix went into the aim, never into the gate. And `hidden-guard.test.mjs` caught the new tasks chip carrying `hidden` on a class that sets `display`, which is the v0.14.2 studio-strip fault exactly; that test exists because nothing else detects it.
+
+**Prep turns are counted apart from enquiry turns.** Sixteen prep turns in front of an enquiry would make every prepped conversation look deep in the survival curve, and every comparison against a day before this release wrong, with nothing failing and nobody looking.
+
+⚠️ **The arc is unmeasured.** The criticism plan was measured against its clock and came back null on question quality; `readArc` was measured null before it. This one has been measured against nothing, and no probe has been run against the real endpoint. What is claimed for it is coverage and an ending — the two things the criticism plan's null did not touch either.
+
+New: `app/lib/prep.mjs`, `POST /api/prep/readiness`, `docs/concept/prep-file.md` (the file format, and the brief for an assistant asked to write a sheet), `verification/prep-arc.test.mjs` (20 assertions). Suite: 388.
+
 ## [0.19.1] — 2026-08-26
 
 **A student's turn died mid-question and the tool could not have known.** She was signed in and mid-conversation on the enquiry surface when the stone came back `connection lost — TypeError: Failed to fetch`, with no partial text. That string comes from one place: the catch around the whole SSE read in `public/index.html`. It fires when the transport itself fails, never when the server answers — any HTTP response, including a proxy's own error page, would have taken the other branch and read *the model didn't return a question — try again*. So the connection broke rather than replied.

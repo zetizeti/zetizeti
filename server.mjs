@@ -13,10 +13,12 @@ import {
   loadMethodCore, buildSystemPrompt, buildTurnContext, validateOutput,
   loadCriticismCore, buildCriticismSystemPrompt, validateCriticismOutput,
   CRITICISM_POINTERS, questionOpener, describeLocated,
+  PREP_CLOSING_AIM, PREP_CLOSING_AIM_SET, PREP_RESUMING_AIM,
 } from './lib/dialogue.mjs';
 import { readSensed } from './lib/sensed.mjs';
-import { qualify, toCanonSegments } from './lib/qualify.mjs';   // DETERMINISTIC, no-LLM qualification (locating)
+import { qualify, toCanonSegments, segmentText } from './lib/qualify.mjs';   // DETERMINISTIC, no-LLM qualification (locating)
 import { planFor, windowOf, briefDigest } from './lib/plan.mjs';   // the reading plan — DETERMINISTIC, no LLM
+import { prepPlan, parseTasks, readiness as prepReadiness } from './lib/prep.mjs';   // the prep arc — DETERMINISTIC, no LLM
 import { docFreq, informativeOf } from './lib/reading.mjs';          // engagement sensors — planner-only, never rendered
 import {
   googleConfigured, adminConfigured, emailIsAdmin, currentUser, logout, publicUser,
@@ -488,10 +490,34 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // learner-side signals cannot see. (Stateless: the client sends the whole transcript each turn.)
   const studentTurns = [...history.filter((h) => h.role === 'student').map((h) => h.content), message];
   const stoneTurns = history.filter((h) => h.role !== 'student').map((h) => h.content);
+
+  // ── THE PREP ARC (28 Aug 2026) ────────────────────────────────────────────────────────────────────
+  // The learner attached a sheet about an area they do not work in yet. STATELESS exactly as everything
+  // else here is: the browser posts the document back every turn and the walk is recomputed from the
+  // transcript, so nothing is stored, no identifier exists, and the ephemeral pivot needs no new argument
+  // — the service is not retaining a document, it is being handed one each time, as it always has been
+  // with a paste.
+  //
+  // 🔴 WITH NO `prep` IN THE BODY NOTHING BELOW RUNS AND THE TURN IS BYTE-IDENTICAL TO WHAT IT WAS. That
+  // is the whole non-regression claim for this release and it is asserted rather than trusted: every prep
+  // branch is gated on `prepping`, which is false for every conversation that could have been had before
+  // today. The two student fixtures are unaffected by construction, which is how the two-student rule is
+  // discharged for a feature that adds a register instead of changing one.
+  const prepText = typeof req.body?.prep === 'string' ? req.body.prep.slice(0, DOC_MAX) : '';
+  // The tasks document, if one was attached beside the sheet. Split, never composed: the entries are
+  // whoever-prepared-the-material's decision and travel verbatim to the closing turn.
+  const prepTasks = typeof req.body?.tasks === 'string' ? parseTasks(req.body.tasks.slice(0, DOC_MAX)) : [];
+  const prepSegs = prepText ? prepSegments(prepText) : [];
+  const prepWalk = prepText ? prepPlan({ segments: prepSegs, studentTurns, stoneTurns, tasks: prepTasks }) : null;
+  const prepping = !!(prepWalk && !prepWalk.complete);
+
   // The felt-shift read for THIS turn (null unless the neural backend is live and an event structure
   // computes cleanly). Costs ~tens of ms warm (memoised embeds); sits before the SSE stream opens so
   // the signals event below can carry the reading.
-  const fs = await feltForTurn({ goal, history, message });
+  // ⚠️ Skipped entirely during prep. It reads movement in the learner's articulation of THEIR OWN edge,
+  // and a prep turn is not about their edge; running it would spend the time and, worse, book felt events
+  // against a conversation the detector was never calibrated on.
+  const fs = prepping ? null : await feltForTurn({ goal, history, message });
   // Signals AFTER the felt pass, so `advancement` can be refined by the semantic channel it produces.
   const sig = computeSignals({ goal, lineage, studentTurns, stoneTurns, exchanges });
 
@@ -511,12 +537,20 @@ app.post('/api/chat', requireUser, async (req, res) => {
   //       the aims rotate while the grounding underneath them repeats. Still degrades to "rotate" via
   //       the cycle-back below, never to "empty".
   const prev = studentTurns[studentTurns.length - 2] || '';
-  const windowText = [prev, message, message].join(' ').trim() || message;
-  const recentWindows = [
+  // 🔵 DURING PREP THE PROBE IS THE PASSAGE, NOT THE LEARNER'S LAST REPLY — the same move
+  // askCriticismQuestion makes with a located span, and for the same reason: the question this turn asks is
+  // about a spot in a document in front of both of them, so grounding it in what the learner happened to say
+  // last would retrieve tensions about something else entirely. On an area the corpus does not reach,
+  // retrieval simply returns nothing and the turn context says so honestly, which is the existing fallback.
+  const prepProbe = prepping
+    ? prepSegs.filter((s) => prepWalk.region.includes(s.id)).map((s) => s.text).join(' ').slice(0, 1200)
+    : '';
+  const windowText = prepProbe || [prev, message, message].join(' ').trim() || message;
+  const recentWindows = prepping ? [] : [
     [studentTurns[studentTurns.length - 3] || '', prev, prev].join(' ').trim() || prev,
     studentTurns[studentTurns.length - 4] || '',
   ].filter(Boolean);
-  const excludeIds = studentTurns.length >= 2
+  const excludeIds = (!prepping && studentTurns.length >= 2)
     ? [...new Set(recentWindows.flatMap((w) =>
         retrieve(corpus, w, { limit: 3, extraTerms: goalTerms, discipline, focus }).map((r) => r.id)))]
     : [];
@@ -542,6 +576,27 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // a score, never rendered as one (invariants #5/#6).
   send('curtain', { retrieved: curtain });
   send('signals', { ...sig, feltEvent: fs && fs.semEvent ? 'sem' : fs && fs.lexEvent ? 'lex' : null, feltWhy: (fs && fs.why) || null });
+  // 🔴 TWO BOOLEANS AND NOTHING ELSE. The client needs to know that prep is running, so it can say so, and
+  // that it has finished, so it can draw the line where the enquiry becomes theirs — a phase with no visible
+  // end is a phase the learner cannot tell they have left. What is NOT sent, deliberately: the station, the
+  // index, the region, the touch counts. Those are the planner's, and `verification/reading-plan.test.mjs`
+  // holds the rule this follows — a figure describing how somebody read is a grade whatever it is called,
+  // and the way that rule is kept is by nothing leaving the planner, not by careful naming.
+  // `pausing` is the ONE thing the client could not work out for itself and the only reason this event
+  // carries anything beyond two booleans: the turn being delivered right now ends a part, so the page has to
+  // offer the save-your-transcript step underneath it. Everything the planner knows — which line is live,
+  // how far in it is, which passages their words have touched — stays on the planner's side of the line, and
+  // verification/prep-arc.test.mjs reads this payload to keep it there. The comment sits ABOVE the call for
+  // that reason: a test that greps the payload should be reading the payload.
+  if (prepText) {
+    send('prep', {
+      active: prepping,
+      complete: !!(prepWalk && prepWalk.complete),
+      part: prepWalk ? prepWalk.part : null,
+      parts: prepWalk ? prepWalk.parts : null,
+      pausing: !!(prepWalk && prepWalk.phase === 'closing'),
+    });
+  }
 
   // --- key resolution, by cohort tier (lib/cohorts.mjs — the single classifier):
   //   AI_CLUB      — resolve THIS student's OWN OpenRouter key from the credit engine (app #1) and spend
@@ -625,14 +680,21 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // development route: an analytical learner who narrates no insight but keeps handing over dense
   // material is developing, and the lexicon route cannot see them (measured 29 Jul: movement 0.00
   // across a real 24-turn session; warmth fired zero times).
+  // ⚠️ THE WHOLE STEERING STACK IS SUPPRESSED DURING PREP, and it is one decision rather than six. The
+  // nudge, the felt posture, the dwell anchor, the association join, the vantage and the precision gate all
+  // steer on the learner's own edge: they read what THEY are developing and push the next question at it.
+  // A prep turn is not about their edge, it is about a passage of a document neither of them wrote, and the
+  // station is already its direction. This file has twice measured what happens when two directions reach
+  // the model at once — the more specific one wins and the other was work done for nothing — so only one
+  // is given. Everything here returns to full force the moment the arc completes.
   const lastMaterial = contentWords(message).length;
-  const nudge = decideNudge(sig, {
+  const nudge = prepping ? { posture: '', fired: null, surface: null } : decideNudge(sig, {
     exchanges, reDrewThisTurn: kind === 'redraw', turnsSinceNudge, lastMaterial,
   }, { warmth: true });
   // Felt-shift postures OUTRANK the cadence-driven nudges: an event is exactly when to respond (the
   // same standing the selfEcho break has). When one fires, the nudge's surface is suppressed too — a
   // "we've circled, shall we move?" line would contradict a landing the detector just marked.
-  const felt = feltPosture(fs);            // (event counts were already taken in feltForTurn)
+  const felt = prepping ? null : feltPosture(fs);            // (event counts were already taken in feltForTurn)
   // ── THE FLOW TURN (28 Jul 2026, branch fix-enquiry-flow) — replaces the aim block ────────────────
   // The aim block is NO LONGER INJECTED. Measured on the student's real 41 replies of 28 July (the session
   // that prompted this: "it was just circling back the question and something some bs"), the arc did
@@ -666,8 +728,8 @@ app.post('/api/chat', requireUser, async (req, res) => {
   const newMaterial = [...new Set(contentWords(message))].filter((w) => !earlierWords.has(w)).slice(0, 4);
   const stalled = !newMaterial.length;
   const repeated = readRepeat(studentTurns);
-  const dwellRead = readDwell({ studentTurns, stoneTurns, goal, repeated });
-  const featureInvite = !!(dwellRead && dwellRead.invite);
+  const dwellRead = prepping ? null : readDwell({ studentTurns, stoneTurns, goal, repeated });
+  const featureInvite = !prepping && !!(dwellRead && dwellRead.invite);
   const dwell = featureInvite ? null : dwellRead;
   // The learner has declined this question. Outranks everything: nothing is built on words that carry no
   // content, and the next question changes footing to material they themselves supplied earlier.
@@ -686,7 +748,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // on three successive runs — charged material is resistant material) behind the protective gates:
   // corrections never quoted, refusals quotable only when they name the blockage, hedge words never
   // material. Jung as tact, Cummings as manner, the join itself generous.
-  const assoc = (declined || corrected) ? null : readAssociation({ studentTurns, stoneTurns, selector: 'open' });
+  const assoc = (prepping || declined || corrected) ? null : readAssociation({ studentTurns, stoneTurns, selector: 'open' });
   // OPENER BAN — the question may not open with the word either of the last two questions opened with
   // (proactive here; enforced in the guard). 22 of 24 questions in a real session opened "When…" while
   // every sameness metric read clean.
@@ -701,7 +763,8 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // as capacity, because a repeated reply has the same volume as a fresh one. Volume was never the thing;
   // it was a proxy for having particulars ready to give, and `stalled` reads that directly.
   const recent = studentTurns.slice(-3).map((t) => contentWords(t).length).sort((a, b) => a - b);
-  const precision = recent.length >= 2
+  const precision = !prepping
+    && recent.length >= 2
     && recent[Math.floor(recent.length / 2)] >= 10
     && !stalled
     && !studentTurns.slice(-2).some((t) => isDecline(t));
@@ -718,21 +781,52 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // retrieved tensions and posture OUT of the system prompt is what lets prompt caching reuse the prefix
   // (cache: true below); only the live final turn is wrapped with this turn's domain material.
   const system = buildSystemPrompt(methodCore, goal);
-  const turnContent = buildTurnContext({
-    retrieved,
-    focus,                                    // concept-only: stated to the model, enforced by the guard
-    posture: (felt && felt.posture) || nudge.posture || '',
-    shape: formShape(exchanges, { flow: true }),
-    dwell,
-    newMaterial: newMaterial.length ? newMaterial : null,
-    declined,
-    corrected,
-    assoc: assoc ? associationBlock(assoc) : '',
-    banOpeners,
-    precision,
-    featureInvite,
-    message,
-  });
+  // WINDOW THE PREP SHEET, on the criticism surface's argument and its arithmetic. The document enters the
+  // prompt on every prep turn, so an unwindowed 25,000-character sheet across a dozen prep turns would cost
+  // roughly what a whole enquiry costs today, against a lifetime ₹ ceiling sized when nothing like it
+  // existed. Below WINDOW_WHOLE_BELOW the whole sheet goes in, which is where nearly every real prep sheet
+  // will sit — 800 to 3,000 words is what the format doc asks for.
+  const prepWin = prepping ? windowOf(prepText, prepSegs, prepWalk.region) : null;
+  // WHICH AIM THIS TURN CARRIES. A station turn takes its own; the turn that closes a part takes one of two
+  // closings depending on whether a task was set for the gap; the turn that opens a later part asks what
+  // actually happened. One place decides, so the phase and the wording cannot disagree.
+  const prepAim = prepping
+    ? (prepWalk.phase === 'station' ? prepWalk.station.aim
+      : prepWalk.phase === 'closing' ? (prepWalk.task ? PREP_CLOSING_AIM_SET : PREP_CLOSING_AIM)
+        : PREP_RESUMING_AIM)
+    : '';
+  const turnContent = prepping
+    ? buildTurnContext({
+      prep: {
+        aim: prepAim,
+        body: prepWin.body,
+        skeleton: prepWin.windowed ? prepWin.skeleton : '',
+        phase: prepWalk.phase,
+        part: prepWalk.part,
+        parts: prepWalk.parts,
+        task: prepWalk.task,
+      },
+      shape: formShape(exchanges, { flow: true }),
+      declined,
+      corrected,
+      banOpeners,
+      message,
+    })
+    : buildTurnContext({
+      retrieved,
+      focus,                                    // concept-only: stated to the model, enforced by the guard
+      posture: (felt && felt.posture) || nudge.posture || '',
+      shape: formShape(exchanges, { flow: true }),
+      dwell,
+      newMaterial: newMaterial.length ? newMaterial : null,
+      declined,
+      corrected,
+      assoc: assoc ? associationBlock(assoc) : '',
+      banOpeners,
+      precision,
+      featureInvite,
+      message,
+    });
 
   const messages = [
     ...history.map((h) => ({ role: h.role === 'student' ? 'user' : 'assistant', content: h.content })),
@@ -769,13 +863,29 @@ app.post('/api/chat', requireUser, async (req, res) => {
         // maxWords — written 28 July as "brevity as a condition of delivery" and never passed by this
         // route, so it has never once fired. 34 against a measured mean of 18.3 and a longest of 32
         // across fifty probe questions: it refuses the outlier, not the ordinary question.
-        maxWords: 34,
+        // ⚠️ 40 during prep, on the criticism surface's precedent (45 there): a prep question quotes a term
+        // or a claim from the document verbatim, which is the method rather than padding, and the quoted
+        // span is inside the count. Named as a chosen difference rather than left to be discovered.
+        maxWords: prepping ? 40 : 34,
+        // THE THREE PREP GUARDS. noDefine keeps prep from becoming teaching; mustAddress keeps the question
+        // about this learner rather than about the field, which is what makes asking another model pointless
+        // instead of merely discouraged; noHypeVerdict keeps the one judgement the arc solicits on the
+        // learner's side of invariant #5. All three are inert on every conversation without a prep sheet.
+        noDefine: prepping && prepWalk.phase === 'station',
+        mustAddress: prepping,
+        noHypeVerdict: prepping && prepWalk.phase === 'station',
         // ONE question, which both modes' repair text has always demanded and neither ever enforced.
         noCompound: true,
         // ownWords — the warmth clause may only say back words the learner used. Their whole transcript
         // is the licence, so a clause reaching back to turn 2 still passes; only material that is
         // nowhere in their own words counts as the tool's own reading.
-        ownWords: new Set([...studentTurns, message].flatMap((t) => contentWords(t))),
+        // ⚠️ DURING PREP THE LICENCE IS THEIR WORDS UNION THE SHEET'S, which is exactly the widening the
+        // criticism surface makes for the artefact and for the same reason: they brought the document and
+        // have it open, so a term lifted from it is not the tool introducing material of its own. Without
+        // this the invention check would refuse every question that quotes a glossary entry — which is to
+        // say, the whole first station.
+        ownWords: new Set([...studentTurns, message].flatMap((t) => contentWords(t))
+          .concat(prepping ? contentWords(prepText) : [])),
         // 🔴 THE JOIN'S REQUIREMENT MUST BE MATERIAL, NOT HEDGES (17 Aug 2026). `assoc.mjs` filters
         // NONMATERIAL in four places — its own comment says a hedge may never become a carried word —
         // and this route then built the guard's demand from unfiltered `contentWords`, throwing that
@@ -817,7 +927,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
     // situation → the question, so a chat can be replayed by the 2.0 "sounds-like-Prayas" harness. The
     // returned id lets the local UI attach an on-voice/off-voice label to this exact question. The guard's
     // work is captured too (a repaired question is a different kind of specimen from a first-pass one).
-    const capId = capture({ mode: 'enquiry', chatKey: studentTurns[0] || goal, goal, discipline, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, dwell: featureInvite ? 'INVITE' : dwell ? `${dwell.anchor}×${dwell.returns}` : null, joined: assoc ? assoc.distance : null, declined: !!declined, corrected, repeated, stalled, newMaterial: newMaterial.slice(0, 3), shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
+    const capId = capture({ mode: prepping ? 'prep' : 'enquiry', prepStation: prepping ? (prepWalk.station ? prepWalk.station.key : prepWalk.phase) : null, prepPart: prepping ? prepWalk.part : null, chatKey: studentTurns[0] || goal, goal, discipline, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, dwell: featureInvite ? 'INVITE' : dwell ? `${dwell.anchor}×${dwell.returns}` : null, joined: assoc ? assoc.distance : null, declined: !!declined, corrected, repeated, stalled, newMaterial: newMaterial.slice(0, 3), shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
       // Logged side by side so the comparison the todo doc asks for can be made on real transcripts
       // before anything is wired again. Local capture only — never in production (capture.mjs).
       sem: fs && fs.semFresh ? +fs.semFresh[fs.semFresh.length - 1].toFixed(3) : null,
@@ -829,7 +939,20 @@ app.post('/api/chat', requireUser, async (req, res) => {
     // `studentTurns.length` IS how deep this conversation is. A refused turn (no access, cap, empty
     // generation) never reaches this line, which matters: counting refusals would inflate precisely the
     // depth where people leave, and make the tool look like it lost them when the budget did.
-    noteTurnDepth({ day: utcDay(), surface: 'enquiry', version: BUILD.version, depth: studentTurns.length });
+    // 🔴 PREP TURNS ARE COUNTED SEPARATELY, AND THE ENQUIRY DEPTH IS OFFSET PAST THEM. The survival curve
+    // is this project's only instrument for seeing somebody leave, and its whole value is that a release
+    // which loses people a turn earlier shows up here and nowhere else — which requires depth N to mean the
+    // same thing across versions. A dozen prep turns in front of an enquiry would make every prepped
+    // conversation look deep, and every comparison against a day before this release would be wrong, with
+    // nothing failing and nobody looking. So prep gets its own surface and its own curve, and an enquiry
+    // turn after the arc records how deep the ENQUIRY is, not how long the two together ran.
+    const prepTurns = prepWalk ? prepWalk.path.length : 0;
+    noteTurnDepth({
+      day: utcDay(),
+      surface: prepping ? 'prep' : 'enquiry',
+      version: BUILD.version,
+      depth: prepping ? studentTurns.length : studentTurns.length - prepTurns,
+    });
     // Nothing of the conversation persisted — the client keeps the turn in its own transcript.
     if (meter) {
       addPoolSpend(utcDay(), req.user.id, poolCost, poolFlag);   // count this turn + its real cost, all attempts (poolFlag: 1 shared, 0 personal)
@@ -872,6 +995,29 @@ const goalTermsOf = (g) => (String(g || '').toLowerCase().match(/[a-z0-9]+/g) ||
 // direct proportion, against a lifetime ₹ cap that was set when the ceiling was 8,000. If windowing is
 // ever removed or bypassed, this must come back down in the same commit.
 const DOC_MAX = 25000;
+
+// ── THE PREP SHEET (28 Aug 2026) ──────────────────────────────────────────────────────────────────
+// Segments for the prep arc, and DELIBERATELY NOT `qualify()`. The criticism surface needs qualify because
+// it needs each segment's SDC stage to locate a blur, and that costs one compromise NLP pass per segment —
+// affordable once, at /open, with the client holding the result. The prep rules read only `text`, so plain
+// `segmentText` is enough, and being cheap is what lets the plan be recomputed from scratch on every turn
+// with nothing held anywhere and nothing to trust from the client but the document itself.
+const prepSegments = (text) => segmentText(text).map((t, i) => ({ id: i + 1, text: t }));
+
+// The prep sheet's readiness, reported to whoever attached it BEFORE the conversation starts. No model, no
+// key, no cost, nothing stored — the same shape as /api/retrieve. It exists because the alternative is a
+// student discovering from six vague questions that their file had nothing in it for four of the six lines,
+// with no way to tell that from the tool being poor. The body carries their document and is NEVER logged
+// (invariant #8). It WARNS and never refuses: an unanchored station falls back to the framing digest and the
+// arc still runs, so putting a format rule in front of somebody who just wants to begin would cost more than
+// it saves.
+app.post('/api/prep/readiness', requireUser, (req, res) => {
+  const text = typeof req.body?.text === 'string' ? req.body.text.trim() : '';   // NEVER logged
+  if (!text) { res.status(400).json({ error: 'Open a prep sheet to check it.' }); return; }
+  if (text.length > DOC_MAX) { res.status(413).json({ error: `That file is very long — bring up to about ${Math.round(DOC_MAX / 1000)},000 characters (roughly ten pages).` }); return; }
+  const tasks = typeof req.body?.tasks === 'string' ? parseTasks(req.body.tasks.slice(0, DOC_MAX)) : [];
+  res.json({ ...prepReadiness(prepSegments(text)), tasks: tasks.length });
+});
 
 // The project brief, reduced to the passages that frame anything — who it is for, what it is mainly
 // for, what it commits to. Returns '' for an empty concept so every downstream `!!concept` check reads

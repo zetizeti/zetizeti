@@ -344,6 +344,11 @@
   .ul-transcript{display:inline-flex; align-items:baseline; gap:10px; font-family:var(--mono); font-size:12px;
     letter-spacing:.05em; color:var(--gold-bright); border:1px solid rgba(240,179,36,.5); background:rgba(240,179,36,.08);
     padding:7px 14px; margin-bottom:18px; cursor:pointer}
+  /* 🔴 The [hidden] guard, because .ul-transcript sets display and an author display rule OUTRANKS the UA's
+     [hidden] rule — the v0.14.2 studio-strip fault exactly. The tasks chip is the first element to carry
+     `hidden` on this class, and without this line it would have rendered always. Found by
+     verification/hidden-guard.test.mjs on the first full run, which is what that test is for. */
+  .ul-transcript[hidden]{display:none}
   .ul-transcript:hover{background:rgba(240,179,36,.16)}
   .ul-transcript .ul-lead{color:var(--gold-bright); text-transform:uppercase; letter-spacing:.11em; font-size:11px}
   .ul-transcript .ul-file{color:var(--goldtext); border-bottom:1px solid rgba(240,179,36,.55); padding-bottom:1px}
@@ -497,14 +502,20 @@
      and this block at 26px, aligned to neither. Things that sit ON the ground share the ground's edge; the
      sheet is inset because it is a sheet. The vermilion mass moves out into the page margin, which is a
      better place for it anyway: a mark in the margin rather than an indent pushing the text right. */
-  .crit-context{position:relative; margin:6px 0 26px; padding:2px 0; isolation:isolate}
-  .crit-context[hidden]{display:none}
-  .crit-context::before{content:""; position:absolute; left:-40px; top:-8px; width:74px; bottom:-8px;
+  /* THE CONTEXT STRIP — a document standing BEHIND the conversation, never the thing under question. Two
+     surfaces use it now: the critique's project brief, and the enquiry's prep sheet (28 Aug 2026). One
+     implementation, because they are the same job and a near-copy is the drift that correction (c) of
+     3 June exists to prevent. `.crit-context` is kept as the name the criticism markup already carries;
+     `.ctx-strip` is the surface-neutral name new markup uses. The vermilion mass in the left margin is
+     the same in both — red as a MASS out in the page margin, not a rule beside the text. */
+  .crit-context,.ctx-strip{position:relative; margin:6px 0 26px; padding:2px 0; isolation:isolate}
+  .crit-context[hidden],.ctx-strip[hidden]{display:none}
+  .crit-context::before,.ctx-strip::before{content:""; position:absolute; left:-40px; top:-8px; width:74px; bottom:-8px;
     z-index:-1; background:radial-gradient(60% 50% at 22% 50%, rgba(216,72,48,.46), rgba(216,72,48,.14) 55%, transparent 72%);
     filter:blur(9px)}
-  .crit-context .ctx-label{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase;
+  .crit-context .ctx-label,.ctx-strip .ctx-label{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase;
     color:rgba(244,231,200,.5); display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
-  .crit-context .ctx-body{font-family:var(--text); font-style:italic; font-size:14.5px; line-height:1.55;
+  .crit-context .ctx-body,.ctx-strip .ctx-body{font-family:var(--text); font-style:italic; font-size:14.5px; line-height:1.55;
     color:rgba(244,231,200,.62); max-width:52ch; margin-top:5px;
     display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
   .crit-context.open .ctx-body{-webkit-line-clamp:unset; max-height:22vh; overflow:auto}
@@ -686,6 +697,24 @@
       <p class="ul-note" id="ulNote">Pick up a transcript you saved earlier. It is read here in your browser and never sent
         anywhere — the conversation simply carries on from where you left it.</p>
 
+      <!-- BRING A PREP SHEET (28 Aug 2026). Same job as the transcript upload directly above — a file the
+           student brings in at the start, read in the tab, never uploaded — so deliberately the same
+           component rather than a second one that looks nearly like it. -->
+      <label class="ul-transcript" for="prepDoc">
+        <span class="ul-lead">↑ bring a prep sheet for a new area</span> <span class="ul-file">choose a .pdf, .md or .txt</span>
+      </label>
+      <input id="prepDoc" type="file" accept=".pdf,application/pdf,.md,text/markdown,.txt,text/plain" hidden />
+      <label class="ul-transcript" for="prepTasks" id="prepTasksChip" hidden>
+        <span class="ul-lead">↑ and its tasks, if you were given some</span> <span class="ul-file">choose a .pdf, .md or .txt</span>
+      </label>
+      <input id="prepTasks" type="file" accept=".pdf,application/pdf,.md,text/markdown,.txt,text/plain" hidden />
+      <!-- Kept to three lines after rendering it: seven lines of dim mono under a chip reads as a wall on a
+           screen whose whole job is one uncluttered choice, and the detail belongs in docs/concept/prep-file.md
+           rather than on the doorway. -->
+      <p class="ul-note" id="prepNote">A glossary or briefing about a field you don't work in yet. Six lines of questioning
+        across three sittings, asking where <em>you</em> stand — then it stops and the enquiry is yours. Read here in your
+        browser, never uploaded.</p>
+
       <p class="privacy-line"><a class="privacyOpen">Nothing is ever saved.</a></p>
       </div><!-- /enquiryUI -->
     </div>
@@ -705,6 +734,15 @@
           <button class="edge-redraw" id="redraw">↻ re-draw the edge</button>
         </div>
         <div class="lineage" id="lineage"></div>
+      </div>
+      <!-- The prep sheet, standing behind the conversation as context. It carries the file's NAME and not
+           its text: the student has the file open, and a second sheet of body copy here would compete with
+           the questions for the same attention. Same component as the critique's project brief. -->
+      <div class="ctx-strip" id="prepStrip" hidden>
+        <div class="ctx-label">
+          <span id="prepStripLabel">preparing you in</span>
+          <span class="ctx-acts"><span class="ctx-dot">·</span><button class="ctx-act" id="prepStripClear">remove</button></span>
+        </div>
       </div>
       <main id="stream"></main>
     </div>
@@ -1168,6 +1206,14 @@ let critDiscipline='all', critArtefact=null, critHistory=[], critReading=null, c
 let critMode='paste';
 // The filenames behind whatever is loaded, so the state line can name them rather than say "a document".
 let critDocName='', critBriefName='';
+// ── THE PREP SHEET AND ITS TASKS (28 Aug 2026) ─────────────────────────────────────────────────────
+// Both are read in this tab exactly as the critique's document is, and both are posted with EVERY turn,
+// because the service holds nothing: the walk through the six lines is recomputed from the transcript the
+// browser sends, so part two is arithmetic rather than a thing anybody remembered. That is also what makes
+// three sittings possible without an account — the student saves the transcript and brings it back, which
+// is the machinery already built on 30 July for continuing an ended conversation.
+let prepText='', prepName='', prepTasksText='', prepTasksName='';
+let prepActive=false, prepPausing=false, prepJustFinished=false;
 
 // ───────────────────────── bringing a document in, entirely in this tab ─────────────────────────
 // 🔴 THE FILE NEVER REACHES THE SERVER, and that is the whole reason this is done here rather than as an
@@ -1758,12 +1804,102 @@ function startFreshEnquiry(seed){
   else { phase='goal'; openingQuestion(); input.focus(); }
 }
 
+// ---------- THE PREP SHEET (28 Aug 2026) ----------
+// Three sittings, and none of them is a stored session. The transcript the student saves IS the state, so
+// coming back means bringing the .md and the sheet, and the walk resumes because the transcript says how far
+// it got. Nothing here knows which part it is on until the server says so — the plan lives on one side of the
+// line and the page only reports what it is told.
+
+function prepPartLabel(part, parts){
+  const strip=$('prepStrip'); if(!strip) return;
+  strip.hidden=false;
+  $('prepStripLabel').textContent = `part ${part} of ${parts||3} · preparing you in ${prepName||'a new area'}`;
+}
+
+// Called after a prep turn has landed. Two things can be true: the part just ended (so offer the save,
+// because the gap between parts is where the task happens), or the whole arc finished (so mark the line
+// where the enquiry becomes theirs). A phase with no visible end is a phase nobody can tell they have left.
+function afterPrepTurn(){
+  if(prepJustFinished){
+    prepJustFinished=false; prepPausing=false; prepActive=false;
+    $('prepStrip').hidden=true;
+    addDivider('prepared — the enquiry is yours from here');
+    hint.innerHTML='grounded in <b>design</b> · the question is yours to answer';
+    return;
+  }
+  if(prepPausing){
+    prepPausing=false;
+    const dl=$('dlTranscript'); if(dl) dl.hidden=false;
+    addDivider('end of this part — save your transcript, do the task, and bring the file back to carry on');
+  }
+}
+
+// Attach the sheet. It is read here and never uploaded; what travels is the extracted text, in the turn,
+// exactly as a paste always has. The readiness check that follows costs no model call and exists so a thin
+// sheet is visible NOW rather than inferred later from six vague questions.
+(function wirePrepUploads(){
+  const note=$('prepNote'), chip=$('prepTasksChip');
+  const say=(msg,bad)=>{ note.textContent=msg; note.classList.toggle('bad', !!bad); };
+  const LABELS={ glossary:'what the field calls things', background:'where it came from',
+    prerequisites:'what you need first', 'long-shots':'what is hard here',
+    'low-hanging':'what is already to hand', 'worth-hype':'what the field says about itself' };
+
+  $('prepDoc').addEventListener('change', async (e)=>{
+    const f=e.target.files && e.target.files[0]; if(!f) return;
+    say('reading…');
+    try{
+      const {used, truncated}=await readDocFile(f);
+      prepText=used; prepName=f.name;
+      chip.hidden=false;
+      const r=await fetch('/api/prep/readiness', {method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ text: prepText, tasks: prepTasksText })});
+      if(!r.ok){ say(`${f.name} is attached. (Could not check it — it will still run.)`); return; }
+      const rd=await r.json();
+      const miss=(rd.missing||[]).map(k=>LABELS[k]||k);
+      const parts=[`${f.name} is attached.`];
+      if(rd.thin) parts.push('It reads as very few sentences — if it is a slide deck or a list of bullets, add full stops, or every question will point at the same place.');
+      if(miss.length) parts.push(`It does not say much about ${miss.join(', ')}, so those questions will be vaguer. Everything else runs as it is.`);
+      else parts.push('All six lines of questioning found something to point at.');
+      if(rd.tasks) parts.push(`${rd.tasks} task${rd.tasks===1?'':'s'} loaded for the gaps between parts.`);
+      say(parts.join(' '), rd.thin);
+    }catch(err){ prepText=''; prepName=''; chip.hidden=true; say(String(err.message||err), true); }
+    finally{ e.target.value=''; }
+  });
+
+  $('prepTasks').addEventListener('change', async (e)=>{
+    const f=e.target.files && e.target.files[0]; if(!f) return;
+    try{
+      const {used}=await readDocFile(f);
+      prepTasksText=used; prepTasksName=f.name;
+      chip.querySelector('.ul-file').textContent=f.name;
+      const r=await fetch('/api/prep/readiness', {method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ text: prepText, tasks: prepTasksText })});
+      if(r.ok){ const rd=await r.json();
+        say(`${prepName} and ${f.name} are attached — ${rd.tasks||0} task${rd.tasks===1?'':'s'} for the gaps between parts.`, !rd.tasks); }
+    }catch(err){ prepTasksText=''; prepTasksName=''; say(String(err.message||err), true); }
+    finally{ e.target.value=''; }
+  });
+
+  const clear=$('prepStripClear');
+  if(clear) clear.addEventListener('click', ()=>{
+    prepText=''; prepTasksText=''; prepActive=false; prepPausing=false;
+    $('prepStrip').hidden=true;
+    addDivider('prep sheet removed — the enquiry is yours from here');
+  });
+})();
+
 // ---------- conversation state — declared above, before boot() ----------
 
 function resetConversation(){
   questId=null; history=[]; busy=false; phase='goal'; goal=''; honed=0; exchanges=0; lineage=[]; turnsSinceNudge=99;
   stream.innerHTML=''; edge.hidden=true; field.classList.remove('redraw');
   { const dl=$('dlTranscript'); if(dl) dl.hidden=true; }
+  // The sheet does NOT survive into a new enquiry. A file attached for one area silently prepping the next
+  // one would be the worst kind of stale state: nothing errors, and the questions are simply about the
+  // wrong field. The strip is hidden with it, so what is on screen and what is in force agree.
+  prepText=''; prepName=''; prepTasksText=''; prepTasksName='';
+  prepActive=false; prepPausing=false; prepJustFinished=false;
+  { const ps=$('prepStrip'); if(ps) ps.hidden=true; }
   input.value=''; input.placeholder='Name what you’re trying to do…';
   hint.innerHTML='grounded in <b>design</b> · name the edge, then it sharpens';
   setVizSignals({condensation:0.12, specificity:0, conviction:0.5, movement:0, redraws:0}); // diffuse: the question, unformed
@@ -2082,7 +2218,7 @@ async function streamStone(message, kind, reuseNode){
   try{
     // Stateless: no quest_id. The browser sends the whole transcript + turnsSinceNudge; the server stores nothing.
     const res = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ message, history:history.slice(0,-1), goal, kind, honed, exchanges, lineage, discipline, turnsSinceNudge, focus }) });
+      body: JSON.stringify({ message, history:history.slice(0,-1), goal, kind, honed, exchanges, lineage, discipline, turnsSinceNudge, focus, prep:prepText, tasks:prepTasksText }) });
     const reader=res.body.getReader(), dec=new TextDecoder(); let buf='';
     while(true){
       const {value,done}=await reader.read(); if(done) break;
@@ -2095,6 +2231,14 @@ async function streamStone(message, kind, reuseNode){
         else if(type==='token'){ if(!full) body.textContent=''; full+=data.t; body.textContent=full; scroll(); }
         else if(type==='signals') setVizSignals(data);
         else if(type==='nudge'){ if(data.surface) showNudge(data.surface); nudgedThisTurn=true; }   // a silent posture still starts the refractory
+        else if(type==='prep'){
+          // Nothing is drawn from inside the stream: the divider and the save prompt belong AFTER the
+          // question, and the stone's bubble was appended before this event arrived. Flags now, marks
+          // once the turn has landed.
+          prepActive=!!data.active; prepPausing=!!data.pausing;
+          if(data.part) prepPartLabel(data.part, data.parts);
+          if(data.complete) prepJustFinished=true;
+        }
         else if(type==='validation') guard=data;
         else if(type==='capture') captureLabelUI(node, data.id);
         else if(type==='pool'){ poolTurnsLeft=data.turnsLeft; if(data.budget) poolBudget=data.budget; renderPoolCount(); renderPoolBudget(); }
@@ -2109,6 +2253,7 @@ async function streamStone(message, kind, reuseNode){
   // refractory bookkeeping: reset when a nudge surfaced this turn, else it grows by one.
   turnsSinceNudge = nudgedThisTurn ? 0 : turnsSinceNudge+1;
   if(!errored) attachCurtain(node, retrieved, guard);
+  if(!errored && prepText) afterPrepTurn();
 }
 
 // ---------- AUTHOR MODE (LOCAL BUILD ONLY) — role-flipped: YOU question, a play-acted student answers,
