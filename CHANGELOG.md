@@ -21,6 +21,14 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.24.0] — 2026-08-30
+
+**A one-sitting prep now goes as deep as the sheet affords.** It was six questions — two per line, and stations advanced early once your own words had touched their region, which somebody fluent in the material satisfies on the first question every time. Fluency and exhaustion are indistinguishable to that measure, so a well-written sheet answered well collapsed the whole arc.
+
+**Depth is read off each line's own region rather than picked.** Roughly one question per two passages, floored at four so a thin line still gets a real go and capped at twenty-four so a fat one cannot run away. On a 158-passage sheet whose glossary region holds 42 passages and whose worth-and-hype region holds 6, that is 68 questions rather than 6. **The useful consequence is that a thorough prep is not a setting to be turned up — it is what a thorough sheet affords**, so somebody who wants a longer sitting writes more sheet.
+
+**Three-sitting walks are untouched.** Two questions a station, advancing early, exactly as before.
+
 ## [0.23.0] — 2026-08-30
 
 **The sheet's name decides whether it is walked in one sitting or three, and nobody is asked.** A prep sheet whose filename contains *mentor* runs straight through; every other sheet is walked in three parts. The parts exist to hold the gaps and the gaps exist to hold the things to go and do — somebody preparing themselves at one desk takes no gaps, and the boundary turns would be a quarter of the sitting with neither able to say anything true.

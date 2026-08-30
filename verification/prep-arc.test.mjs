@@ -14,7 +14,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-import { affordPrep, prepPlan, parseTasks, readiness, PARTS, PREP_DWELL } from '../lib/prep.mjs';
+import { affordPrep, prepPlan, parseTasks, readiness, PARTS, PREP_DWELL, SERVED_TOUCHES, DEEP_MIN, DEEP_MAX, deepDwellFor, depthFor } from '../lib/prep.mjs';
 import { validateOutput, PREP_POINTERS } from '../lib/dialogue.mjs';
 import { windowOf } from '../lib/plan.mjs';
 
@@ -289,4 +289,67 @@ test('an unknown sittings value falls to the default rather than to an unspecifi
   for (const bad of [0, 2, 7, null, 'one', undefined]) {
     assert.equal(prepPlan({ segments: segsOf(SHEET), studentTurns: [], stoneTurns: [], sittings: bad }).parts, 3, `sittings=${bad}`);
   }
+});
+
+// ── DEPTH (30 August 2026) ──────────────────────────────────────────────────────────────────────────
+// Prayas, handed the whole field in six questions: "I canno be prepared for 28 projects in such a short
+// chat!" PREP_DWELL = 2 is bounded by the survival curve — people leave — and somebody who has chosen one
+// long sitting has already answered that. 🔴 The larger half is EARLY ADVANCE: a station is served once the
+// learner's words touch its region, and somebody fluent in the material satisfies that on the first
+// question, so the six-station walk finished in six turns. Fluency and exhaustion are indistinguishable to
+// regionContact — the same discriminator problem arc.mjs records at ANCHOR_MAX.
+
+const walkFluent = (sittings, turns = 90) => {
+  const segments = segsOf(SHEET);
+  const stone = [], student = [];
+  let n = 0;
+  for (let i = 0; i < turns; i++) {
+    const p = prepPlan({ segments, studentTurns: student, stoneTurns: stone, sittings });
+    if (p.complete) break;
+    n++;
+    stone.push(`q${i}`);
+    // answers built FROM the live region — the fluent learner who collapsed the real arc
+    student.push((p.region || []).slice(0, 3).map((id) => (segments.find((s) => s.id === id) || {}).text || '').join(' ') || `x${i}`);
+  }
+  return n;
+};
+
+test('🔴 a one-sitting walk does not collapse under a fluent learner', () => {
+  const deep = walkFluent(1);
+  assert.ok(deep >= 24, `a one-sitting walk gave only ${deep} turns to a fluent learner — early advance is back`);
+});
+
+test('🔴 the three-sitting student path is UNCHANGED by the deep walk', () => {
+  const before = walk(SHEET).length;          // the ordinary replay, default sittings
+  const after = walk(SHEET, [], 40, 3).length;
+  assert.equal(before, after);
+  const { dwell, earlyAdvance } = depthFor(3);
+  assert.equal(dwell, PREP_DWELL, 'the student dwell moved — dsl-status is built on this shape');
+  assert.equal(earlyAdvance, true, 'early advance was disabled for students too');
+});
+
+test('a deep walk gives every line the budget its own region affords', () => {
+  const segments = segsOf(SHEET);
+  const { stations } = affordPrep(segments);
+  const expected = Object.fromEntries(stations.map((st) => [st.key, deepDwellFor(st.segmentIds)]));
+  const stone = [], student = [];
+  const keys = [];
+  for (let i = 0; i < 400; i++) {
+    const p = prepPlan({ segments, studentTurns: student, stoneTurns: stone, sittings: 1 });
+    if (p.complete) break;
+    if (p.station) keys.push(p.station.key);
+    stone.push(`q${i}`); student.push(`fresh material ${i}`);
+  }
+  assert.equal(new Set(keys).size, 6, 'a deep walk must still reach all six lines');
+  for (const k of new Set(keys)) {
+    assert.equal(keys.filter((x) => x === k).length, expected[k], `${k} did not get the budget its region affords`);
+  }
+});
+
+test('🔴 depth is read off the region, and is floored and capped', () => {
+  assert.equal(deepDwellFor([]), DEEP_MIN, 'a line with nothing to point at must still get a real go');
+  assert.equal(deepDwellFor(new Array(6).fill(0)), DEEP_MIN, 'a thin line floors rather than grinding');
+  assert.equal(deepDwellFor(new Array(42).fill(0)), 21, 'roughly one question per two passages');
+  assert.equal(deepDwellFor(new Array(500).fill(0)), DEEP_MAX, 'a fat line must not run away');
+  assert.ok(DEEP_MIN > PREP_DWELL, 'the deep floor must be deeper than the three-sitting budget');
 });
