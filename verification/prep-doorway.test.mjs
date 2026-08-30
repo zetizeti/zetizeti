@@ -77,6 +77,25 @@ test('the doorway tells the truth in both directions', () => {
 // tasks initially"). 🔴 THE DOOR WENT AND THE MECHANISM STAYED. These two assertions are a pair on
 // purpose: the first fails if the slot creeps back, the second fails if somebody "tidies up" the tasks
 // plumbing behind it, which would silently stop a sheet's own things-to-try from ever reaching a turn.
+test('🔴 the doorway offers no one-or-three control', () => {
+  assert.doesNotMatch(SRC, /sitchoice/, 'the sittings control is back on the doorway');
+  assert.doesNotMatch(SRC, /prepSittings/, 'the client is choosing a shape again — it is read off the document');
+});
+
+test('🔴 a mentor prep sheet is one sitting, decided by its filename', () => {
+  const SERVER = readFileSync(join(HERE, '..', 'server.mjs'), 'utf8');
+  assert.match(SERVER, /\/mentor\/i\.test\(sheetName\)\s*\?\s*1\s*:\s*3/, 'the filename no longer decides the shape');
+  const re = /mentor/i;
+  assert.equal(re.test('dsl-mentor-prep-sheet-20260830.md'), true);
+  assert.equal(re.test('DSL-MENTOR-PREP-SHEET-20260830.MD'), true, 'the browser may hand back either case');
+  assert.equal(re.test('part-2-prep.md'), false, "a student's pack must stay at three sittings");
+  assert.equal(re.test('g01-the-room-that-forgets-prep.md'), false);
+});
+
+test('🔴 the sheet name reaches the turn, or the rule above decides nothing', () => {
+  assert.match(SRC, /sheetName\s*:\s*prepName/, 'the client stopped sending the filename — every sheet silently becomes three sittings');
+});
+
 test('🔴 the doorway offers no separate tasks upload', () => {
   assert.doesNotMatch(SRC, /prepTasksChip/, 'the tasks upload chip is back on the doorway');
   assert.doesNotMatch(SRC, /\$\('prepTasks'\)/, 'a handler is wired to a tasks input again');
@@ -95,4 +114,22 @@ test('🔴 the part-boundary line claims neither a task nor a departure', () => 
   assert.doesNotMatch(b, /do the task/i, 'the boundary line asserts a task again — this code cannot know whether one was set');
   assert.doesNotMatch(b, /bring the file back to carry on/i, 'the boundary line assumes the learner is leaving');
   assert.match(b, /carry straight on/i, 'the boundary line no longer says that continuing is fine');
+});
+
+// 30 August 2026 — a prep that cannot be saved loses everything when the tab closes, and nothing on
+// screen fails. The chip used to be revealed only at a part boundary, so it was absent for the whole of
+// part one, and once one sitting existed — no boundaries — absent for the entire walk.
+test('🔴 a prep reveals the save from its first turn, not at a boundary', () => {
+  const b = bodyOf('startPrep');
+  assert.match(b, /dlTranscript/, 'startPrep does not reveal the transcript download — a one-sitting walk cannot be saved at all');
+  assert.match(b, /hidden\s*=\s*false/, 'the chip is referenced but not revealed');
+});
+
+// 30 August 2026 — the line closing the arc must describe the DOCUMENT, not the person. "prepared —" told
+// the learner they now are prepared: a characterisation, which invariant #7 keeps out of this system, and
+// delivered at the moment they are least placed to argue with it.
+test('🔴 the end of the prep says nothing about the learner', () => {
+  const b = bodyOf('afterPrepTurn');
+  assert.doesNotMatch(b, /'prepared/i, 'the closing line asserts a state of the learner again');
+  assert.match(b, /the sheet walked through/i, 'the closing line no longer names what actually finished');
 });

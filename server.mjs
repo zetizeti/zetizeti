@@ -508,9 +508,17 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // whoever-prepared-the-material's decision and travel verbatim to the closing turn.
   const prepTasks = typeof req.body?.tasks === 'string' ? parseTasks(req.body.tasks.slice(0, DOC_MAX)) : [];
   const prepSegs = prepText ? prepSegments(prepText) : [];
-  // ONE SITTING OR THREE, whitelisted rather than passed through — only the exact number 1 changes the
-  // shape, so an unknown value is the default rather than an unspecified one. Same discipline as `focus`.
-  const prepSittings = Number(req.body?.sittings) === 1 ? 1 : 3;
+  // 🔴 A MENTOR PREP SHEET IS ONE SITTING, AND THE FILENAME SAYS SO (Prayas, 30 August 2026: "if it is
+  // mentor prepsheet, it is one. check filename"). His rule, and it replaces a heading heuristic I had
+  // invented an hour earlier — the parts exist to hold the gaps, a mentor preparing himself at one desk
+  // takes none, and a student walking a course built on three submissions takes three. Three stays the
+  // default, so dsl-status is untouched: it collects three transcripts and gates each part on its pack.
+  //
+  // ⚠️ IT KEYS ON A NAME, so renaming a file changes how it is walked. That is legible rather than clever
+  // — whoever writes the sheet also names it — but it is worth knowing before wondering why an arc got
+  // shorter. The name travels with the turn and is never stored; nothing here retains a filename.
+  const sheetName = typeof req.body?.sheetName === 'string' ? req.body.sheetName.slice(0, 200) : '';
+  const prepSittings = /mentor/i.test(sheetName) ? 1 : 3;
   const prepWalk = prepText ? prepPlan({ segments: prepSegs, studentTurns, stoneTurns, tasks: prepTasks, sittings: prepSittings }) : null;
   const prepping = !!(prepWalk && !prepWalk.complete);
 

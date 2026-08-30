@@ -12,7 +12,9 @@ It still never tells you anything. You brought the document, and the document is
 
 The prep runs in **three parts of two lines each**, and it is meant to be spread over three sittings.
 
-**Or in one.** Once a sheet is attached the doorway offers *three sittings* or *one*, and one is a different shape rather than a hurried version of the same one: the six lines run straight through, with no part boundaries at all. The parts exist to hold the gaps and the gaps exist to hold the tasks, so at one desk with no tasks the two closing and two resuming turns are a quarter of the sitting and neither can say anything true — one asks what you will go and do, the other what happened while you were away. Three remains the default and is what a course built around three submissions should keep.
+**Or in one, and the sheet's name decides which.** 🔴 **A sheet whose filename contains *mentor* is walked straight through, in one sitting; every other sheet is walked in three parts.** You are not asked, because it is a fact about who the sheet is for rather than a preference. The parts exist to hold the gaps and the gaps exist to hold the things to go and do — somebody preparing themselves at one desk takes no gaps, and the two closing and two resuming turns would be a quarter of the sitting with neither able to say anything true: one asks what you will go and do, the other what happened while you were away.
+
+⚠️ **So the name is doing work.** Renaming a file changes how it is walked. That is legible rather than clever — whoever writes a sheet also names it — but it is worth knowing before wondering why an arc came out shorter than expected. The name travels with the turn and is stored nowhere.
 
 | | Lines of questioning | What happens after |
 |---|---|---|

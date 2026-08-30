@@ -21,6 +21,18 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.23.0] — 2026-08-30
+
+**The sheet's name decides whether it is walked in one sitting or three, and nobody is asked.** A prep sheet whose filename contains *mentor* runs straight through; every other sheet is walked in three parts. The parts exist to hold the gaps and the gaps exist to hold the things to go and do — somebody preparing themselves at one desk takes no gaps, and the boundary turns would be a quarter of the sitting with neither able to say anything true.
+
+**The line that ends the prep no longer says anything about you.** It read *prepared — the enquiry is yours from here*, which tells the learner they now **are** prepared: a characterisation of the person, which this tool's invariants keep out, delivered at the moment they are least placed to disagree with it. It now names what actually finished, which is the sheet.
+
+**The one-or-three control added an hour earlier is gone.** The doorway's whole job is one uncluttered decision, and it was asking somebody to choose a shape before they had read a word of the arc.
+
+## [0.22.1] — 2026-08-30
+
+**A prep now offers the save from its first question.** The download chip was revealed only at a part boundary, so it was missing for the whole of part one — and once a sheet could be walked in one sitting, with no boundaries at all, it never appeared. In a tool that holds nothing the download *is* the state, so closing the tab lost the entire conversation with no control on screen having visibly failed.
+
 ## [0.22.0] — 2026-08-30
 
 **A prep sheet can now be walked in one sitting instead of three.** Once a sheet is attached the doorway offers the choice, and one sitting is a different shape rather than a hurried version of the same one: the six lines of questioning run straight through with no part boundaries at all, and the strip stops reporting which part you are in, because *part 1 of 1* is a progress figure with the progress taken out.

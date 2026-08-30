@@ -354,11 +354,6 @@
   .ul-transcript .ul-file{color:var(--goldtext); border-bottom:1px solid rgba(240,179,36,.55); padding-bottom:1px}
   .ul-note{font-family:var(--mono); font-size:11px; letter-spacing:.04em; color:var(--faint); margin:-8px 0 26px; max-width:56ch; line-height:1.7}
   .ul-note.bad{color:var(--vermilion)}
-  /* Not a button in appearance. The doorway's whole job is one uncluttered choice, so this reads as the
-     note it sits inside, with the live option at full strength and the other dimmed. */
-  .sitchoice{font:inherit; color:inherit; background:none; border:0; padding:0; cursor:pointer; opacity:.5; text-decoration:underline; text-underline-offset:3px}
-  .sitchoice[aria-pressed="true"]{opacity:1}
-  .sitchoice:hover{opacity:.8}
   .discpick{display:flex; align-items:center; gap:10px; margin-bottom:22px; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint)}
   .discpick select{background:rgba(13,38,94,.55); border:1px solid rgba(217,165,42,.40); color:var(--bone); font-family:var(--text); font-size:15px; padding:8px 12px; outline:none; text-transform:none; letter-spacing:0}
   .qlist{display:flex; flex-direction:column; gap:2px}
@@ -722,13 +717,11 @@
       <p class="ul-note" id="prepNote">A glossary or briefing about a field you don't work in yet. Six lines of questioning
         across three sittings, asking where <em>you</em> stand — then it stops and the enquiry is yours. Read here in your
         browser, never uploaded.</p>
-      <!-- 🔴 ONE SITTING IS NOT A SETTING, IT IS THE OTHER SHAPE. The three parts exist to hold the gaps and the
-           gaps exist to hold the tasks; somebody walking the whole thing at one desk has no gaps, so the two
-           closing and two resuming turns cost a quarter of the sitting and neither can say anything true. This
-           appears only once a sheet is attached, because on an empty doorway it is a control for nothing. -->
-      <p class="ul-note" id="prepSittings" hidden>Walk it in
-        <button class="sitchoice" data-sit="3" aria-pressed="true">three sittings</button> or
-        <button class="sitchoice" data-sit="1" aria-pressed="false">one</button>.</p>
+      <!-- 🔴 NO ONE-OR-THREE CONTROL (Prayas, 30 August 2026: "I do not want a two or one choice for a mentor
+           prep sheet - remove"). The shape is READ OFF THE DOCUMENT instead — a sheet carrying a things-to-try
+           heading is walked in three sittings, because that section is what the gaps are for; a sheet without
+           one is walked straight through. Nobody is asked a question they have no way to answer on a doorway
+           whose whole job is one uncluttered decision. See `sittingsForSheet` in server.mjs. -->
 
       <p class="privacy-line"><a class="privacyOpen">Nothing is ever saved.</a></p>
       </div><!-- /enquiryUI -->
@@ -1231,7 +1224,6 @@ let critDocName='', critBriefName='';
 // three sittings possible without an account — the student saves the transcript and brings it back, which
 // is the machinery already built on 30 July for continuing an ended conversation.
 let prepText='', prepName='', prepTasksText='', prepTasksName='';
-let prepSittings=3;   // 1 = one continuous walk; 3 = the three-sitting arc. See prep.mjs SITTING_SHAPES.
 let prepActive=false, prepPausing=false, prepJustFinished=false;
 
 // ───────────────────────── bringing a document in, entirely in this tab ─────────────────────────
@@ -1809,9 +1801,6 @@ function enterApp(){
 // existed, which is a surface disagreeing with its own state rather than a cosmetic untidiness.
 function resetPrepDoorway(){
   const b=$('newqBtn'); if(b) b.textContent='begin';
-  prepSittings=3;
-  const sit=$('prepSittings');
-  if(sit){ sit.hidden=true; sit.querySelectorAll('.sitchoice').forEach(x=>x.setAttribute('aria-pressed', x.dataset.sit==='3'?'true':'false')); }
   const n=$('newqName'); if(n) n.placeholder='Name what you\u2019re trying to do \u2014 e.g. \u201Conboarding for a meditation app\u201D';
   const note=$('prepNote'); if(note){ note.classList.remove('bad'); note.innerHTML=PREP_NOTE_DEFAULT; }
 }
@@ -1827,7 +1816,7 @@ function newQuest(){
   // attached for, so until this was passed through, attaching a sheet and pressing begin DISCARDED IT: the
   // conversation opened as an ordinary enquiry, asked about an edge, and nothing said the prep had gone.
   // A guard written for one moment, firing at another, with no error on either side of it.
-  const prep = prepText ? { text:prepText, name:prepName, tasks:prepTasksText, tasksName:prepTasksName, sittings:prepSittings } : null;
+  const prep = prepText ? { text:prepText, name:prepName, tasks:prepTasksText, tasksName:prepTasksName } : null;
   $('newqName').value='';
   startFreshEnquiry(seed, prep);
 }
@@ -1843,7 +1832,7 @@ function startFreshEnquiry(seed, prep){
   // attached sheet begins the walk and the box is optional. Anything typed is kept as the edge for AFTER
   // the prep ends, rather than thrown away.
   if(prep){
-    prepText=prep.text; prepName=prep.name; prepTasksText=prep.tasks; prepTasksName=prep.tasksName; prepSittings=prep.sittings;
+    prepText=prep.text; prepName=prep.name; prepTasksText=prep.tasks; prepTasksName=prep.tasksName;
     if(seed){ goal=seed; lineage.push(seed); }
     startPrep();
     return;
@@ -1858,6 +1847,13 @@ function startFreshEnquiry(seed, prep){
 // No edge panel: there is no edge during prep, and showing an empty one would invite naming it.
 function startPrep(){
   phase='dialogue'; field.classList.remove('redraw'); input.placeholder=DIALOG_PH;
+  // 🔴 THE SAVE IS AVAILABLE FROM THE FIRST TURN, because in a tool that holds nothing the download IS
+  // the state. It used to appear only at a part boundary, which meant it was absent for the whole of
+  // part one and — once one sitting existed and there are no boundaries — absent for the entire walk.
+  // Somebody closing the tab lost everything, with no control anywhere on screen having failed.
+  // The enquiry path has never had this problem: `showEdge` reveals the chip on the first turn, and
+  // prep has no edge, so it inherited the reveal from nothing.
+  { const dl=$('dlTranscript'); if(dl) dl.hidden=false; }
   hint.innerHTML='preparing you in a new area \u00b7 the question is yours to answer';
   const strip=$('prepStrip');
   if(strip){ strip.hidden=false; $('prepStripLabel').textContent = `preparing you in ${prepName||'a new area'}`; }
@@ -1897,7 +1893,12 @@ function afterPrepTurn(){
   if(prepJustFinished){
     prepJustFinished=false; prepPausing=false; prepActive=false;
     $('prepStrip').hidden=true;
-    addDivider('prepared — the enquiry is yours from here');
+    // 🔴 THE END OF THE ARC DESCRIBES THE DOCUMENT, NEVER THE LEARNER. It read "prepared —", which is a
+    // verdict about the person: it tells them they now ARE prepared, which is exactly the characterisation
+    // invariant #7 keeps out of this system, and it arrives at the one moment they are least placed to
+    // disagree with it. It also lands abruptly in a one-sitting walk, where nothing marks progress by
+    // design — so a line asserting a state they may not feel reads as the tool deciding for them.
+    addDivider('that is the sheet walked through — your own enquiry from here');
     hint.innerHTML='grounded in <b>design</b> · the question is yours to answer';
     return;
   }
@@ -1916,14 +1917,8 @@ function afterPrepTurn(){
 // in, which is the request this whole path answers.
 function armPrepDoorway(){
   const b=$('newqBtn'); if(b) b.textContent='begin the prep';
-  const sit=$('prepSittings'); if(sit) sit.hidden=false;
   const n=$('newqName'); if(n) n.placeholder='Optional — an edge to come back to once the prep ends';
 }
-document.querySelectorAll('.sitchoice').forEach((b)=>b.addEventListener('click', ()=>{
-  prepSittings = b.dataset.sit === '1' ? 1 : 3;
-  document.querySelectorAll('.sitchoice').forEach(x=>x.setAttribute('aria-pressed', String(x===b)));
-}));
-
 (function wirePrepUploads(){
   const note=$('prepNote');
   const say=(msg,bad)=>{ note.textContent=msg; note.classList.toggle('bad', !!bad); };
@@ -2294,7 +2289,7 @@ async function streamStone(message, kind, reuseNode){
   try{
     // Stateless: no quest_id. The browser sends the whole transcript + turnsSinceNudge; the server stores nothing.
     const res = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ message, history:history.slice(0,-1), goal, kind, honed, exchanges, lineage, discipline, turnsSinceNudge, focus, prep:prepText, tasks:prepTasksText, sittings:prepSittings }) });
+      body: JSON.stringify({ message, history:history.slice(0,-1), goal, kind, honed, exchanges, lineage, discipline, turnsSinceNudge, focus, prep:prepText, tasks:prepTasksText, sheetName:prepName }) });
     const reader=res.body.getReader(), dec=new TextDecoder(); let buf='';
     while(true){
       const {value,done}=await reader.read(); if(done) break;
