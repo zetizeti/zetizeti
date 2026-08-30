@@ -21,6 +21,10 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.21.2] — 2026-08-30
+
+**The line at the end of a part no longer tells you to do a task, or to leave.** It read *save your transcript, do the task, and bring the file back to carry on* — three claims the page cannot make. It does not know whether a task was set, because the closing question is what carries one; and it does not know whether you are stopping. Somebody walking the whole arc in one sitting, with no tasks document attached, was told to go and do a task that did not exist and to leave a conversation he was in the middle of. The boundary is still marked and the save is still offered; the choice is left where it belongs.
+
 ## [0.21.1] — 2026-08-30
 
 **The doorway no longer offers a separate slot for a tasks file.** Tasks travel inside the prep sheet, so a second upload asking for them again read as a step you had missed rather than as an option. The mechanism is untouched: a sheet carrying its own things-to-try behaves exactly as before, and the closing turn still points at them. Only the door is gone.

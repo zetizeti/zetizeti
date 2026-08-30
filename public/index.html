@@ -1861,9 +1861,18 @@ function prepPartLabel(part, parts){
   $('prepStripLabel').textContent = `part ${part} of ${parts||3} · preparing you in ${prepName||'a new area'}`;
 }
 
-// Called after a prep turn has landed. Two things can be true: the part just ended (so offer the save,
-// because the gap between parts is where the task happens), or the whole arc finished (so mark the line
-// where the enquiry becomes theirs). A phase with no visible end is a phase nobody can tell they have left.
+// Called after a prep turn has landed. Two things can be true: the part just ended (so offer the save, in
+// case they are stopping here), or the whole arc finished (so mark the line where the enquiry becomes
+// theirs). A phase with no visible end is a phase nobody can tell they have left.
+//
+// 🔴 THE BOUNDARY LINE ASSERTS NOTHING ABOUT A TASK, AND NOTHING ABOUT LEAVING. It said "save your
+// transcript, do the task, and bring the file back to carry on", which is three claims this code cannot
+// make: it does not know whether a task was set (the closing question carries that, and the prep event
+// sends no task field), and it does not know whether the learner is stopping. Somebody doing the whole arc
+// in one sitting, with no tasks document, was told to go and do a task that does not exist and to leave a
+// conversation they were in the middle of. The parts are meant for three sittings and carrying straight on
+// is expressly fine — so the line marks the boundary, offers the save, and leaves the choice where it
+// belongs. If a task WAS set, the stone has just put it in front of them; the divider need not repeat it.
 function afterPrepTurn(){
   if(prepJustFinished){
     prepJustFinished=false; prepPausing=false; prepActive=false;
@@ -1875,7 +1884,7 @@ function afterPrepTurn(){
   if(prepPausing){
     prepPausing=false;
     const dl=$('dlTranscript'); if(dl) dl.hidden=false;
-    addDivider('end of this part — save your transcript, do the task, and bring the file back to carry on');
+    addDivider('end of this part — carry straight on, or save your transcript and bring it back to pick up here');
   }
 }
 

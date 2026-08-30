@@ -86,3 +86,13 @@ test('🔴 the tasks MECHANISM survives the removal of its door', () => {
   assert.match(SRC, /tasks:\s*prepTasksText/, 'the chat body no longer carries tasks — a sheet with its own things-to-try is now inert');
   assert.match(SRC, /let prepText=''.*prepTasksText/s, 'the tasks state was removed along with the slot');
 });
+
+// 30 August 2026 — the part boundary must not assert a task or a departure. Both were in one hardcoded
+// string, and both were false for a learner doing the arc in one sitting with no tasks document: it told
+// him to do a task that did not exist and to leave a conversation he was mid-way through.
+test('🔴 the part-boundary line claims neither a task nor a departure', () => {
+  const b = bodyOf('afterPrepTurn');
+  assert.doesNotMatch(b, /do the task/i, 'the boundary line asserts a task again — this code cannot know whether one was set');
+  assert.doesNotMatch(b, /bring the file back to carry on/i, 'the boundary line assumes the learner is leaving');
+  assert.match(b, /carry straight on/i, 'the boundary line no longer says that continuing is fine');
+});
