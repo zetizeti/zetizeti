@@ -704,10 +704,13 @@
         <span class="ul-lead">↑ bring a prep sheet for a new area</span> <span class="ul-file">choose a .pdf, .md or .txt</span>
       </label>
       <input id="prepDoc" type="file" accept=".pdf,application/pdf,.md,text/markdown,.txt,text/plain" hidden />
-      <label class="ul-transcript" for="prepTasks" id="prepTasksChip" hidden>
-        <span class="ul-lead">↑ and its tasks, if you were given some</span> <span class="ul-file">choose a .pdf, .md or .txt</span>
-      </label>
-      <input id="prepTasks" type="file" accept=".pdf,application/pdf,.md,text/markdown,.txt,text/plain" hidden />
+      <!-- 🔴 THE SEPARATE TASKS UPLOAD WAS REMOVED ON 30 AUGUST 2026 (Prayas: "I dont want any tasks
+           initially - after the prep I will say if I do"). Tasks now travel INSIDE the sheet, which was
+           his design decision the same morning, and a second slot offering to take them again reads as a
+           step you have missed rather than as an option. THE MECHANISM IS UNTOUCHED — `parseTasks`, the
+           `tasks` field on the chat body and the closing turn that reads one out all still work, so a
+           sheet carrying its own things-to-try behaves exactly as it did. Only the door is gone, and
+           restoring it is this element plus its input plus the `armPrepDoorway` chip line. -->
       <!-- Kept to three lines after rendering it: seven lines of dim mono under a chip reads as a wall on a
            screen whose whole job is one uncluttered choice, and the detail belongs in docs/concept/prep-file.md
            rather than on the doorway. -->
@@ -1794,7 +1797,6 @@ function enterApp(){
 function resetPrepDoorway(){
   const b=$('newqBtn'); if(b) b.textContent='begin';
   const n=$('newqName'); if(n) n.placeholder='Name what you\u2019re trying to do \u2014 e.g. \u201Conboarding for a meditation app\u201D';
-  const chip=$('prepTasksChip'); if(chip){ chip.hidden=true; const f=chip.querySelector('.ul-file'); if(f) f.textContent='choose a .pdf, .md or .txt'; }
   const note=$('prepNote'); if(note){ note.classList.remove('bad'); note.innerHTML=PREP_NOTE_DEFAULT; }
 }
 function showStart(){ applyKeyGate(); showView('quests'); resetPrepDoorway(); const n=$('newqName'); if(n){ n.value=''; setTimeout(()=>n.focus(),50); } }
@@ -1888,7 +1890,7 @@ function armPrepDoorway(){
   const n=$('newqName'); if(n) n.placeholder='Optional — an edge to come back to once the prep ends';
 }
 (function wirePrepUploads(){
-  const note=$('prepNote'), chip=$('prepTasksChip');
+  const note=$('prepNote');
   const say=(msg,bad)=>{ note.textContent=msg; note.classList.toggle('bad', !!bad); };
   const LABELS={ glossary:'what the field calls things', background:'where it came from',
     prerequisites:'what you need first', 'long-shots':'what is hard here',
@@ -1900,7 +1902,6 @@ function armPrepDoorway(){
     try{
       const {used, truncated}=await readDocFile(f);
       prepText=used; prepName=f.name;
-      chip.hidden=false;
       armPrepDoorway();
       const r=await fetch('/api/prep/readiness', {method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ text: prepText, tasks: prepTasksText })});
@@ -1915,21 +1916,7 @@ function armPrepDoorway(){
       parts.push('Press begin — there is nothing to type.');
       say(parts.join(' '), rd.thin);
       armPrepDoorway();
-    }catch(err){ prepText=''; prepName=''; chip.hidden=true; say(String(err.message||err), true); }
-    finally{ e.target.value=''; }
-  });
-
-  $('prepTasks').addEventListener('change', async (e)=>{
-    const f=e.target.files && e.target.files[0]; if(!f) return;
-    try{
-      const {used}=await readDocFile(f);
-      prepTasksText=used; prepTasksName=f.name;
-      chip.querySelector('.ul-file').textContent=f.name;
-      const r=await fetch('/api/prep/readiness', {method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ text: prepText, tasks: prepTasksText })});
-      if(r.ok){ const rd=await r.json();
-        say(`${prepName} and ${f.name} are attached — ${rd.tasks||0} task${rd.tasks===1?'':'s'} for the gaps between parts.`, !rd.tasks); }
-    }catch(err){ prepTasksText=''; prepTasksName=''; say(String(err.message||err), true); }
+    }catch(err){ prepText=''; prepName=''; say(String(err.message||err), true); }
     finally{ e.target.value=''; }
   });
 

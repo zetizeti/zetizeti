@@ -21,6 +21,10 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.21.1] — 2026-08-30
+
+**The doorway no longer offers a separate slot for a tasks file.** Tasks travel inside the prep sheet, so a second upload asking for them again read as a step you had missed rather than as an option. The mechanism is untouched: a sheet carrying its own things-to-try behaves exactly as before, and the closing turn still points at them. Only the door is gone.
+
 ## [0.21.0] — 2026-08-30
 
 **A prep sheet now begins the prep, and there is nothing to type.** Attach a sheet on the enquiry screen and press begin: the walk starts at its first question. Naming an edge first was asking for the one thing the prep exists to give you — a learner who can already state their edge in a field does not need preparing in it. The box stays there and stays optional; anything typed in it is kept as the edge for after the prep ends rather than discarded.

@@ -72,3 +72,17 @@ test('the doorway tells the truth in both directions', () => {
   assert.match(r, /'begin'/, 'the button label is not restored');
   assert.match(SRC, /const PREP_NOTE_DEFAULT/, 'PREP_NOTE_DEFAULT is referenced and never defined');
 });
+
+// 30 August 2026 — the separate tasks upload was removed from the doorway (Prayas: "I dont want any
+// tasks initially"). 🔴 THE DOOR WENT AND THE MECHANISM STAYED. These two assertions are a pair on
+// purpose: the first fails if the slot creeps back, the second fails if somebody "tidies up" the tasks
+// plumbing behind it, which would silently stop a sheet's own things-to-try from ever reaching a turn.
+test('🔴 the doorway offers no separate tasks upload', () => {
+  assert.doesNotMatch(SRC, /prepTasksChip/, 'the tasks upload chip is back on the doorway');
+  assert.doesNotMatch(SRC, /\$\('prepTasks'\)/, 'a handler is wired to a tasks input again');
+});
+
+test('🔴 the tasks MECHANISM survives the removal of its door', () => {
+  assert.match(SRC, /tasks:\s*prepTasksText/, 'the chat body no longer carries tasks — a sheet with its own things-to-try is now inert');
+  assert.match(SRC, /let prepText=''.*prepTasksText/s, 'the tasks state was removed along with the slot');
+});
