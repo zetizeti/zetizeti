@@ -66,12 +66,12 @@ test('readiness names the lines a thin sheet does not reach', () => {
 
 // ───────────────────────────── 2. the walk ─────────────────────────────
 
-const walk = (sheet, tasks = [], turns = 40) => {
+const walk = (sheet, tasks = [], turns = 40, sittings = 3) => {
   const segments = segsOf(sheet);
   const stone = [], student = [];
   const out = [];
   for (let i = 0; i < turns; i++) {
-    const p = prepPlan({ segments, studentTurns: student, stoneTurns: stone, tasks });
+    const p = prepPlan({ segments, studentTurns: student, stoneTurns: stone, tasks, sittings });
     out.push(p);
     if (p.complete) break;
     stone.push(`q${i}`); student.push(`an answer that reuses nothing ${i}`);
@@ -257,4 +257,36 @@ test('prep turns are counted apart from enquiry turns in the survival curve', ()
   const chat = SERVER.slice(SERVER.indexOf("app.post('/api/chat'"), SERVER.indexOf("app.post('/api/criticism/open'"));
   assert.match(chat, /surface:\s*prepping\s*\?\s*'prep'\s*:\s*'enquiry'/, 'prep needs its own curve');
   assert.match(chat, /depth:\s*prepping\s*\?\s*studentTurns\.length\s*:\s*studentTurns\.length\s*-\s*prepTurns/, 'an enquiry turn after the arc must record the ENQUIRY depth, not the pair');
+});
+
+// ── ONE SITTING (30 August 2026) ────────────────────────────────────────────────────────────────────
+// The three parts hold the gaps and the gaps hold the tasks. Walking the whole arc at one desk there are
+// no gaps, so the boundary turns cost a quarter of the sitting and neither can say anything true: the
+// closing turn asks what you will go and do, and the resuming turn asks what happened while you were away.
+// 🔴 THE DEFAULT MUST NOT MOVE. dsl-status collects three transcripts and gates each part on its pack, so
+// a global change would break a student flow in another repository with nothing here failing.
+
+test('one sitting walks all six stations with no closing and no resuming turn', () => {
+  // ⚠️ Replayed with `walk`, never read off one plan's `path`: that array is the walk SO FAR and stops at
+  // the turn being composed, so a single call returns one step and would pass or fail for the wrong reason.
+  const steps = walk(SHEET, [], 40, 1);
+  assert.equal(steps[0].parts, 1);
+  assert.equal(steps.filter((p) => p.phase === 'closing').length, 0, 'a closing turn asks about a gap that does not happen');
+  assert.equal(steps.filter((p) => p.phase === 'resuming').length, 0, 'a resuming turn asks what happened while you were away');
+  const stationKeys = [...new Set(steps.filter((p) => p.station).map((p) => p.station.key))];
+  assert.equal(stationKeys.length, 6, 'one sitting must still cover all six lines of questioning');
+  assert.ok(steps.some((p) => p.complete), 'the one-sitting walk must still end');
+});
+
+test('🔴 the default is unchanged — saying nothing about sittings still gives three parts', () => {
+  const a = walk(SHEET);
+  const b = walk(SHEET, [], 40, 3);
+  assert.equal(a[0].parts, 3);
+  assert.deepEqual(a.map((p) => p.phase), b.map((p) => p.phase), 'the default shape drifted from an explicit three');
+});
+
+test('an unknown sittings value falls to the default rather than to an unspecified shape', () => {
+  for (const bad of [0, 2, 7, null, 'one', undefined]) {
+    assert.equal(prepPlan({ segments: segsOf(SHEET), studentTurns: [], stoneTurns: [], sittings: bad }).parts, 3, `sittings=${bad}`);
+  }
 });

@@ -508,7 +508,10 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // whoever-prepared-the-material's decision and travel verbatim to the closing turn.
   const prepTasks = typeof req.body?.tasks === 'string' ? parseTasks(req.body.tasks.slice(0, DOC_MAX)) : [];
   const prepSegs = prepText ? prepSegments(prepText) : [];
-  const prepWalk = prepText ? prepPlan({ segments: prepSegs, studentTurns, stoneTurns, tasks: prepTasks }) : null;
+  // ONE SITTING OR THREE, whitelisted rather than passed through — only the exact number 1 changes the
+  // shape, so an unknown value is the default rather than an unspecified one. Same discipline as `focus`.
+  const prepSittings = Number(req.body?.sittings) === 1 ? 1 : 3;
+  const prepWalk = prepText ? prepPlan({ segments: prepSegs, studentTurns, stoneTurns, tasks: prepTasks, sittings: prepSittings }) : null;
   const prepping = !!(prepWalk && !prepWalk.complete);
 
   // The felt-shift read for THIS turn (null unless the neural backend is live and an event structure

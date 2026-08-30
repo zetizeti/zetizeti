@@ -21,6 +21,14 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.22.0] — 2026-08-30
+
+**A prep sheet can now be walked in one sitting instead of three.** Once a sheet is attached the doorway offers the choice, and one sitting is a different shape rather than a hurried version of the same one: the six lines of questioning run straight through with no part boundaries at all, and the strip stops reporting which part you are in, because *part 1 of 1* is a progress figure with the progress taken out.
+
+**Why the boundaries were costing something.** The parts exist to hold the gaps, and the gaps exist to hold the tasks. At one desk with no tasks document, the two closing and two resuming turns are a quarter of the sitting, and neither can say anything true — one asks what you will go and do, the other what happened while you were away.
+
+**Three remains the default,** and an unrecognised value falls back to it rather than to an unspecified shape. A course built around three separate submissions should keep three; nothing about the existing arc has changed for anybody who does not choose otherwise.
+
 ## [0.21.2] — 2026-08-30
 
 **The line at the end of a part no longer tells you to do a task, or to leave.** It read *save your transcript, do the task, and bring the file back to carry on* — three claims the page cannot make. It does not know whether a task was set, because the closing question is what carries one; and it does not know whether you are stopping. Somebody walking the whole arc in one sitting, with no tasks document attached, was told to go and do a task that did not exist and to leave a conversation he was in the middle of. The boundary is still marked and the save is still offered; the choice is left where it belongs.

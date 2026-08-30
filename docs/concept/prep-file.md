@@ -12,10 +12,12 @@ It still never tells you anything. You brought the document, and the document is
 
 The prep runs in **three parts of two lines each**, and it is meant to be spread over three sittings.
 
+**Or in one.** Once a sheet is attached the doorway offers *three sittings* or *one*, and one is a different shape rather than a hurried version of the same one: the six lines run straight through, with no part boundaries at all. The parts exist to hold the gaps and the gaps exist to hold the tasks, so at one desk with no tasks the two closing and two resuming turns are a quarter of the sitting and neither can say anything true — one asks what you will go and do, the other what happened while you were away. Three remains the default and is what a course built around three submissions should keep.
+
 | | Lines of questioning | What happens after |
 |---|---|---|
-| **Part one** | what the field calls things · where it came from | a task, then you leave |
-| **Part two** | what you need first · what is hard here | a task, then you leave |
+| **Part one** | what the field calls things · where it came from | a pause, and anything to try, then you leave |
+| **Part two** | what you need first · what is hard here | a pause, and anything to try, then you leave |
 | **Part three** | what is already to hand · what the field says about itself | prep ends; your own enquiry begins |
 
 Each part ends by putting the task for the gap in front of you and asking one question about how *you* will meet it. Each later part opens by asking what actually happened: what you did, or what you did instead when you could not.
@@ -30,11 +32,11 @@ If you keep going without leaving, nothing stops you. The next question asks wha
 
 **The prep sheet** is the material: what the field is, in sentences that can be pointed at.
 
-**The tasks document** is optional. It says what to go and do in the gaps between parts, and it is kept apart from the sheet because the two usually have different authors and different lifespans: a sheet about a field lasts years, and the tasks you set one group this term do not.
+**The things to go and do**, if there are any, are a section of the sheet itself. There is no second upload: the separate slot was removed on 30 August 2026, because tasks and material are prepared by the same person for the same group and a second file to remember is a step to forget.
 
-**The tasks are pre-set, and the stone never writes one.** It reads the task out as it stands and asks one question about how you will meet it. Nothing here decides what is worth your week. Whoever prepared your material decided that.
+**They are pre-set, and the stone never writes one.** The closing turn points at what your sheet already said and asks one question about how you will meet it. Nothing here decides what is worth your week. Whoever prepared your material decided that.
 
-If you attach no tasks document, the closing turn asks you to name something small yourself. That is thinner material and, arguably, a stronger commitment.
+If the sheet names nothing to try, the closing turn asks you to name something small yourself. That is thinner material and, arguably, a stronger commitment. **And in a one-sitting walk there are no closing turns at all**, so nothing is asked about a gap you are not taking.
 
 ---
 
@@ -63,18 +65,19 @@ Six sections, one per line of questioning. Each is recognised by a different kin
 
 You do not need those exact words and you are not filling in a form. They are what sentences of each kind tend to contain, and they are what each line of questioning looks for.
 
-## What the tasks document should say
+## If you want things to go and do
 
-**Two tasks, in order.** The first is for the gap after part one, the second for the gap after part two. Part three ends the prep and hands straight into your own enquiry, so a third task would be an instruction issued on the way out of a conversation that is no longer about the document. A third entry is ignored.
-
-Write them as a numbered or bulleted list, or as paragraphs separated by blank lines. Headings that only label a part are dropped and never read out as work.
+**Put them in the sheet, as a short section of their own.** They are for the gaps between parts, so they only apply to a three-sitting walk; part three ends the prep and hands into your own enquiry, and an instruction issued on the way out of a conversation that is no longer about the document would be one too many.
 
 ```markdown
-1. Cut three test pieces in different materials and measure the kerf on each.
-2. Find one person who already does this and ask what they wasted a week on.
+## Things you could try
+Cut three test pieces in different materials and measure the kerf on each.
+Find one person who already does this and ask what they wasted a week on.
 ```
 
 Small enough to actually happen in the gap. A task nobody does makes the next part open on an apology.
+
+⚠️ **This is the one section that fires by vocabulary rather than by heading**, so sentences elsewhere in the sheet carrying *make*, *build*, *builds on* or *experiment* are read as things to try too. Any sheet about making things has some. It costs the closing turn a little precision and issues nothing as an instruction.
 
 ---
 
@@ -168,6 +171,6 @@ This section is the brief. Hand it over whole.
 
 **Say only what is true.** These sheets go to students entering an area they cannot yet check, so an invented date, a fabricated open problem, or a plausible-sounding term nobody uses will be believed and repeated. Where you are not sure, write less. A short accurate sheet prepares somebody; a long confident one misleads them, and they will not find out for months.
 
-**If you are also asked for the tasks document, write exactly two tasks**, one for each gap, each doable in the days between sittings with what a student is likely to have. They are the only place in this whole arrangement where anything gets *told* to the student, so write them as plain instructions and keep them small. Do not write a third.
+**If you are asked for things to go and do, put them in the sheet as their own short section**, two of them, one for each gap, each doable in the days between sittings with what a student is likely to have. They are the only place in this whole arrangement where anything gets *told* to the student, so write them as plain instructions and keep them small. Do not write a third, and do not write any unless you were asked.
 
 **Do not name zetizeti, the stone, or this document inside either file.** They are material about a field, not about a tool.
