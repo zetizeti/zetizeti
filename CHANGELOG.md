@@ -21,7 +21,17 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
-## [0.20.0] — 2026-08-28 *(built; not tagged, deployed or published — awaiting go-ahead)*
+## [0.21.0] — 2026-08-30
+
+**A prep sheet now begins the prep, and there is nothing to type.** Attach a sheet on the enquiry screen and press begin: the walk starts at its first question. Naming an edge first was asking for the one thing the prep exists to give you — a learner who can already state their edge in a field does not need preparing in it. The box stays there and stays optional; anything typed in it is kept as the edge for after the prep ends rather than discarded.
+
+**The fix underneath it: the prep arc could not be reached from the enquiry screen at all.** Starting a fresh enquiry clears any attached sheet, which is correct and deliberate — a sheet surviving into the *next* enquiry would prepare you in the wrong field with nothing to indicate it. But the same clearing ran at the start of the enquiry the sheet had just been attached for. So attaching a sheet and pressing begin discarded it before the first question, the conversation opened as an ordinary enquiry and asked about an edge, and no error appeared anywhere. Six lines of questioning, three parts and a full concept document, all correct, all behind a closed door for two days.
+
+**The doorway now says what it will do, in both directions.** Once a sheet is attached the button reads *begin the prep*; leaving the screen puts it back. A surface that goes on describing an attachment which no longer exists is a surface disagreeing with its own state.
+
+*Also in this release:* `verification/prep-doorway.test.mjs`, which reads the client source for whether the door is open — there is no other consumer test for a browser path here, and this repo has now shipped the same shape three times: a mechanism written, measured and unit-tested while unreachable from the route that would call it. It was proved by running it against the pre-fix copy, where five of five fail. The 0.20.0 heading above also loses a parenthetical saying it was awaiting a go-ahead; it was tagged, deployed and published on the day it was written.
+
+## [0.20.0] — 2026-08-28
 
 **Enquiry mode takes a prep sheet, and walks you into an area you do not work in yet.** Attach a glossary or briefing when you begin an enquiry and the conversation opens differently: instead of asking about the edge you named, the stone walks six lines of questioning through the document you brought — what the field calls things, where it came from, what you need before you can start, what is hard here, what is already to hand, and what the field says about itself. Then it stops, and the enquiry is yours again, in an area you now have words for.
 

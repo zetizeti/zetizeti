@@ -1083,6 +1083,9 @@ let cfg={poolEnabled:false, poolUserTurns:0}, poolTurnsLeft=null, poolBudget=nul
 const stream=$('stream'), input=$('input'), send=$('send'), field=$('field'), hint=$('hint');
 const edge=$('edge'), edgeText=$('edgeText'), edgeTrace=$('edgeTrace'), lineageEl=$('lineage'), redrawBtn=$('redraw');
 const DIALOG_PH='Respond — or sit with the question…', REDRAW_PH='Re-draw the edge, sharper…';
+// The doorway's prep note, held here because two places restore it and a string duplicated in two places
+// is a string that will disagree with itself. Kept byte-identical to the markup it replaces.
+const PREP_NOTE_DEFAULT = 'A glossary or briefing about a field you don\u2019t work in yet. Six lines of questioning across three sittings, asking where <em>you</em> stand — then it stops and the enquiry is yours. Read here in your browser, never uploaded.';
 const OPENING="What are you trying to do right now — and where does it resist you?";
 let questId=null, history=[], busy=false, phase='goal', goal='', honed=0, exchanges=0, lineage=[];
 // nudge refractory, tracked client-side now that nothing is persisted: turns since a nudge last surfaced
@@ -1785,23 +1788,63 @@ function enterApp(){
 // ---------- enquiries (EPHEMERAL) ----------
 // No list, no create, no resume, no fork — a saved thread no longer exists. The start screen just offers
 // to begin; beginning opens a fresh conversation held only in this tab.
-function showStart(){ applyKeyGate(); showView('quests'); const n=$('newqName'); if(n){ n.value=''; setTimeout(()=>n.focus(),50); } }
+// Returning to the doorway clears what the last visit left on it. `resetConversation` already dropped the
+// sheet itself; without this the BUTTON and the note went on describing an attachment that no longer
+// existed, which is a surface disagreeing with its own state rather than a cosmetic untidiness.
+function resetPrepDoorway(){
+  const b=$('newqBtn'); if(b) b.textContent='begin';
+  const n=$('newqName'); if(n) n.placeholder='Name what you\u2019re trying to do \u2014 e.g. \u201Conboarding for a meditation app\u201D';
+  const chip=$('prepTasksChip'); if(chip){ chip.hidden=true; const f=chip.querySelector('.ul-file'); if(f) f.textContent='choose a .pdf, .md or .txt'; }
+  const note=$('prepNote'); if(note){ note.classList.remove('bad'); note.innerHTML=PREP_NOTE_DEFAULT; }
+}
+function showStart(){ applyKeyGate(); showView('quests'); resetPrepDoorway(); const n=$('newqName'); if(n){ n.value=''; setTimeout(()=>n.focus(),50); } }
 $('newqBtn').addEventListener('click', newQuest);
 $('newqName').addEventListener('keydown', e=>{ if(e.key==='Enter') newQuest(); });
 // Begin: if the student named an edge, dive straight in with it; otherwise open with the stone's question.
 function newQuest(){
   const seed = $('newqName').value.trim();
+  // 🔴 THE SHEET IS CARRIED ACROSS THE RESET, EXPLICITLY. `resetConversation` clears it unconditionally and
+  // must go on doing so — its comment is right that a sheet surviving into the NEXT enquiry would silently
+  // prep the wrong field. But that same function runs at the START of the enquiry the sheet was just
+  // attached for, so until this was passed through, attaching a sheet and pressing begin DISCARDED IT: the
+  // conversation opened as an ordinary enquiry, asked about an edge, and nothing said the prep had gone.
+  // A guard written for one moment, firing at another, with no error on either side of it.
+  const prep = prepText ? { text:prepText, name:prepName, tasks:prepTasksText, tasksName:prepTasksName } : null;
   $('newqName').value='';
-  startFreshEnquiry(seed);
+  startFreshEnquiry(seed, prep);
 }
 // Open a brand-new ephemeral enquiry in the conversation view. `seed` (optional) is treated as the first
 // edge, so the landing composer flows straight into the dialogue.
-function startFreshEnquiry(seed){
+function startFreshEnquiry(seed, prep){
   if(location.pathname!=='/enquiry'){ try{ window.history.pushState({}, '', '/enquiry'); }catch(e){} }
   resetConversation(); showView('conversation'); fetchPool();
   seedViz(hashStr('e'+Date.now()));
+  // 🔴 A PREP SHEET NEEDS NO PROMPT, AND ASKING FOR ONE ASKS FOR THE THING THE PREP EXISTS TO GIVE.
+  // The arc is a walk through the document the learner brought; the first question is the first station's,
+  // and a learner who could already name their edge in that field would not need preparing in it. So an
+  // attached sheet begins the walk and the box is optional. Anything typed is kept as the edge for AFTER
+  // the prep ends, rather than thrown away.
+  if(prep){
+    prepText=prep.text; prepName=prep.name; prepTasksText=prep.tasks; prepTasksName=prep.tasksName;
+    if(seed){ goal=seed; lineage.push(seed); }
+    startPrep();
+    return;
+  }
   if(seed){ startDialogue(seed); }
   else { phase='goal'; openingQuestion(); input.focus(); }
+}
+// The opening prep turn, sent with an EMPTY message. That is correct rather than a shortcut: prep.mjs seats
+// the walk on `at = stoneTurns.length`, so with no history it lands on the first station whatever the
+// learner has or has not said — and they have not said anything yet, which is the point. The empty string
+// joins studentTurns and touches no region, so it cannot advance a station either.
+// No edge panel: there is no edge during prep, and showing an empty one would invite naming it.
+function startPrep(){
+  phase='dialogue'; field.classList.remove('redraw'); input.placeholder=DIALOG_PH;
+  hint.innerHTML='preparing you in a new area \u00b7 the question is yours to answer';
+  const strip=$('prepStrip');
+  if(strip){ strip.hidden=false; $('prepStripLabel').textContent = `preparing you in ${prepName||'a new area'}`; }
+  busy=true; send.disabled=true;
+  streamStone('', 'turn').then(()=>{ busy=false; send.disabled=false; input.focus(); });
 }
 
 // ---------- THE PREP SHEET (28 Aug 2026) ----------
@@ -1837,6 +1880,13 @@ function afterPrepTurn(){
 // Attach the sheet. It is read here and never uploaded; what travels is the extracted text, in the turn,
 // exactly as a paste always has. The readiness check that follows costs no model call and exists so a thin
 // sheet is visible NOW rather than inferred later from six vague questions.
+// A sheet is attached, so the button is no longer a general 'begin' — it begins THIS. Said on the doorway
+// because the alternative is a learner typing an edge into a box for a field they were about to be prepared
+// in, which is the request this whole path answers.
+function armPrepDoorway(){
+  const b=$('newqBtn'); if(b) b.textContent='begin the prep';
+  const n=$('newqName'); if(n) n.placeholder='Optional — an edge to come back to once the prep ends';
+}
 (function wirePrepUploads(){
   const note=$('prepNote'), chip=$('prepTasksChip');
   const say=(msg,bad)=>{ note.textContent=msg; note.classList.toggle('bad', !!bad); };
@@ -1851,6 +1901,7 @@ function afterPrepTurn(){
       const {used, truncated}=await readDocFile(f);
       prepText=used; prepName=f.name;
       chip.hidden=false;
+      armPrepDoorway();
       const r=await fetch('/api/prep/readiness', {method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ text: prepText, tasks: prepTasksText })});
       if(!r.ok){ say(`${f.name} is attached. (Could not check it — it will still run.)`); return; }
@@ -1861,7 +1912,9 @@ function afterPrepTurn(){
       if(miss.length) parts.push(`It does not say much about ${miss.join(', ')}, so those questions will be vaguer. Everything else runs as it is.`);
       else parts.push('All six lines of questioning found something to point at.');
       if(rd.tasks) parts.push(`${rd.tasks} task${rd.tasks===1?'':'s'} loaded for the gaps between parts.`);
+      parts.push('Press begin — there is nothing to type.');
       say(parts.join(' '), rd.thin);
+      armPrepDoorway();
     }catch(err){ prepText=''; prepName=''; chip.hidden=true; say(String(err.message||err), true); }
     finally{ e.target.value=''; }
   });
@@ -1884,6 +1937,7 @@ function afterPrepTurn(){
   if(clear) clear.addEventListener('click', ()=>{
     prepText=''; prepTasksText=''; prepActive=false; prepPausing=false;
     $('prepStrip').hidden=true;
+    resetPrepDoorway();
     addDivider('prep sheet removed — the enquiry is yours from here');
   });
 })();
