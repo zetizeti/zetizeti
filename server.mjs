@@ -14,7 +14,9 @@ import {
   loadCriticismCore, buildCriticismSystemPrompt, validateCriticismOutput,
   CRITICISM_POINTERS, questionOpener, describeLocated,
   PREP_CLOSING_AIM, PREP_CLOSING_AIM_SET, PREP_RESUMING_AIM,
+  buildSpecSystemPrompt, validateSpecOutput,
 } from './lib/dialogue.mjs';
+import { nextJoint, readJoints, specTerms, JOINT_KEYS } from './lib/spec.mjs';   // the speccing surface — DETERMINISTIC, no LLM
 import { readSensed } from './lib/sensed.mjs';
 import { qualify, toCanonSegments, segmentText } from './lib/qualify.mjs';   // DETERMINISTIC, no-LLM qualification (locating)
 import { planFor, windowOf, briefDigest } from './lib/plan.mjs';   // the reading plan — DETERMINISTIC, no LLM
@@ -1289,6 +1291,146 @@ app.post('/api/criticism/turn', requireUser, async (req, res) => {
   res.end();
 });
 
+// ---------------------------------------------------------------------------------------------------
+// THE SPECCING SURFACE (v0.25.0) — a student's own SPECIFICATION questioned at the six joints.
+//
+// 🔴 STATELESS LIKE THE OTHER TWO. The client holds the spec and the transcript and posts them back
+// every turn; nothing is written anywhere. `req.body` is NEVER logged (invariant #8) and the spec is
+// the most private thing that has ever crossed this surface — unfinished work somebody is embarrassed
+// by is exactly what the ephemeral pivot exists for.
+//
+// 🔴 NO PLAN, NO RETRIEVAL, NO CORPUS. The other two surfaces retrieve domain tensions; this one must
+// not. Its whole discipline is that it never needs to know the domain — a corpus passage about, say,
+// slow design would arrive as material the stone knows and the student does not, which is the position
+// from which it starts telling. The rotation over the six joints is the entire routing.
+async function askSpecQuestion({ send, apiKey, meter, spec, assignment, priorMessages, studentTurn }) {
+  const stoneTurns = priorMessages.filter((m) => m.role === 'stone').map((m) => m.content);
+  const studentTurns = priorMessages.filter((m) => m.role !== 'stone').map((m) => m.content);
+  // Which joints this conversation has already gone to. Recomputed from the transcript the client posts
+  // back — the same machinery the prep arc uses, and the reason no session id exists here either.
+  const asked = Array.isArray(priorMessages)
+    ? priorMessages.map((m) => m && m.joint).filter((k) => JOINT_KEYS.includes(k))
+    : [];
+  const joint = nextJoint({ text: spec, asked });
+
+  // ⚠️ FOUR BACK, NOT TWO. The other surfaces ban the last two openers; a ten-round run here opened
+  // "By what" or "By which" four times, because a construction recurring every third question clears a
+  // two-question window every time. Widened HERE rather than on the shared surfaces, which have their
+  // own measured behaviour and did not ask for this.
+  const bans = [...new Set(stoneTurns.slice(-4).map((q) => questionOpener(q)).filter(Boolean))];
+  // The nouns the last three questions kept pointing at. Her words only — a word the stone introduced is
+  // already refused elsewhere, and listing it here would tell the model to avoid something it should not
+  // have said at all.
+  const hers = specTerms(spec);
+  const recent = stoneTurns.slice(-3);
+  const tally = new Map();
+  for (const q of recent) {
+    for (const w of new Set(String(q).toLowerCase().match(/[a-z][a-z0-9-]{3,}/g) || [])) {
+      if (hers.has(w)) tally.set(w, (tally.get(w) || 0) + 1);
+    }
+  }
+  const circling = [...tally.entries()].filter(([, n]) => n >= 2).map(([w]) => w).slice(0, 3);
+  const system = buildSpecSystemPrompt({
+    spec, assignment, joint, asked, circling,
+    banOpeners: bans,
+    avoidFrames: stoneTurns.slice(-4).map((q) => String(q).replace(/\s+/g, ' ').trim().slice(0, 60)),
+  });
+  const messages = [
+    ...priorMessages.map((m) => ({ role: m.role === 'stone' ? 'assistant' : 'user', content: m.content })),
+    { role: 'user', content: studentTurn || '(ask about the specification)' },
+  ];
+  // 🔴 THE WORDS THE QUESTION MAY POINT WITH are her specification's plus everything she has said in
+  // this conversation. Not the assignment's: a noun that appears only in the brief is one SHE has not
+  // used, and pointing with it hands her the thing she was supposed to supply.
+  const own = new Set([...specTerms(spec), ...studentTurns.flatMap((t) => specTerms(t)),
+    ...(studentTurn ? specTerms(studentTurn) : [])]);
+  let qCost = 0;
+  const guarded = await generateGuarded({
+    mode: 'spec',
+    // 32 words: shorter than criticism's 45 because there is no verbatim passage to carry, and longer
+    // than enquiry's because a question here usually quotes a phrase of hers to point with.
+    validate: (t) => validateSpecOutput(t, { maxWords: 32, avoid: stoneTurns, banOpeners: bans,
+      ownWords: own, noCompound: true }),
+    generate: (correction) => streamQuestion({
+      system,
+      messages: (correction && correction.previous)
+        ? [...messages, { role: 'assistant', content: correction.previous }, { role: 'user', content: correction.instruction }]
+        : messages,
+      onToken: () => {},                                     // buffered — an answer cannot be unread
+      onUsage: meter ? (u) => { qCost += usageCost(u); } : null,
+      maxTokens: 300, temperature: 0.3, reasoning: { enabled: false }, apiKey,
+    }),
+  });
+  noteGuard('spec', guarded);
+  const full = guarded.text;
+  if (!full.trim()) { send('error', { code: 'EMPTY_GENERATION', message: EMPTY_MSG }); return { qCost, empty: true }; }
+  send('token', { t: full });
+  // The joint travels with the question so the client can post it back and the rotation can be
+  // recomputed. It is routing, not a reading of her: it says where the question went, never how she did.
+  send('joint', { key: joint.key, label: joint.label });
+  send('validation', { ...guarded.check, attempts: guarded.attempts, regenerated: guarded.regenerated });
+  return { qCost };
+}
+
+// POST /api/spec/open — paste a specification → first question. SSE. Persists nothing.
+app.post('/api/spec/open', requireUser, async (req, res) => {
+  const b = req.body || {};                                  // NEVER logged
+  const spec = typeof b.spec === 'string' ? b.spec.trim() : '';
+  const assignment = typeof b.assignment === 'string' ? b.assignment.trim() : '';
+  if (!spec) { res.status(400).json({ error: 'Paste the specification you have written.' }); return; }
+  if (spec.length > DOC_MAX || assignment.length > DOC_MAX) {
+    res.status(413).json({ error: `That is very long — bring up to about ${Math.round(DOC_MAX / 1000)},000 characters.` }); return;
+  }
+  sseHeaders(res);
+  const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  const key = await resolveKeyForCriticism(req, res, send); if (!key) return;
+  try {
+    // 🔴 THE JOINT READING IS SENT TO THE CLIENT AND IS NOT A SCORE. It says which of the six her words
+    // touch, so the page can show where the conversation has been. There is no total, no percentage and
+    // no "complete" — a figure about somebody's unfinished work is a mark, and this surface never marks.
+    send('joints', readJoints(spec));
+    send('status', { t: 'composing a question…' });
+    await askSpecQuestion({ send, apiKey: key.apiKey, meter: key.meter, spec, assignment, priorMessages: [], studentTurn: null })
+      .then(({ qCost }) => {
+        noteTurnDepth({ day: utcDay(), surface: 'spec', version: BUILD.version, depth: 1 });
+        if (key.meter) { addPoolSpend(utcDay(), req.user.id, qCost, key.poolFlag); if (key.usingPool) send('pool', poolEvent(req.user.id)); }
+      });
+    send('done', {});
+  } catch (err) { sendGenerationError(send, err, key.usingPool ? null : req.user.email); }
+  res.end();
+});
+
+// POST /api/spec/turn — STATELESS continue. The client sends the spec it holds, the transcript, and her
+// typed answer. SSE. Persists nothing.
+app.post('/api/spec/turn', requireUser, async (req, res) => {
+  const b = req.body || {};                                  // NEVER logged
+  const spec = typeof b.spec === 'string' ? b.spec : '';
+  const assignment = typeof b.assignment === 'string' ? b.assignment.trim() : '';
+  const message = typeof b.message === 'string' ? b.message.trim() : '';
+  const priorMessages = Array.isArray(b.priorMessages) ? b.priorMessages : [];
+  if (!spec) { res.status(400).json({ error: 'No specification under question.' }); return; }
+  if (spec.length > DOC_MAX || assignment.length > DOC_MAX) { res.status(413).json({ error: 'That is longer than this surface accepts.' }); return; }
+  sseHeaders(res);
+  const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  const key = await resolveKeyForCriticism(req, res, send); if (!key) return;
+  try {
+    // 🔴 RE-READ THE JOINTS EVERY TURN, because she is expected to CHANGE the specification while the
+    // conversation runs — that is the whole point of the surface, and it is the difference from
+    // criticism, where the text under question is fixed. If she rewrites it and pastes it back, the
+    // rotation follows what is there now rather than what was there when she started.
+    send('joints', readJoints(spec));
+    send('status', { t: 'composing a question…' });
+    await askSpecQuestion({ send, apiKey: key.apiKey, meter: key.meter, spec, assignment, priorMessages, studentTurn: message || null })
+      .then(({ qCost }) => {
+        noteTurnDepth({ day: utcDay(), surface: 'spec', version: BUILD.version,
+          depth: priorMessages.filter((m) => m && m.role === 'stone').length + 1 });
+        if (key.meter) { addPoolSpend(utcDay(), req.user.id, qCost, key.poolFlag); if (key.usingPool) send('pool', poolEvent(req.user.id)); }
+      });
+    send('done', {});
+  } catch (err) { sendGenerationError(send, err, key.usingPool ? null : req.user.email); }
+  res.end();
+});
+
 // LOCAL "author mode" (build 2.0) — role-flipped: PRAYAS is the stone, this LLM play-acts a design
 // student, and HIS questions are captured as the first-hand voice corpus. Both endpoints 404 unless this
 // is a capturing dev instance (captureEnabled is hard-guarded off in production), so author mode cannot
@@ -1357,7 +1499,7 @@ app.use(express.static(join(__dirname, 'public'), {
 // SPA deep links — serve the app shell for the client routes so /critique, /about, /enquiry/:id
 // etc. resolve on a direct load or refresh (real shareable URLs, not hash links). The API routes
 // and static assets are matched first above; only genuine client paths fall through to here.
-app.get(['/about', '/critique', '/critique/:id', '/progress', '/enquiries', '/enquiry/:id', '/admin', '/author'], (req, res) => {
+app.get(['/about', '/critique', '/critique/:id', '/spec', '/progress', '/enquiries', '/enquiry/:id', '/admin', '/author'], (req, res) => {
   res.setHeader('Cache-Control', 'no-cache');
   res.sendFile(join(__dirname, 'public', 'index.html'));
 });

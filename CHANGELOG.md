@@ -21,6 +21,24 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.25.0] — 2026-09-02
+
+**A third face: speccing.** A student's own SPECIFICATION — language written so that something can be built from it — questioned at the six places any specification holds together: what it holds, what changes, what decides, the edges, which values are fixed or free, and how anybody would know it works. `/spec`, in the nav, alongside enquiry and critique.
+
+🔴 **Its polarity is neither of the other two's, and that is why it is a third thing rather than a mode.** Enquiry questions an idea she holds; critique unpacks a text she brought and did not write. Here her own document is the OBJECT, unfinished on purpose and editable while the conversation runs. It could not be the critique surface with the slots swapped: that one refuses, by regex, any question pairing *your project* with *justify, defend, prove*, which is right there and would refuse this surface's whole purpose. They share their FORM checks and nothing else.
+
+**It never needs to know the domain.** A specification's gaps are gaps in language, not errors in engineering — *what decides a bounce* is askable without knowing physics. So there is no retrieval and no corpus on this path: a domain passage would arrive as material the stone knows and the student does not, which is the position from which it starts telling. The same six joints served a bouncing ball, a doorway counter and a lending shelf.
+
+🔴 **What it refuses is what a competent reviewer would say, and all of it is true.** *You have not said what happens at the edges* is accurate and is an answer. Refused: naming an absence, instructing, grading the specification, and *your <thing she never wrote>* — the last needing its own check, because the shared invention guard fires on a deictic and *your gravity* is not one. Added here rather than to the shared function, which two live surfaces depend on.
+
+**Measured against the real endpoint before shipping**, which this repository requires of a planner and has recorded as owed since the prep arc: `scripts/spec-conversation-probe.mjs`, ten rounds over three unlike specifications, run twice after the fixes. Six of six joints every run, longest run on one joint 1, and **zero questions naming an absence or instructing across sixty delivered questions**. Breaches 0–2 per run, all frame repeats that were surfaced — the range the enquiry surface already reports.
+
+⚠️ **The probe found three things no unit test could, and one of them was in the product.** The rotation stalled after the sixth question — the fallback returned the first joint ever asked, so a run went state · fixed · enough · change · decision · edges · then state · state · state · state, with all seventeen unit tests green, because each proves one call and none ran a conversation long enough. Fixed to least-recently-asked and pinned by an eighteen-turn test. The other two were in the harness: a play-acted student that returned empty nine times in ten and was silently replaced by the probe's own fallback, and an invention count of 20 that was mostly ordinary English and is now reported under its true name.
+
+⚠️ **Register fixes, all from reading transcripts rather than columns.** Every question wrapped her words in quote marks, several tearing out fragments that broke the grammar; four opened *By what / By which*; and the questions presupposed mechanisms she had never written — *how does the box determine the duration of the delay* invents a delay and tells her the remaining problem is tuning it. After: quote marks 30/30 → 0/30, those openers 4 → 0, and the presupposition instruction carries the worked example. The opener ban looks back four questions here rather than two.
+
+⚠️ **One thing reduced rather than solved, and stated as such.** Rotating the joint does not move the subject: a run visited all six joints while seven of ten questions asked about the same noun. Naming the circled words in the prompt took that to four of ten, and the overlap barely moved. On a three-sentence specification there are few nouns to move to, and pushing harder would buy variety by asking about nothing.
+
 ## [0.24.1] — 2026-09-02
 
 **The saved PDF is refused by name at the resume input, and the two download links say which is which.**

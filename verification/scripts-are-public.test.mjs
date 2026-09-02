@@ -52,6 +52,14 @@ const PUBLIC_SCRIPTS = [
   // Its second persona never complains, which is the student every earlier instrument was blind to.
   // Carries no material: the edge is invented in-file or arrives as --edge= / --edge-file=.
   'enquiry-conversation-probe.mjs',
+  // The speccing equivalent, added 2 September 2026 — drives the real /api/spec endpoints over ten
+  // rounds and reads the CONVERSATION: how many of the six joints it visited, the longest run on one,
+  // and whether any delivered question named an absence or instructed. It caught a rotation that
+  // stalled after the sixth question with every unit test green.
+  // 🔴 CARRIES NO STUDENT'S MATERIAL. The three specifications in it are invented and deliberately
+  // unlike anybody's project — a real specification here would publish somebody's unfinished work,
+  // which is worse than publishing a finished one.
+  'spec-conversation-probe.mjs',
   'dialogue-probe.mjs',
   'featherless-arena-gens.json',
   'featherless-arena-result.json',

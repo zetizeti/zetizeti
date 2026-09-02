@@ -633,6 +633,7 @@
     <nav>
       <a id="navQuests">new enquiry</a>
       <a id="navCrit">critique</a>
+      <a id="navSpec">spec</a>
       <a id="navAuthor" class="nav-author" hidden>author</a>
       <a id="navAbout">about</a>
       <span class="nav-studio" id="navStudio" hidden><span class="studio-kicker">studio</span></span>
@@ -941,6 +942,60 @@
     </div>
   </section>
 
+  <!-- ===== SPECCING — the third face. A student's own SPECIFICATION is the object.
+       🔴 THE POLARITY IS THE OPPOSITE OF CRITIQUE'S and the copy has to say so, because a student who has
+       used the other surface will assume her document is context here as it is there. Here it IS the thing
+       under question, and it is unfinished on purpose.
+       ⚠️ NO focus toggle. The making filter drops the corpus entries marked `making`, which is the entire
+       register this surface works in — the two do not compose, for the same reason document mode and
+       concept-only do not. Shipping the switch would offer a setting that empties the surface. -->
+  <section class="view" id="view-spec">
+    <div class="wrap short">
+      <span class="backlink" id="specBack">‹ back</span>
+      <h2 class="vh">Spec something — and find what you left out</h2>
+      <p class="vsub">A specification is a description of a thing that does not exist yet, in your own words, complete enough that somebody or something else could build it. Bring one you are writing — for a sketch, a script, an object, a service — and the stone asks about the places it holds together: what it <b>holds</b>, what <b>changes</b>, what <b>decides</b>, what happens at the <b>edges</b>, which values are <b>fixed or free</b>, and how anybody would <b>know</b> it works. It never tells you what is missing and never completes it for you: whatever you have not specified will be decided by something else, and the point is that you find out what. Nothing is saved, nothing is scored.</p>
+      <div class="newq">
+        <button id="specNew">spec something →</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="view-spec-chat">
+    <div class="wrap">
+      <span class="backlink" id="specChatBack">‹ back</span>
+      <span class="dl-transcript" id="dlSpecTranscript" hidden><span class="dl-lead">↓ save this</span> <a id="specDlMd">.md</a><span class="dl-why">to carry on</span></span>
+      <div class="edge" id="specDoc" hidden>
+        <div class="edge-label">your specification — the thing under question, and you may change it</div>
+        <div class="edge-text crit-specimen" id="specDocText"></div>
+      </div>
+      <!-- What was asked for, when there is one. CONTEXT, and never a rubric — the prompt says so and the
+           guard refuses a question that marks her against it. Rendered dimmer for the same reason the
+           critique surface dims its brief: the composition says which document is under question. -->
+      <div class="crit-context" id="specAssign" hidden>
+        <div class="ctx-label">
+          <span>what was asked for · context only, never marked against</span>
+          <span class="ctx-acts"><button class="ctx-act" id="specAssignClear">remove</button></span>
+        </div>
+        <div class="ctx-body" id="specAssignText"></div>
+      </div>
+      <main id="specChatStream"></main>
+    </div>
+    <div class="composer">
+      <div class="inner">
+        <div class="field">
+          <textarea id="specChatInput" rows="1" placeholder="Paste the specification you have written…"></textarea>
+          <button class="send" id="specChatSend" title="Send">→</button>
+        </div>
+        <div class="crit-open" id="specOpenRow">
+          <button type="button" class="secondary" id="specAddAssign" title="Context for the questions — what you were asked to specify. Never marked against.">add what was asked for</button>
+        </div>
+        <div class="crit-ul-note" id="specUlNote" hidden></div>
+        <div class="hint">read in this tab · nothing saved · <b>never scored or compared</b></div>
+      </div>
+      <input id="ulSpecAssign" class="file-sink" type="file" accept=".pdf,application/pdf,.md,.txt,text/markdown,text/plain" tabindex="-1" aria-hidden="true" />
+    </div>
+  </section>
+
   <!-- ===== ADMIN — usage monitor ===== -->
   <section class="view" id="view-admin">
     <div class="wrap short">
@@ -1041,13 +1096,14 @@ async function loadStudioFooter(){
   if(typeof u.questions==='number'){ $('fsAff').innerHTML='that buys about <b>'+plus(u.questions)+' questions</b>'; }
   $('studioFooter').hidden=false;
 }
-const views = { login:$('view-login'), quests:$('view-quests'), conversation:$('view-conversation'), progress:$('view-progress'), about:$('view-about'), criticism:$('view-criticism'), 'criticism-chat':$('view-criticism-chat'), admin:$('view-admin'), author:$('view-author') };
+const views = { login:$('view-login'), quests:$('view-quests'), conversation:$('view-conversation'), progress:$('view-progress'), about:$('view-about'), criticism:$('view-criticism'), 'criticism-chat':$('view-criticism-chat'), spec:$('view-spec'), 'spec-chat':$('view-spec-chat'), admin:$('view-admin'), author:$('view-author') };
 function showView(name){
   for(const k in views) views[k].classList.toggle('active', k===name);
   // topbar hidden on the landing, and on About when reached before sign-in (nav links would 404).
   $('topbar').hidden = (name==='login') || (name==='about' && !me);
   $('navQuests').classList.toggle('on', name==='quests');
   $('navCrit').classList.toggle('on', name==='criticism' || name==='criticism-chat');
+  $('navSpec').classList.toggle('on', name==='spec' || name==='spec-chat');
   $('navAbout').classList.toggle('on', name==='about');
   const inConv = name==='conversation';
   document.body.classList.toggle('conv-active', inConv);
@@ -1085,6 +1141,7 @@ async function route(path){
   switch(path){
     case '/about':    showView('about'); break;
     case '/critique': openNewCritique(); break;
+    case '/spec':     openNewSpec(); break;
     case '/author':   openAuthor(); break;
     case '/admin':    openAdmin(); break;
     case '/enquiry':  startFreshEnquiry(); break;
@@ -1393,16 +1450,166 @@ function wireFocus(id, valId, get, set){
 wireFocus('focusToggle',     'focusVal',     ()=>focus,     (v)=>{ focus=v; });
 wireFocus('critFocusToggle', 'critFocusVal', ()=>critFocus, (v)=>{ critFocus=v; });
 $('navCrit').addEventListener('click', ()=>go('/critique'));
+$('navSpec').addEventListener('click', ()=>go('/spec'));
 $('critBack').addEventListener('click', ()=>go('/'));
 $('critChatBack').addEventListener('click', ()=>go('/'));
 $('critNew').addEventListener('click', openNewCritique);
 // Discipline picker removed (Foundation is common) — critDiscipline stays 'all' → all corpuses always-on.
 $('critDemo').addEventListener('click', runCritDemo);
 $('critChatSend').addEventListener('click', sendCritTurn);
+$('specNew').addEventListener('click', openNewSpec);
+$('specBack').addEventListener('click', ()=>go('/'));
+$('specChatBack').addEventListener('click', ()=>go('/'));
+$('specChatSend').addEventListener('click', sendSpecTurn);
+$('specChatInput').addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendSpecTurn(); } });
+$('specAssignClear').addEventListener('click', ()=>{ specAssign=''; specAssignName=''; $('specAssign').hidden=true; $('specAssignText').textContent=''; specNote(''); });
+$('specAddAssign').addEventListener('click', ()=>$('ulSpecAssign').click());
+// What was asked for, read in the tab and never uploaded — the same reader the critique surface uses for
+// its brief, so a PDF works here for the same reason it works there.
+$('ulSpecAssign').addEventListener('change', async ()=>{
+  const f=$('ulSpecAssign').files && $('ulSpecAssign').files[0]; if(!f) return;
+  $('ulSpecAssign').value='';
+  try{
+    const text=await readDocFile(f);
+    specAssign=text; specAssignName=f.name||'';
+    $('specAssignText').textContent=text;
+    $('specAssign').hidden=false;
+    specNote('');
+  }catch(e){ specNote(String(e && e.message ? e.message : e)); }
+});
+// The .md of this conversation, for carrying on or handing in — the same act as the other two surfaces.
+(function wireSpecDl(){
+  const md=$('specDlMd'); if(!md) return;
+  md.onclick=()=>{
+    let out='---\nsource: zetizeti\ntype: spec-transcript\ndate: '+new Date().toISOString()+'\n---\n\n';
+    out+='# Specification\n\n'+currentSpec()+'\n\n# The questions\n\n';
+    for(const h of specHistory) out += (h.role==='stone' ? '**Q.** '+String(h.content).replace(/\n+/g,' ') : String(h.content))+'\n\n';
+    downloadFile('spec-transcript.md', out, 'text/markdown');
+  };
+})();
 $('critChatInput').addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendCritTurn(); } });
 
 // The immersive chat — SAME layout as enquiries, minus the p5 viz. The bottom composer is the only
 // input: the FIRST send is the pasted AI text (creates the critique); later sends are your responses.
+// ---------------------------------------------------------------------------------------------------
+// THE SPECCING FACE. Her own specification is the object; the six joints are the lines of questioning.
+//
+// 🔴 IT IS DELIBERATELY THINNER THAN THE CRITIQUE FACE, and each absence is a decision rather than an
+// unfinished bit. No focus toggle: the making filter empties this surface, so offering it would offer a
+// setting that breaks the tool. No document mode for the spec itself: she is bringing something she is
+// still writing, and the paste box is what invites a change. No demo: the example that would teach this
+// is her own project, and a worked specimen would be a model answer.
+//
+// 🔴 THE SPEC MAY CHANGE MID-CONVERSATION and the surface has to allow it — that is the whole difference
+// from critique, where the text under question is fixed. `specDoc` is editable and every turn posts back
+// whatever is in it now, so the joints are re-read against what is there rather than what she started
+// with. A student who rewrites after three questions is the surface working, not a state bug.
+let specDoc=null, specHistory=[], specAssign='', specAssignName='';
+
+function specNote(msg){ const n=$('specUlNote'); if(!n) return; n.textContent=msg||''; n.hidden=!msg; }
+function showSpecDl(on){ const dl=$('dlSpecTranscript'); if(dl) dl.hidden=!on; }
+
+function openNewSpec(){
+  specDoc=null; specHistory=[]; specAssign=''; specAssignName='';
+  showView('spec-chat');
+  $('specChatStream').innerHTML='';
+  $('specDoc').hidden=true; $('specDocText').textContent='';
+  $('specAssign').hidden=true; $('specAssignText').textContent='';
+  $('specOpenRow').hidden=false; specNote('');
+  showSpecDl(false);
+  specAddStone('Paste the specification you have written — the thing described, not how you would build it. I will ask about it, one question at a time, and I will not tell you what is missing.');
+  const inp=$('specChatInput'); inp.value=''; inp.placeholder='Paste the specification you have written…';
+  setTimeout(()=>inp.focus(), 50);
+}
+
+function specAddStone(text){
+  const node=el('<div class="turn stone"><div class="body"></div></div>');
+  node.querySelector('.body').textContent=text;
+  $('specChatStream').appendChild(node); scroll(); return node;
+}
+function specAddYou(text){
+  const node=el('<div class="turn you"><div class="body"></div></div>');
+  node.querySelector('.body').textContent=text;
+  $('specChatStream').appendChild(node); scroll(); return node;
+}
+
+function sendSpecTurn(){
+  const inp=$('specChatInput'); const t=inp.value.trim(); if(!t) return; inp.value='';
+  if(!specDoc){                                   // first send = the specification itself
+    $('specChatStream').innerHTML='';
+    // 🔴 CONTENTEDITABLE ON PURPOSE. She is expected to change it while the questions run; a read-only
+    // panel would say the opposite of what the surface is for.
+    const box=$('specDocText'); box.textContent=t; box.setAttribute('contenteditable','true'); box.spellcheck=false;
+    $('specDoc').hidden=false;
+    inp.placeholder='Answer, or change the specification above and answer…';
+    specDoc=t; specHistory=[];
+    showSpecDl(true);
+    streamSpecOpen();
+  } else {
+    specAddYou(t); streamSpecTurn({ message:t });
+  }
+}
+
+// The spec as it stands RIGHT NOW, read off the panel rather than off the variable — she may have edited
+// it since the last turn, and the whole point is that the questions follow what is there.
+function currentSpec(){
+  const box=$('specDocText');
+  const live=box ? String(box.textContent||'').trim() : '';
+  if(live) specDoc=live;
+  return specDoc || '';
+}
+
+async function streamSpecOpen(){
+  const node=specAddStone('');
+  await specStream('/api/spec/open', { spec: currentSpec(), assignment: specAssign }, node);
+}
+async function streamSpecTurn({ message }){
+  const prior=specHistory.slice();
+  const node=specAddStone('');
+  await specStream('/api/spec/turn', { spec: currentSpec(), assignment: specAssign, message, priorMessages: prior }, node, message);
+}
+
+// Same streaming shape as critStream, and deliberately its own function rather than a shared one with a
+// mode flag: the two read different events (`joints` here, `reading` there) and a shared reader with two
+// branches is how one surface's change reaches the other without anybody deciding it should.
+async function specStream(url, payload, node, studentSaid){
+  const body=node.querySelector('.body'); let full='', guard=null, joint=null, errored=false;
+  try{
+    const res=await fetch(url,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    const reader=res.body.getReader(), dec=new TextDecoder(); let buf='';
+    while(true){
+      const {value,done}=await reader.read(); if(done) break;
+      buf+=dec.decode(value,{stream:true});
+      const events=buf.split('\n\n'); buf=events.pop();
+      for(const ev of events){
+        const m=ev.match(/^event: (.+)\ndata: (.+)$/s); if(!m) continue;
+        const type=m[1], data=JSON.parse(m[2]);
+        // ⚠️ `joints` is received and NOT rendered as a count. The payload carries which of the six her
+        // words touch; drawing "3 of 6" would be a score on unfinished work, which this surface refuses.
+        // It is here because the client posts the joint back so the rotation can be recomputed.
+        if(type==='joint'){ joint=data.key; }
+        else if(type==='joints'){ /* deliberately not rendered — see above */ }
+        else if(type==='status'){ if(!full) body.innerHTML=`<span class="thinking"><span class="bead"></span> ${esc(data.t)}</span>`; }
+        else if(type==='token'){ if(!full) body.textContent=''; full+=data.t; body.textContent=full; scroll(); }
+        else if(type==='validation'){ guard=data; }
+        else if(type==='pool'){ poolTurnsLeft=data.turnsLeft; if(data.budget) poolBudget=data.budget; renderPoolCount(); renderPoolBudget(); }
+        else if(type==='error'){ errored=true;
+          if(data.code==='POOL_USER_CAP'){ poolTurnsLeft=0; renderPoolCount(); }
+          body.innerHTML=`<span style="color:var(--muted);font-style:italic">${esc(data.message)}</span>`;
+        }
+      }
+    }
+  }catch(err){ errored=true; body.innerHTML=`<span style="color:var(--muted);font-style:italic">connection lost — ${esc(String(err))}</span>`; }
+  if(!full && !errored) body.innerHTML=`<span style="color:var(--muted);font-style:italic">the model didn't return a question — try again.</span>`;
+  if(full && !errored && guard && !guard.ok)
+    node.appendChild(el(`<div class="guard">guard: <b>flagged</b> — ${esc((guard.reasons||[]).join('; '))}</div>`));
+  if(full && !errored){
+    if(studentSaid) specHistory.push({ role:'student', content:studentSaid });
+    // The joint rides on the stone turn, which is how the rotation survives a stateless server.
+    specHistory.push({ role:'stone', content:full, joint });
+  }
+}
+
 function openNewCritique(){
   critArtefact=null; critHistory=[]; critReading=null; critBrief='';
   showView('criticism-chat');
