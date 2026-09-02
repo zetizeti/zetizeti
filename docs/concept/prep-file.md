@@ -24,7 +24,7 @@ The prep runs in **three parts of two lines each**, and it is meant to be spread
 
 Each part ends by putting the task for the gap in front of you and asking one question about how *you* will meet it. Each later part opens by asking what actually happened: what you did, or what you did instead when you could not.
 
-**Nothing is stored between sittings, so you carry the thread.** At the end of a part, save your transcript with the link that appears. When you come back, begin a new enquiry, attach the same sheet, and bring the saved `.md` back in. The conversation resumes where it stopped, because the transcript is what says how far it got. There is no account, no saved plan and no resume code. There is not going to be one either: this tool holds nothing, and three sittings is not a good enough reason to start.
+**Nothing is stored between sittings, so you carry the thread.** At the end of a part, save your transcript with the link that appears. It offers `.md` and `.pdf`: **save the `.md`** — the PDF is for reading and handing on, and it cannot be brought back to carry on, because it does not carry the front matter the resume reads. Attaching the PDF is refused, by name, with a note saying which file to pick instead. When you come back, begin a new enquiry, attach the same sheet, and bring the saved `.md` back in. The conversation resumes where it stopped, because the transcript is what says how far it got. There is no account, no saved plan and no resume code. There is not going to be one either: this tool holds nothing, and three sittings is not a good enough reason to start.
 
 If you keep going without leaving, nothing stops you. The next question asks what you did, and *nothing yet* is a perfectly good answer.
 

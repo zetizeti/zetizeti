@@ -551,6 +551,12 @@
   .dl-transcript[hidden]{display:none}
   .dl-transcript .dl-lead{color:var(--gold-bright); text-transform:uppercase; letter-spacing:.11em; font-size:11px}
   .dl-transcript .dl-sep{color:var(--faint)}
+  /* 🔴 SAID ON THE PAGE, NOT IN A `title`. The first version of this put "cannot be resumed" in a
+     tooltip, which needs a hover — so on every phone and every tablet it said nothing at all, to
+     exactly the students most likely to save the wrong file. A caveat that only appears to somebody
+     with a mouse is not a caveat. Lower-case and unspaced against the mono strip so it reads as an
+     aside on the link rather than as a second control. */
+  .dl-transcript .dl-why{color:var(--faint); text-transform:none; letter-spacing:0; font-size:11px; margin-left:5px}
   .dl-transcript a{color:var(--goldtext); cursor:pointer; text-decoration:none; border-bottom:1px solid rgba(240,179,36,.55); padding-bottom:1px}
   .dl-transcript a:hover{color:var(--gold-bright); border-bottom-color:var(--gold-bright)}
   .backlink:hover{color:var(--gold-bright)}
@@ -693,7 +699,13 @@
       <label class="ul-transcript" for="ulMd">
         <span class="ul-lead">↑ continue a saved transcript</span> <span class="ul-file">choose a .md</span>
       </label>
-      <input id="ulMd" type="file" accept=".md,text/markdown,text/plain" hidden />
+      <!-- 🔴 .pdf IS ACCEPTED HERE AND THEN REFUSED IN WORDS, which is not a contradiction. The PDF
+           carries no front matter and writes `Q.` where the markdown writes `**Q.**`, so it cannot
+           resume and never will — see downloadTranscriptPdf. While `accept` excluded it, a student
+           who had saved the PDF opened the picker and found her own file greyed out, with nothing
+           anywhere saying which file she should have kept. A refusal that names the other file
+           teaches; a file that cannot be selected teaches nothing and looks like a broken picker. -->
+      <input id="ulMd" type="file" accept=".md,text/markdown,text/plain,.pdf,application/pdf" hidden />
       <p class="ul-note" id="ulNote">Pick up a transcript you saved earlier. It is read here in your browser and never sent
         anywhere — the conversation simply carries on from where you left it.</p>
 
@@ -732,7 +744,15 @@
   <section class="view" id="view-conversation">
     <div class="wrap">
       <span class="backlink" id="convBack">‹ new enquiry</span>
-      <span class="dl-transcript" id="dlTranscript" hidden><span class="dl-lead">↓ save your transcript</span> <a id="dlMd">.md</a> <span class="dl-sep">·</span> <a id="dlPdf">.pdf</a></span>
+      <!-- ⚠️ THE TWO FORMATS ARE NOT INTERCHANGEABLE AND LOOKED IT. Only the .md can be brought back
+           to continue, because the .pdf carries no front matter — so a student choosing between two
+           identical-looking links was choosing, unknowingly, whether her conversation could ever be
+           resumed. 🔴 THE CAVEAT IS ON THE PAGE RATHER THAN IN A `title` (Prayas, 2 September 2026:
+           "the download link should say that the pdf cannot be resumed"). The first version used
+           tooltips, which need a hover and therefore say nothing on a phone — to precisely the
+           students most likely to take the wrong file. The titles are kept as the longer sentence
+           for anybody who does hover; the visible words are what the rule requires. -->
+      <span class="dl-transcript" id="dlTranscript" hidden><span class="dl-lead">↓ save your transcript</span> <a id="dlMd" title="Markdown. This is the one to keep — it can be brought back here to carry on, and it is the file to hand in if somebody asked for your transcript.">.md</a><span class="dl-why">to carry on</span> <span class="dl-sep">·</span> <a id="dlPdf" title="A PDF for reading and keeping. It cannot be brought back to continue the conversation — save the .md as well if you might.">.pdf</a><span class="dl-why">to read — cannot be resumed</span></span>
       <button class="focus-toggle" id="focusToggle" aria-pressed="false" title="Ask about the idea only — not how it would be made, produced, repaired, or what it would cost to produce."><span class="sw" aria-hidden="true"></span><span class="lbl">asking about</span> <span class="val" id="focusVal" data-widest="concept only">everything</span></button>
       <div class="edge" id="edge" hidden>
         <div class="edge-label">the edge — what you're sharpening</div>
@@ -2193,6 +2213,19 @@ function resumeFromTranscript(parsed){
   const say=(msg,bad)=>{ if(!note) return; note.textContent=msg; note.classList.toggle('bad', !!bad); };
   f.addEventListener('change', ()=>{
     const file=f.files && f.files[0]; if(!file) return;
+    // 🔴 A PDF IS REFUSED BY NAME RATHER THAN FAILING AS UNREADABLE TEXT. `readAsText` on a PDF hands
+    // back postscript, which `parseTranscriptMd` rejects with "that does not look like a zetizeti
+    // transcript" — true, unhelpful, and wrong about the cause: it IS one of ours, in the format that
+    // cannot come back. The PDF has no front matter and writes `Q.` rather than `**Q.**`, both by
+    // design, because it is for reading and handing on. Naming the .md is the only useful sentence
+    // here. Measured 2 September 2026: six of ninety-five transcripts submitted to a course app were
+    // the text inside one of these PDFs, pasted, and nothing on either side had told anybody.
+    const nm=(file.name||'').toLowerCase();
+    if(file.type==='application/pdf' || nm.endsWith('.pdf')){
+      f.value='';
+      say('That is the PDF, which is for reading and keeping — it cannot be carried on from. Pick the .md you saved at the same moment. If you did not save one, the conversation cannot be resumed and a fresh enquiry is the way on.', true);
+      return;
+    }
     const r=new FileReader();
     r.onerror=()=>say('That file could not be read — try the .md again.', true);
     r.onload=()=>{

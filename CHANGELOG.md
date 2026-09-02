@@ -21,6 +21,22 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.24.1] — 2026-09-02
+
+**The saved PDF is refused by name at the resume input, and the two download links say which is which.**
+
+The transcript saves as `.md` or `.pdf` and only the markdown can be brought back: `buildTranscriptMd` writes front matter and `**Q.**`, `downloadTranscriptPdf` writes neither, both deliberately, because the PDF is for reading and handing on. Until now the resume input's `accept` excluded PDFs, so a student who had saved one opened the picker, found her own file greyed out, and was told nothing at all. `accept` now includes `.pdf` and the handler refuses it **before** `readAsText`, naming the `.md` she should pick instead. Refusing after the read would have handed postscript to `parseTranscriptMd`, whose honest answer — *that does not look like a zetizeti transcript* — is true, useless, and wrong about the cause.
+
+⚠️ **Found by measurement rather than by a complaint, which is the unusual part.** All ninety-five prep transcripts submitted to a course app were read on 2 September 2026: **six were the text inside one of these PDFs, pasted in as though it were the transcript**, and six of those belong to one group scaffold, so it is one wrong method spreading by copying. Nothing on either side had ever said which file to keep. Full account in `docs/ops/prep-arc-transcript-measurement-20260902.md`.
+
+**The strip now says it on the page**: `.md — to carry on · .pdf — to read, cannot be resumed`. Two identical-looking links were asking a student to choose, unknowingly, whether her conversation could ever be resumed.
+
+🔴 **It was written as tooltips first and that was wrong** (Prayas, the same evening: *"the download link should say that the pdf cannot be resumed"*). A `title` needs a hover, so on every phone and tablet it said nothing at all — to exactly the students most likely to take the wrong file. **A caveat that appears only to somebody with a mouse is not a caveat.** The titles are kept as the longer sentence; the visible words are what the rule requires, and the test now fails on the tooltip-only version as well as on the original, proved against private copies of both.
+
+`app/verification/transcript-pdf-refusal.test.mjs` pins all four halves and **fails four of five on the pre-fix client**, which is kept privately. Its fifth assertion is a tripwire rather than a check on this release: if the PDF ever starts writing front matter it becomes resumable and this refusal is wrong, so the test fails and the decision gets made rather than inherited.
+
+🔴 **The ordering assertion failed on correct code first, and that is worth keeping.** The comment explaining the guard uses the word `readAsText` and sits above the guard, so the test read prose about the code as the code. A source-reading test cannot tell the two apart; comments come out before any order is checked.
+
 ## [0.24.0] — 2026-08-30
 
 **A one-sitting prep now goes as deep as the sheet affords.** It was six questions — two per line, and stations advanced early once your own words had touched their region, which somebody fluent in the material satisfies on the first question every time. Fluency and exhaustion are indistinguishable to that measure, so a well-written sheet answered well collapsed the whole arc.
