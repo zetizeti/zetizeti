@@ -6,17 +6,50 @@
 // they are all TRUE. "You have not said what happens at the edges" is accurate and is an answer.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { JOINTS, JOINT_KEYS, readJoints, nextJoint, specTerms } from '../lib/spec.mjs';
-import { buildSpecSystemPrompt, validateSpecOutput } from '../lib/dialogue.mjs';
+import { JOINTS, JOINT_KEYS, readJoints, nextJoint, specTerms, refusalQuestion } from '../lib/spec.mjs';
+import { buildSpecSystemPrompt, validateSpecOutput, buildBuilderPrompt, validateBuildReport } from '../lib/dialogue.mjs';
 
 const BOUNCING = `A red ball moves inside the window. Each frame it moves by its speed.
 When the ball reaches the wall it bounces back the other way.`;
 
 // ---- the joints ------------------------------------------------------------------------------------
 
-test('there are exactly six joints and they are the ones the deck teaches', () => {
-  assert.equal(JOINTS.length, 6);
-  assert.deepEqual(JOINT_KEYS, ['state', 'change', 'decision', 'edges', 'fixed', 'enough']);
+// 🔴 THE SURFACE AND THE TAUGHT FORMAT ARE ONE LIST, AND THIS IS WHERE THAT IS HELD. The format handed to
+// students is eight lines — a name, six joints, a refusal — and until 2 September 2026 this surface asked
+// about the middle six only, so the two lines a student is most likely to get wrong were the two nothing
+// here ever asked about. If the taught format changes, this assertion is what fails.
+test('there are exactly eight lines and they are the ones the format teaches', () => {
+  assert.equal(JOINTS.length, 8);
+  assert.deepEqual(JOINT_KEYS,
+    ['thing', 'state', 'change', 'decision', 'edges', 'fixed', 'enough', 'refusal']);
+  assert.deepEqual(JOINTS.map((j) => j.line),
+    ['THE THING', 'STATE', 'CHANGE', 'DECISION', 'EDGES', 'FIXED OR FREE', 'ENOUGH', 'NOT THIS']);
+});
+
+// The client files an answer under `line` and the prompt names the joint with `label`. Both come off this
+// one table; a second copy anywhere is the defect this repository meets most often.
+test('every line carries both labels, and nothing else has to derive them', () => {
+  for (const j of JOINTS) {
+    assert.ok(j.line && j.line === j.line.toUpperCase(), `${j.key} has no format label`);
+    assert.ok(j.label && j.label !== j.line, `${j.key}'s conversational label is missing or is the format one`);
+  }
+});
+
+// 🔴 `thing` IS NEVER REPORTED TOUCHED AND THAT IS THE DESIGN. Every specification names something, so a
+// mark list would report it touched on all of them and the reading would be a formality. Whether a naming
+// sentence is really there is a judgement, and a vocabulary rule has failed to draw a judgement line in
+// this repository three times.
+test('the naming line is never read as touched, however well it is written', () => {
+  const named = 'A lamp that goes amber when the sensor stops reporting. It is a lamp. The thing is a lamp.';
+  assert.equal(readJoints(named).touched.thing.touched, false);
+  assert.ok(readJoints(named).untouched.includes('thing'));
+});
+
+// The refusal line CAN be read, and the asymmetry with `thing` is the point: a refusal has to be written
+// to exist at all, which is the finding that line carries.
+test('the refusal line reads as touched only when a refusal is actually written', () => {
+  assert.equal(readJoints('It keeps no history and never stores what it read.').touched.refusal.touched, true);
+  assert.equal(readJoints(BOUNCING).touched.refusal.touched, false);
 });
 
 test('readJoints reports what a specification TOUCHES, and a thin spec touches few', () => {
@@ -66,8 +99,8 @@ test('🔴 a long conversation keeps moving — no joint twice running past the 
     }
     asked.push(j.key);
   }
-  // and over eighteen questions it should have used all six rather than ping-ponging between two
-  assert.equal(new Set(asked).size, 6, `only visited ${new Set(asked).size} of 6 joints in eighteen turns`);
+  // and over eighteen questions it should have used all eight rather than ping-ponging between two
+  assert.equal(new Set(asked).size, 8, `only visited ${new Set(asked).size} of 8 lines in eighteen turns`);
 });
 
 // ---- the prompt ------------------------------------------------------------------------------------
@@ -160,4 +193,68 @@ test('🔴 it does NOT carry criticism\'s self-defence refusal, which would refu
   // Here it is the object, so the same sentence must pass.
   assert.equal(check(q).ok, true, 'the spec guard refused a question about her own document — the surface has no purpose left');
   assert.equal(typeof validateCriticismOutput, 'function');
+});
+
+// ---- the refusal line is composed in code, not generated -------------------------------------------
+//
+// 🔴 FOUR MEASURED RUNS COULD NOT GET THE MODEL TO ASK IT. Pushed toward the negative it invented a
+// refusal she never wrote; pushed away from inventing it stopped asking. The record is at the foot of
+// `lib/spec.mjs`. These assert the properties the model kept losing.
+
+test('the refusal question presupposes nothing about how her thing works', () => {
+  const B = 'A red ball moves inside the window. Each frame the ball moves by its speed.';
+  for (let n = 0; n < 3; n++) {
+    const q = refusalQuestion(B, n);
+    assert.ok(q.endsWith('?'), 'not a question');
+    assert.ok(!/\brefuses\b|\brefuse\b|\bwhy does\b/i.test(q),
+      `frame ${n} asserts or asks about a refusal she never wrote: ${q}`);
+  }
+});
+
+test('it points with a noun of HERS, and the same spec always gives the same question', () => {
+  const B = 'A red ball moves inside the window. Each frame the ball moves by its speed.';
+  assert.equal(refusalQuestion(B, 0), refusalQuestion(B, 0));
+  assert.ok(refusalQuestion(B, 0).includes('ball'), 'it is not pointing with her most-used noun');
+  const S = 'A shelf of tools. A person writes a name on a card and leaves the card on the shelf.';
+  assert.ok(/\b(shelf|card)\b/.test(refusalQuestion(S, 0)));
+});
+
+test('three frames, so a second asking in one conversation is not the first sentence again', () => {
+  const B = 'A red ball moves inside the window.';
+  assert.notEqual(refusalQuestion(B, 0), refusalQuestion(B, 1));
+  assert.notEqual(refusalQuestion(B, 1), refusalQuestion(B, 2));
+  assert.equal(refusalQuestion(B, 0), refusalQuestion(B, 3), 'the frames should cycle');
+});
+
+// ---- would this build? ------------------------------------------------------------------------------
+//
+// 🔴 THE POLARITY OF THE SENTENCE IS THE WHOLE DESIGN. This act names gaps, which every other line on
+// this surface refuses to do. What keeps it the right side of the position is that each one is written
+// as a decision the BUILDER takes rather than as something she failed to write — and that is enforced
+// here rather than asked for in a prompt.
+
+test('the builder prompt tells the model every refusal the guard will make', () => {
+  const p = buildBuilderPrompt({ spec: 'A red ball.' });
+  for (const phrase of ['you have not said', 'the spec is missing', 'you should specify', 'decision you are taking']) {
+    assert.ok(p.toLowerCase().includes(phrase.toLowerCase()),
+      `the composing layer is not told about "${phrase}" — that makes the guard a repair loop`);
+  }
+});
+
+test('🔴 a line written as HER omission is dropped and the rest of the report survives', () => {
+  const r = validateBuildReport([
+    '- I would have to decide how often it checks, and I would probably pick once a second.',
+    '- You have not said what happens at the edges.',
+    '- The spec is missing a colour.',
+    '- I would have to choose what happens the first time it runs.',
+  ].join('\n'));
+  assert.equal(r.items.length, 2, 'review-language lines were not dropped');
+  assert.equal(r.dropped, 2);
+  for (const i of r.items) assert.ok(/^I would have to/.test(i), `not written as the builder's own decision: ${i}`);
+});
+
+test('the report carries decisions and nothing countable', () => {
+  const r = validateBuildReport('- I would have to decide the interval.');
+  assert.deepEqual(Object.keys(r).sort(), ['dropped', 'items'],
+    'the report has grown a field — a total, a score or a ready flag would be a mark on unfinished work');
 });

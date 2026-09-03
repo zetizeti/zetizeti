@@ -2,7 +2,7 @@
 //
 // WHY THIS EXISTS. This project's own record says a planner measured only by unit tests has not been
 // measured: "a unit test cannot tell you the plan moves", after a plan sat on one station for fourteen
-// rounds with every test green. The speccing surface has a planner — the rotation over six joints — and
+// rounds with every test green. The speccing surface has a planner — the rotation over the eight lines — and
 // seventeen unit tests that prove each piece alone. None of them can tell whether a real ten-round
 // conversation moves, or whether the guard's refusals fire against a live model rather than against
 // strings I wrote to trip them.
@@ -13,7 +13,7 @@
 // one path of two. Whatever the route does, this measures.
 //
 // WHAT IT READS, and all of it is about the CONVERSATION rather than the turn:
-//   joint movement    how many of the six the run actually visited, and the longest run on one
+//   joint movement    how many of the eight the run actually visited, and the longest run on one
 //   subject movement  content words shared between consecutive questions — a rut is high overlap
 //   invention         nouns in a question that appear nowhere in the specification or her answers
 //   completion        questions that name an absence or instruct — the failure this surface exists to avoid
@@ -50,7 +50,7 @@ const ROUNDS = Number(arg('rounds', '10'));
 const ONLY = arg('only', '');
 
 // Three thin specifications, invented. Deliberately different KINDS of thing, because the surface's whole
-// claim is that the six joints are the same for a sketch, a machine and a service — if that is false, it
+// claim is that the lines are the same for a sketch, a machine and a service — if that is false, it
 // will show up as one of these running much worse than the others.
 const SPECS = [
   { key: 'sketch', title: 'a bouncing ball',
@@ -238,7 +238,7 @@ for (const s of chosen) {
         ? `\n  Q${Math.floor(i / 2) + 1} [${m.joint || '—'}] ${m.content}\n`
         : `     → ${m.content}\n`);
     }
-    process.stdout.write(`\n  joints visited ${r.distinctJoints}/6 · longest run on one ${r.longestRun}`
+    process.stdout.write(`\n  joints visited ${r.distinctJoints}/${JOINT_KEYS.length} · longest run on one ${r.longestRun}`
       + ` · mean overlap ${r.meanOverlap} · mean words ${r.meanWords}\n`
       + `  not-in-her-words ${r.inventedWords.length} · completing ${r.completing.length}`
       + ` · multi-question ${r.multi.length} · guard breaches ${r.breaches.length}`
@@ -257,7 +257,7 @@ const stamp = new Date().toISOString().replace(/[:.]/g, '-');
 writeFileSync(join(dir, `${stamp}.json`), JSON.stringify({ base: BASE, rounds: ROUNDS, results }, null, 2));
 const line = results.map((r) => r.error
   ? `${r.spec}=FAILED`
-  : `${r.spec}: joints ${r.distinctJoints}/6, run ${r.longestRun}, overlap ${r.meanOverlap}, invented ${r.inventedWords.length}, completing ${r.completing.length}, breaches ${r.breaches.length}`).join(' | ');
+  : `${r.spec}: joints ${r.distinctJoints}/${JOINT_KEYS.length}, run ${r.longestRun}, overlap ${r.meanOverlap}, invented ${r.inventedWords.length}, completing ${r.completing.length}, breaches ${r.breaches.length}`).join(' | ');
 appendFileSync(join(APP, '..', 'docs', 'ops', 'spec-probe-log.md'),
   `\n- **${new Date().toISOString()}** · ${ROUNDS} rounds · ${line}\n`);
 process.stdout.write(`\nlogged to docs/ops/spec-probe-runs/${stamp}.json\n`);

@@ -14,9 +14,9 @@ import {
   loadCriticismCore, buildCriticismSystemPrompt, validateCriticismOutput,
   CRITICISM_POINTERS, questionOpener, describeLocated,
   PREP_CLOSING_AIM, PREP_CLOSING_AIM_SET, PREP_RESUMING_AIM,
-  buildSpecSystemPrompt, validateSpecOutput,
+  buildSpecSystemPrompt, validateSpecOutput, buildBuilderPrompt, validateBuildReport,
 } from './lib/dialogue.mjs';
-import { nextJoint, readJoints, specTerms, JOINT_KEYS } from './lib/spec.mjs';   // the speccing surface — DETERMINISTIC, no LLM
+import { nextJoint, readJoints, specTerms, refusalQuestion, JOINT_KEYS } from './lib/spec.mjs';   // the speccing surface — DETERMINISTIC, no LLM
 import { readSensed } from './lib/sensed.mjs';
 import { qualify, toCanonSegments, segmentText } from './lib/qualify.mjs';   // DETERMINISTIC, no-LLM qualification (locating)
 import { planFor, windowOf, briefDigest } from './lib/plan.mjs';   // the reading plan — DETERMINISTIC, no LLM
@@ -1292,7 +1292,7 @@ app.post('/api/criticism/turn', requireUser, async (req, res) => {
 });
 
 // ---------------------------------------------------------------------------------------------------
-// THE SPECCING SURFACE (v0.25.0) — a student's own SPECIFICATION questioned at the six joints.
+// THE SPECCING SURFACE — a student's own SPECIFICATION questioned at the eight lines of the format.
 //
 // 🔴 STATELESS LIKE THE OTHER TWO. The client holds the spec and the transcript and posts them back
 // every turn; nothing is written anywhere. `req.body` is NEVER logged (invariant #8) and the spec is
@@ -1302,7 +1302,7 @@ app.post('/api/criticism/turn', requireUser, async (req, res) => {
 // 🔴 NO PLAN, NO RETRIEVAL, NO CORPUS. The other two surfaces retrieve domain tensions; this one must
 // not. Its whole discipline is that it never needs to know the domain — a corpus passage about, say,
 // slow design would arrive as material the stone knows and the student does not, which is the position
-// from which it starts telling. The rotation over the six joints is the entire routing.
+// from which it starts telling. The rotation over the eight lines is the entire routing.
 async function askSpecQuestion({ send, apiKey, meter, spec, assignment, priorMessages, studentTurn }) {
   const stoneTurns = priorMessages.filter((m) => m.role === 'stone').map((m) => m.content);
   const studentTurns = priorMessages.filter((m) => m.role !== 'stone').map((m) => m.content);
@@ -1312,6 +1312,22 @@ async function askSpecQuestion({ send, apiKey, meter, spec, assignment, priorMes
     ? priorMessages.map((m) => m && m.joint).filter((k) => JOINT_KEYS.includes(k))
     : [];
   const joint = nextJoint({ text: spec, asked });
+
+  // 🔴 THE REFUSAL LINE IS NOT GENERATED — see the record at the foot of `lib/spec.mjs`. Four measured
+  // ten-round runs could not get the model to ask it without either inverting it into a question about
+  // what the thing DOES know, or inventing a refusal she never wrote and asking her to justify it. The
+  // stone does not write this one; code composes it from her own noun, presupposing nothing.
+  // ⚠️ It still travels the same events in the same order, so the client is untouched and cannot tell
+  // the difference — which is right: a student is owed a question, not a note about how it was made.
+  if (joint.key === 'refusal') {
+    const nth = asked.filter((k) => k === 'refusal').length;
+    const q = refusalQuestion(spec, nth);
+    send('token', { t: q });
+    send('joint', { key: joint.key, label: joint.label, line: joint.line });
+    // Reported as clean and composed: there is no generation to validate and nothing was repaired.
+    send('validation', { ok: true, reasons: [], attempts: 0, regenerated: false, composed: true });
+    return { qCost: 0 };
+  }
 
   // ⚠️ FOUR BACK, NOT TWO. The other surfaces ban the last two openers; a ten-round run here opened
   // "By what" or "By which" four times, because a construction recurring every third question clears a
@@ -1367,7 +1383,10 @@ async function askSpecQuestion({ send, apiKey, meter, spec, assignment, priorMes
   send('token', { t: full });
   // The joint travels with the question so the client can post it back and the rotation can be
   // recomputed. It is routing, not a reading of her: it says where the question went, never how she did.
-  send('joint', { key: joint.key, label: joint.label });
+  // 🔴 `line` IS THE FORMAT'S OWN LABEL and it rides along so the client can file her answer under it
+  // without holding a second copy of the table. The client never derives it; `lib/spec.mjs` is the one
+  // list, which is the same discipline `sharedFormChecks` exists for.
+  send('joint', { key: joint.key, label: joint.label, line: joint.line });
   send('validation', { ...guarded.check, attempts: guarded.attempts, regenerated: guarded.regenerated });
   return { qCost };
 }
@@ -1426,6 +1445,44 @@ app.post('/api/spec/turn', requireUser, async (req, res) => {
           depth: priorMessages.filter((m) => m && m.role === 'stone').length + 1 });
         if (key.meter) { addPoolSpend(utcDay(), req.user.id, qCost, key.poolFlag); if (key.usingPool) send('pool', poolEvent(req.user.id)); }
       });
+    send('done', {});
+  } catch (err) { sendGenerationError(send, err, key.usingPool ? null : req.user.email); }
+  res.end();
+});
+
+// POST /api/spec/build — WOULD THIS BUILD? Hands her specification to the model AS A BUILDER and returns
+// the decisions that builder would have to take because the specification does not settle them.
+//
+// 🔴 ON REQUEST ONLY, AND IT IS A DIFFERENT ACT FROM THE QUESTIONING. No turn produces it, nothing
+// computes it in the background, and a student who never presses it has the surface exactly as it was.
+// The collision it carries — this surface refuses to name absences and this act names them — is written
+// out in full at `buildBuilderPrompt` rather than reconciled away.
+//
+// 🔴 NO COUNT AND NO READY FLAG in the response. Decisions and a dropped-line tally, nothing else.
+// Stateless like everything else here; `req.body` is never logged.
+app.post('/api/spec/build', requireUser, async (req, res) => {
+  const b = req.body || {};                                  // NEVER logged
+  const spec = typeof b.spec === 'string' ? b.spec.trim() : '';
+  const assignment = typeof b.assignment === 'string' ? b.assignment.trim() : '';
+  if (!spec) { res.status(400).json({ error: 'No specification to build from.' }); return; }
+  if (spec.length > DOC_MAX || assignment.length > DOC_MAX) { res.status(413).json({ error: 'That is longer than this surface accepts.' }); return; }
+  sseHeaders(res);
+  const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  const key = await resolveKeyForCriticism(req, res, send); if (!key) return;
+  try {
+    send('status', { t: 'reading it as a builder…' });
+    let cost = 0;
+    const out = await streamQuestion({
+      system: buildBuilderPrompt({ spec, assignment }),
+      messages: [{ role: 'user', content: '(list the decisions you would have to take)' }],
+      onToken: () => {},
+      onUsage: key.meter ? (u) => { cost += usageCost(u); } : null,
+      maxTokens: 600, temperature: 0.3, reasoning: { enabled: false }, apiKey: key.apiKey,
+    });
+    const report = validateBuildReport(out);
+    if (!report.items.length) { send('error', { code: 'EMPTY_GENERATION', message: EMPTY_MSG }); }
+    else send('build', report);
+    if (key.meter) { addPoolSpend(utcDay(), req.user.id, cost, key.poolFlag); if (key.usingPool) send('pool', poolEvent(req.user.id)); }
     send('done', {});
   } catch (err) { sendGenerationError(send, err, key.usingPool ? null : req.user.email); }
   res.end();

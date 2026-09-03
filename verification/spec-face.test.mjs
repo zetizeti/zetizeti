@@ -97,3 +97,70 @@ test('the copy says the specification is the thing under question, not context',
   assert.match(view, /never tells you what is missing/i,
     'the landing copy does not state the one thing that distinguishes this from a review');
 });
+
+// ---- filing an answer into the specification (2 September 2026) --------------------------------------
+//
+// 🔴 THE POINT OF THESE FOUR IS THAT THE TOOL COMPOSES NOTHING. The surface now offers to put her answer
+// into her own specification, and the entire safety of that is in three properties: the words are hers
+// verbatim, the label comes from the server's own event rather than from a second copy of the table, and
+// nothing files itself. Each one is asserted here because each would fail silently — a tidied sentence
+// still reads as her sentence, and an automatic append still looks like a document she wrote.
+
+test('her answer is filed VERBATIM — the client composes, trims and summarises nothing', () => {
+  const body = fnBody('function fileToSpec');
+  assert.ok(/\$\{line\} — \$\{t\}/.test(body),
+    'the filed line is not the label and her text alone — something is being composed');
+  // The only transformation permitted on her words is trimming the ends. Anything that rewrites,
+  // truncates, sentence-cases or re-flows them would be the tool writing her specification.
+  assert.ok(!/\.slice\(|\.replace\(\/\[\^|toLowerCase|toUpperCase|split\(/.test(body.replace(/replace\(\/\\s\+\$\/, ''\)/g, '')),
+    'fileToSpec is reshaping her words rather than moving them');
+});
+
+test('the format label comes from the SERVER event, never from a second copy of the table', () => {
+  const body = fnBody('async function specStream');
+  assert.ok(/specLine=data\.line/.test(body.replace(/\s/g, '')),
+    'the client is not reading `line` off the joint event');
+  // A literal table of the eight labels anywhere in the client would be the drift this avoids.
+  assert.ok(!/'THE THING'|"THE THING"/.test(code),
+    'the client holds its own copy of the format labels — lib/spec.mjs must be the only list');
+});
+
+test('nothing files itself — the control is offered and she clicks it', () => {
+  const body = fnBody('function specAddYou');
+  assert.ok(/addEventListener\('click'/.test(body),
+    'filing is not behind a deliberate act');
+  assert.ok(!/fileToSpec\(line, ?text\);(?![\s\S]{0,40}addEventListener)/.test(body.replace(/\s+/g, ' ')) || /addEventListener/.test(body),
+    'an answer appears to be filed without being asked for');
+});
+
+test('a filed answer says where it went rather than vanishing', () => {
+  const body = fnBody('function specAddYou');
+  assert.ok(/filed under/.test(body),
+    'the page does not report where the answer landed');
+});
+
+// ---- would this build? — the client half (3 September 2026) -----------------------------------------
+
+test('the build check is a separate act, only ever on a press', () => {
+  assert.ok(/id="specBuildCheck"/.test(html), 'no control for it');
+  assert.ok(/specBuildCheck'\)\.addEventListener\('click'/.test(code.replace(/\s/g, '')
+    .replace(/specBuildCheck'\)\.addEventListener\('click'/, "specBuildCheck').addEventListener('click'"))
+    || /specBuildCheck[\s\S]{0,60}addEventListener\('click'/.test(code),
+    'it is not behind a deliberate press');
+  // Nothing in the turn path may call it — a report arriving with a question would make it part of the
+  // questioning, which is the thing this act is deliberately separate from.
+  assert.ok(!/api\/spec\/build/.test(fnBody('async function specStream')),
+    'the turn path reaches the build endpoint');
+  assert.ok(!/api\/spec\/build/.test(fnBody('function sendSpecTurn')),
+    'sending a turn triggers the build check');
+});
+
+test('🔴 the report renders a list and has nowhere to put a number', () => {
+  const at = code.indexOf("specBuildCheck').addEventListener");
+  assert.notEqual(at, -1);
+  const body = code.slice(at, code.indexOf('\n});', at));
+  assert.ok(/data\.items\.map/.test(body), 'it is not rendering the items');
+  assert.ok(!/\.length/.test(body.replace(/data\.items\.map[\s\S]*?join\(''\)/, '')),
+    'something in the render reads a length — a count on unfinished work is a mark');
+  assert.ok(!/dropped/.test(body), 'the dropped tally is being shown; it is a fact about the model, not about her');
+});

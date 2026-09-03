@@ -21,6 +21,34 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.27.0] — 2026-09-03
+
+**The refusal line is composed in code, and the surface can now be asked whether anything could build from the specification.**
+
+🔴 **`NOT THIS` is no longer generated, and five measured runs are the reason.** Ten rounds over three unlike specifications each time, against the real endpoint. Pushed toward the negative the model **invents** a refusal — *why does the window refuse to record the bounces?* asserts one she never wrote and asks her to justify it, which is the presupposition fault and worse than the inversion it replaced. Pushed away from inventing, it **stops asking**. Every increment of prompt pressure bought one fault by paying for the other. `refusalQuestion` in `lib/spec.mjs` takes her most-used noun and one of three frames, all asked from outside the object so none asserts anything about how it works. **3 of 3 on the run after.** ⚠️ The cost: the question no longer responds to what she has just said. Accepted on this line and on no other.
+
+🟢 **`THE THING` went 2 of 6 to 6 of 6, and what fixed it was removing a contradiction rather than adding pressure.** The joint block closed with *ask what theirs DOES at that place* on every line and HOW TO ASK enumerated does/holds/decides/shows — both right for the six joints and the opposite instruction on a line asking what a thing IS. A general rule stated later outranks a specific one stated earlier. The closer is joint-aware now and the aim is restated immediately before the instruction to write.
+
+**Would this build? — `POST /api/spec/build`.** Her specification goes to the model as a BUILDER who cannot ask her anything, and what comes back is the decisions that builder would have to take because the specification does not settle them. On request only; no turn produces it.
+
+🔴 **It does what the rest of this surface refuses to do, and the collision is named rather than reconciled.** Everything else here exists so an absence is found by the student. This returns a list of gaps, because a specification has to be good enough that something can build from it and nothing here could say whether it was. **What keeps it the right side of the position is the polarity of the sentence** — each item is a decision the builder takes, *I would have to decide how long "a while" is*, never something she failed to write. A gap named as her omission is a verdict on her document; the same gap named as a decision somebody else is about to take is a fact about what happens next. `validateBuildReport` drops a line that slips into review language and keeps the rest.
+
+⚠️ **No count, no score, no ready flag** — in the response or on the page. The dropped-line tally is a fact about the model's output and is deliberately not rendered.
+
+454 tests; the six new client-source assertions proved failing against the pre-change copy.
+
+## [0.26.0] — 2026-09-03
+
+**The speccing surface now asks about the whole taught format, and files her answers back into it.** Two lines were added to `lib/spec.mjs` — `THE THING` above the six joints and `NOT THIS` below them — so the surface and the format handed to students are one list rather than two. It had been questioning the middle six, which meant the two lines a student is most likely to get wrong were the two nothing here ever asked about.
+
+**One table carries both labels.** `line` is the format's own label and `label` the conversational one; the client files an answer under `line` and never derives it. `verification/spec-surface.test.mjs` fails if the taught format and this list diverge.
+
+🔴 **`thing` is `detect: false` — never reported touched, always available to ask.** Every specification names something, so a mark list would report it touched on all of them and the reading would be a formality; whether a naming sentence is really present is a judgement, and a vocabulary rule has failed to draw a judgement line in this repository three times. The cost is one question that may land on something already written well, which is the cheap direction here.
+
+**Her answer goes into her specification, and the tool composes none of it.** After a question the page offers to file her reply under that line's label — her words verbatim, trimmed at the ends and nothing else, offered rather than automatic. Filing lengthens the document, so the next turn re-reads the lines against it and the rotation moves on. What lands may read as conversation; making it read as a specification is her work. Four client-source tests pin it, all proved failing against the pre-change copy.
+
+⚠️ **THE AIMS FOR THE TWO NEW LINES ARE ONLY PARTLY WORKING, AND THIS IS THE MEASUREMENT.** First probe run: `refusal` produced **nought questions of three** about refusing — told not to name an absence, the model inverted every one into *how does it show…*. The prompt now carries a worked counter-example per line and, on `refusal` alone, the distinction that was missing: a thing her OBJECT does not know is not something her DOCUMENT has not said. Re-measured on the same three specifications, `refusal` reached about **one of three** and `thing` **three of six**, with the first ask right in all three runs and the wrap-around ask drifting every time. **Not solved**, and recorded so the next session does not read the fix as having worked. **Routing was never the problem:** eight of eight lines, longest run 1, zero completing questions, zero guard breaches, both runs.
+
 ## [0.25.0] — 2026-09-02
 
 **A third face: speccing.** A student's own SPECIFICATION — language written so that something can be built from it — questioned at the six places any specification holds together: what it holds, what changes, what decides, the edges, which values are fixed or free, and how anybody would know it works. `/spec`, in the nav, alongside enquiry and critique.

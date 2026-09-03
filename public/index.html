@@ -482,6 +482,25 @@
      cannot be made to look like it belongs. Clipped out of the layout entirely. */
   .file-sink{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
     clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; border:0}
+  /* FILING AN ANSWER INTO THE SPECIFICATION (2 Sep 2026). It borrows `.ctx-act` outright rather than
+     defining a second small-action look — same job, same level, same grammar (correction (c), 3 Jun 2026:
+     any difference between same-job components must be conscious and nameable, and there is no reason for
+     one here). Once filed the control becomes a static line rather than disappearing: the act left a mark
+     on her document and the page should say where it went. */
+  /* THE BUILDER'S REPORT. Mono, hard-edged, tinted like `.crit-specimen` — it is machinery talking about
+     a document, not the stone talking to a student, and the register should say which. No count anywhere
+     in it by construction: this renders a list and has nowhere to put a number. */
+  .spec-build{margin-top:12px; border:1px solid var(--sheet-edge); background:rgba(13,38,94,.40);
+    padding:12px 16px; max-height:34vh; overflow:auto}
+  .spec-build[hidden]{display:none}
+  .spec-build .bh{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase;
+    color:rgba(244,231,200,.62); margin-bottom:9px}
+  .spec-build ul{margin:0; padding-left:18px}
+  .spec-build li{font-family:var(--text); font-size:14.5px; line-height:1.55; color:var(--bone-dim);
+    margin-bottom:6px}
+  .spec-file{margin-top:10px}
+  .spec-file .filed{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--faint)}
   .crit-ul-note{margin-top:8px; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; line-height:1.5; color:rgba(244,231,200,.62); max-width:none}
   .crit-ul-note[hidden]{display:none}
   .crit-ul-note.bad{color:var(--vermilion)}
@@ -953,7 +972,7 @@
     <div class="wrap short">
       <span class="backlink" id="specBack">‹ back</span>
       <h2 class="vh">Spec something — and find what you left out</h2>
-      <p class="vsub">A specification is a description of a thing that does not exist yet, in your own words, complete enough that somebody or something else could build it. Bring one you are writing — for a sketch, a script, an object, a service — and the stone asks about the places it holds together: what it <b>holds</b>, what <b>changes</b>, what <b>decides</b>, what happens at the <b>edges</b>, which values are <b>fixed or free</b>, and how anybody would <b>know</b> it works. It never tells you what is missing and never completes it for you: whatever you have not specified will be decided by something else, and the point is that you find out what. Nothing is saved, nothing is scored.</p>
+      <p class="vsub">A specification is a description of a thing that does not exist yet, in your own words, complete enough that somebody or something else could build it. Bring one you are writing — for a sketch, a script, an object, a service — and the stone asks along the eight lines a specification is written in: what <b>the thing</b> is, what it <b>holds</b>, what <b>changes</b>, what <b>decides</b>, what happens at the <b>edges</b>, which values are <b>fixed or free</b>, how anybody would <b>know</b> it works, and what it will <b>not</b> know. Your answers go into the specification in your own words, when you say so. It never tells you what is missing and never completes it for you: whatever you have not specified will be decided by something else, and the point is that you find out what. Nothing is saved, nothing is scored.</p>
       <div class="newq">
         <button id="specNew">spec something →</button>
       </div>
@@ -988,8 +1007,13 @@
         </div>
         <div class="crit-open" id="specOpenRow">
           <button type="button" class="secondary" id="specAddAssign" title="Context for the questions — what you were asked to specify. Never marked against.">add what was asked for</button>
+          <!-- 🔴 A DIFFERENT ACT FROM THE QUESTIONING, and it says so on the button. It is the only thing
+               on this surface that names gaps, it happens only when pressed, and what comes back is
+               written as decisions a builder takes rather than as faults of hers. -->
+          <button type="button" class="secondary" id="specBuildCheck" title="Hands your specification to a builder who cannot ask you anything, and reports what they would have to decide themselves.">would this build?</button>
         </div>
         <div class="crit-ul-note" id="specUlNote" hidden></div>
+        <div class="spec-build" id="specBuild" hidden></div>
         <div class="hint">read in this tab · nothing saved · <b>never scored or compared</b></div>
       </div>
       <input id="ulSpecAssign" class="file-sink" type="file" accept=".pdf,application/pdf,.md,.txt,text/markdown,text/plain" tabindex="-1" aria-hidden="true" />
@@ -1464,6 +1488,39 @@ $('specChatSend').addEventListener('click', sendSpecTurn);
 $('specChatInput').addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendSpecTurn(); } });
 $('specAssignClear').addEventListener('click', ()=>{ specAssign=''; specAssignName=''; $('specAssign').hidden=true; $('specAssignText').textContent=''; specNote(''); });
 $('specAddAssign').addEventListener('click', ()=>$('ulSpecAssign').click());
+
+// WOULD THIS BUILD? — a separate act, only ever on a press. It reads the panel as it stands, so a
+// specification she has just edited or filed answers into is the one that gets built from.
+// 🔴 IT RENDERS A LIST AND HAS NOWHERE TO PUT A NUMBER. No count, no percentage, no ready flag — the
+// dropped-line tally the endpoint returns is deliberately not shown either: it is a fact about the
+// model's output, and printing it would put a figure on the page about her document.
+$('specBuildCheck').addEventListener('click', async ()=>{
+  const spec=currentSpec(); if(!spec) return;
+  const box=$('specBuild'); box.hidden=false;
+  box.innerHTML='<div class="bh">reading it as a builder…</div>';
+  try{
+    const res=await fetch('/api/spec/build',{ method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ spec, assignment: specAssign }) });
+    const reader=res.body.getReader(), dec=new TextDecoder(); let buf='', shown=false;
+    while(true){
+      const {value,done}=await reader.read(); if(done) break;
+      buf+=dec.decode(value,{stream:true});
+      const events=buf.split('\n\n'); buf=events.pop();
+      for(const ev of events){
+        const m=ev.match(/^event: (.+)\ndata: (.+)$/s); if(!m) continue;
+        const type=m[1], data=JSON.parse(m[2]);
+        if(type==='build'){
+          shown=true;
+          box.innerHTML='<div class="bh">what a builder would have to decide for you</div><ul>'
+            + data.items.map(i=>`<li>${esc(i)}</li>`).join('') + '</ul>';
+        }
+        else if(type==='pool'){ poolTurnsLeft=data.turnsLeft; if(data.budget) poolBudget=data.budget; renderPoolCount(); renderPoolBudget(); }
+        else if(type==='error'){ shown=true; box.innerHTML=`<div class="bh">${esc(data.message)}</div>`; }
+      }
+    }
+    if(!shown) box.innerHTML='<div class="bh">nothing came back — try again</div>';
+  }catch(err){ box.innerHTML=`<div class="bh">connection lost — ${esc(String(err))}</div>`; }
+});
 // What was asked for, read in the tab and never uploaded — the same reader the critique surface uses for
 // its brief, so a PDF works here for the same reason it works there.
 $('ulSpecAssign').addEventListener('change', async ()=>{
@@ -1492,7 +1549,8 @@ $('critChatInput').addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shi
 // The immersive chat — SAME layout as enquiries, minus the p5 viz. The bottom composer is the only
 // input: the FIRST send is the pasted AI text (creates the critique); later sends are your responses.
 // ---------------------------------------------------------------------------------------------------
-// THE SPECCING FACE. Her own specification is the object; the six joints are the lines of questioning.
+// THE SPECCING FACE. Her own specification is the object; the eight lines of the format are the lines of
+// questioning, and her answers are filed back into it in her own words.
 //
 // 🔴 IT IS DELIBERATELY THINNER THAN THE CRITIQUE FACE, and each absence is a decision rather than an
 // unfinished bit. No focus toggle: the making filter empties this surface, so offering it would offer a
@@ -1505,19 +1563,25 @@ $('critChatInput').addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shi
 // whatever is in it now, so the joints are re-read against what is there rather than what she started
 // with. A student who rewrites after three questions is the surface working, not a state bug.
 let specDoc=null, specHistory=[], specAssign='', specAssignName='';
+// The format line the LAST question came from, so her next answer can be filed under it. Held here and
+// not on the history entries the client posts back: `priorMessages` is read by the server for `joint`
+// alone, and sending it a field it derived from the server's own event would be a second copy of one
+// fact travelling in a circle.
+let specLine='';
 
 function specNote(msg){ const n=$('specUlNote'); if(!n) return; n.textContent=msg||''; n.hidden=!msg; }
 function showSpecDl(on){ const dl=$('dlSpecTranscript'); if(dl) dl.hidden=!on; }
 
 function openNewSpec(){
-  specDoc=null; specHistory=[]; specAssign=''; specAssignName='';
+  specDoc=null; specHistory=[]; specAssign=''; specAssignName=''; specLine='';
   showView('spec-chat');
   $('specChatStream').innerHTML='';
   $('specDoc').hidden=true; $('specDocText').textContent='';
   $('specAssign').hidden=true; $('specAssignText').textContent='';
   $('specOpenRow').hidden=false; specNote('');
+  $('specBuild').hidden=true; $('specBuild').innerHTML='';
   showSpecDl(false);
-  specAddStone('Paste the specification you have written — the thing described, not how you would build it. I will ask about it, one question at a time, and I will not tell you what is missing.');
+  specAddStone('Paste the specification you have written — the thing described, not how you would build it. I will ask about it, one question at a time, and I will not tell you what is missing. Each answer you give can go back into the specification, in your words, if you want it there.');
   const inp=$('specChatInput'); inp.value=''; inp.placeholder='Paste the specification you have written…';
   setTimeout(()=>inp.focus(), 50);
 }
@@ -1530,7 +1594,37 @@ function specAddStone(text){
 function specAddYou(text){
   const node=el('<div class="turn you"><div class="body"></div></div>');
   node.querySelector('.body').textContent=text;
+  // 🔴 FILING IS DETERMINISTIC AND HER WORDS ARE UNTOUCHED. The line label is the one the question came
+  // from and the text is exactly what she typed — nothing is composed, summarised, tidied or reordered,
+  // because tidying her sentence into specification prose is writing her specification for her, which is
+  // the one thing this surface exists not to do. What lands may read as conversation; making it read as a
+  // specification is her work and it is the work.
+  // ⚠️ It is OFFERED, never automatic. An answer that files itself would mean the tool decided her reply
+  // belonged in her document, and some replies are her thinking aloud on the way to deciding it does not.
+  if(specLine){
+    const line=specLine, row=el('<div class="spec-file"></div>');
+    const btn=el(`<button class="ctx-act" type="button">+ file this under ${esc(line)}</button>`);
+    btn.addEventListener('click', ()=>{
+      if(!fileToSpec(line, text)) return;
+      row.innerHTML=`<span class="filed">filed under ${esc(line)}</span>`;
+    });
+    row.appendChild(btn); node.appendChild(row);
+  }
   $('specChatStream').appendChild(node); scroll(); return node;
+}
+
+// Append her answer to the specification panel under the format's own label. Plain text into a
+// `white-space:pre-wrap` box, so the eight-line shape survives without any markup.
+// 🔴 THE NEXT TURN THEN READS THE JOINTS AGAINST A LONGER DOCUMENT, which is the surface working rather
+// than a side effect: a line she has now written about stops being untouched, so the rotation moves on
+// instead of asking again about the place she just filled in.
+function fileToSpec(line, text){
+  const box=$('specDocText'); if(!box) return false;
+  const t=String(text||'').trim(); if(!t) return false;
+  const cur=String(box.textContent||'').replace(/\s+$/,'');
+  box.textContent = cur ? `${cur}\n\n${line} — ${t}` : `${line} — ${t}`;
+  specDoc=box.textContent;
+  return true;
 }
 
 function sendSpecTurn(){
@@ -1587,7 +1681,7 @@ async function specStream(url, payload, node, studentSaid){
         // ⚠️ `joints` is received and NOT rendered as a count. The payload carries which of the six her
         // words touch; drawing "3 of 6" would be a score on unfinished work, which this surface refuses.
         // It is here because the client posts the joint back so the rotation can be recomputed.
-        if(type==='joint'){ joint=data.key; }
+        if(type==='joint'){ joint=data.key; specLine=data.line||''; }
         else if(type==='joints'){ /* deliberately not rendered — see above */ }
         else if(type==='status'){ if(!full) body.innerHTML=`<span class="thinking"><span class="bead"></span> ${esc(data.t)}</span>`; }
         else if(type==='token'){ if(!full) body.textContent=''; full+=data.t; body.textContent=full; scroll(); }

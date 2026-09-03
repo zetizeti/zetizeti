@@ -183,7 +183,7 @@ A student's **project concept** may be brought alongside as context. It is never
 
 🔴 **It could not be the criticism surface with the slots swapped.** There the student's project is CONTEXT and `dialogue.mjs` refuses, by regex, any question pairing *your project / concept / proposal* with *justify, defend, evidence, prove*. That refusal is correct for criticism and would refuse this surface's entire purpose, so the two share their FORM checks and nothing else: `validateSpecOutput` runs the shared opener ban, frame gate, one-question rule, closed-question and menu refusals, plus its own.
 
-**The six joints** (`lib/spec.mjs`) are the lines of questioning — state · what changes · what decides · the edges · fixed or free · how anybody would know — and they are the same six for a sketch, a machine and a service. **The surface never needs to know the domain**, which is what keeps invariant #3 intact: a specification's gaps are gaps in language, not errors in engineering. So there is no retrieval and no corpus on this path, deliberately — a domain passage would arrive as material the stone knows and the student does not, which is the position from which it starts telling.
+**The eight lines** (`lib/spec.mjs`) are the lines of questioning — the thing itself · state · what changes · what decides · the edges · fixed or free · how anybody would know · what it will not know. Six of them are joints, the same six for a sketch, a machine and a service; a name sits above them and a refusal below. **The surface never needs to know the domain**, which is what keeps invariant #3 intact: a specification's gaps are gaps in language, not errors in engineering. So there is no retrieval and no corpus on this path, deliberately — a domain passage would arrive as material the stone knows and the student does not, which is the position from which it starts telling.
 
 🔴 **What it refuses is what a competent reviewer would say, and all of it is true.** *You have not said what happens at the edges* is accurate and is an answer. `SPEC_FORBIDDEN` refuses naming an absence, instructing, and grading the specification; a possessive-invention check refuses *your <thing she never wrote>*, which `inventionReasons` cannot see because it fires on a deictic.
 
@@ -191,7 +191,39 @@ A student's **project concept** may be brought alongside as context. It is never
 
 **Stateless like the other two.** The client holds the specification and the transcript and posts them back each turn; the joint rides on each stone turn so the rotation is recomputed rather than stored. The joints reading is sent to the client and **deliberately never rendered as a count** — a figure about somebody's unfinished work is a mark.
 
-**Measured against the real endpoint** before shipping: `scripts/spec-conversation-probe.mjs`, ten rounds over three unlike specifications, twice. Six of six joints every run, longest run on one joint 1, **zero questions naming an absence or instructing across 60 delivered questions**, guard breaches 0–2 and all frame repeats that were surfaced. Runs logged to `docs/ops/spec-probe-runs/`.
+**Measured against the real endpoint** before shipping: `scripts/spec-conversation-probe.mjs`, ten rounds over three unlike specifications, twice. Every line visited every run, longest run on one line 1, **zero questions naming an absence or instructing across 60 delivered questions**, guard breaches 0–2 and all frame repeats that were surfaced. Runs logged to `docs/ops/spec-probe-runs/`.
+
+#### The two lines added on 3 September 2026, and what is NOT fixed about them
+
+**The surface asked about the middle six until this date**, so `THE THING` and `NOT THIS` — the two lines a student is most likely to get wrong — were the two nothing here ever asked about. Adding them synchronised the surface with the format as it is taught. `line` (the format's own label) and `label` (the conversational one) both live on the one table in `lib/spec.mjs`; the client files an answer under `line` and never derives it, because two derivations of one fact is this repository's most-repeated defect.
+
+🔴 **`thing` is `detect: false` and is never reported touched.** Every specification names something, so a mark list would report it touched on all of them and the reading would be a formality; whether a naming sentence is really present is a judgement, and a vocabulary rule has failed to draw a judgement line here three times. It is permanently available to ask and first in the order, which costs one question that may land on something already written well — the cheap direction on a surface whose whole risk is telling somebody what is missing.
+
+🔴 **`thing` HELD ONCE THE PROMPT STOPPED CONTRADICTING IT, AND `refusal` NEVER DID.** Five ten-round runs over the same three specifications, against the real endpoint:
+
+| | `thing` | `refusal` |
+|---|---|---|
+| as first written | 2 of 6 | 0 of 3 — every question inverted into *how does it show…* |
+| + counter-example, + object/document distinction | 3 of 6 | 1 of 3 |
+| + closing clause made joint-aware, aim restated last | **6 of 6** | 0 of 3 |
+| + an explicit demand for a negative | 6 of 6 | 2 of 3, **both by presupposing a refusal she never wrote** |
+| + asked from outside, presupposition named | 6 of 6 | 0 of 3 |
+
+**What fixed `thing` was removing a contradiction rather than adding pressure.** The joint block closed with *ask what theirs DOES at that place* on every line, and HOW TO ASK enumerated does/holds/decides/shows — both correct for the six joints and the opposite instruction on a line that asks what a thing IS. A general rule stated later outranks a specific one stated earlier, so the model followed the list and labelled the result with the line it had been handed. The closer is joint-aware now and the aim is restated immediately before the instruction to write.
+
+🔴 **`refusal` is composed in CODE, and the pattern above is why.** Pushed toward the negative the model invents a refusal — *why does the window refuse to record the bounces?* asserts one she never wrote and asks her to justify it, which is the presupposition fault and worse than the inversion it replaced. Pushed away from inventing, it stops asking. Every increment of prompt pressure bought one fault by paying for the other. So the stone does not write this one: `refusalQuestion` in `lib/spec.mjs` takes her most-used noun and one of three frames, all asked from outside the object so none of them asserts anything about how it works. **Measured 3 of 3 on the run after.** ⚠️ The cost, stated rather than discovered: the question no longer responds to what she has just said. Accepted on this line and on no other.
+
+### 5.3c Would this build? — the builder's report (v0.27.0, 3 September 2026)
+
+**`POST /api/spec/build` hands her specification to the model as a BUILDER who cannot ask her anything, and returns the decisions that builder would have to take because the specification does not settle them.** On request only; no turn produces it and nothing computes it in the background.
+
+🔴 **It does what the rest of this surface refuses to do, and the collision is named rather than smoothed over.** Every other line here exists so that an absence is found by the student — `SPEC_FORBIDDEN` refuses *you have not said*, the aims move to a place rather than to a gap, the joints reading is never rendered as a count. This returns a list of gaps. It was asked for directly, because a specification has to be good enough that something can build from it and nothing here could tell her whether it was.
+
+🔴 **What keeps it the right side of the position is the polarity of the sentence.** Each item is written as a decision the builder takes — *I would have to decide how long "a while" is, and I would probably pick five minutes* — never as something she failed to write. That is not a euphemism for the same content: a gap named as her omission is a verdict on her document; the same gap named as a decision somebody else is about to take is a fact about what happens next, which is the thing she cannot see. `validateBuildReport` drops any line that slips into review language and keeps the rest, because a report that vanishes over its fourth line teaches nobody anything.
+
+⚠️ **No count, no score, no ready flag**, in the response or on the page. The return carries the decisions and a dropped-line tally; the tally is a fact about the model's output and is deliberately not rendered.
+
+**Her answer goes into the specification, and the tool composes none of it.** After a question, the page offers to file her reply under that line's label; the words are hers verbatim, trimmed at the ends and nothing else. It is offered rather than automatic — an answer that files itself would mean the tool decided her reply belonged in her document, and some replies are thinking aloud on the way to deciding it does not. Filing lengthens the specification, so the next turn re-reads the lines against it and the rotation moves on. What lands may read as conversation; making it read as a specification is her work.
 
 ### 5.4 Output validation + graceful degradation
 - Forbidden-pattern check every turn: no declarative answers, no advice ("you should"), no diagnosis, no summary-conclusion. Same discipline as the diagnostics' forbidden-string lists.
