@@ -21,6 +21,34 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.28.0] — 2026-09-06
+
+### The metronome — a guard that set the period of the loop it was meant to prevent
+
+A real enquiry ran eighteen questions whose opening words were `what how where`, six times over without a break, and no guard fired. Each did exactly what it was written to do. **The opener ban was two questions wide, so it forbids every cycle of length one or two and permits one of length three — it does not bound repetition, it puts a floor under the period, and the model sat on the floor.** The frame gate compares five-word shingles and the template repeating was three words long, the noun after it changing every time.
+
+- **The opener ban widens from two questions to three**, on the enquiry and criticism surfaces. The spec surface keeps the wider four it already had. All of them now derive it from one place, `openerBans()` in `lib/dialogue.mjs`.
+- **A head ban is added beside it, and it is the substantive half**: a question may not begin with the same three words as any of the last six. It refuses the *construction*, so changing the noun is not a way out. `headBans()` and `questionHead()`, one derivation feeding both the prompt and the guard.
+- **Both are named to the model, quoted**, because a rule the composing layer has not been given is a repair loop rather than a guard.
+- **All three surfaces carry both**, and `verification/opener-metronome.test.mjs` asserts the behaviour on all three validators *and* reads `server.mjs` for the send — a validator that accepts an option is inert if the route never passes one.
+- Measured on an eighteen-turn metronome of invented material: **0 of 18 refused before, 15 of 18 after.**
+
+### `stalled` reaches the steering, with a response of its own
+
+Since 17 August the two succession grades have had one consumer each, and `stalled` — not one content word in the reply is new — could not change what the next question was *about*. It now hands the topic back: the next question stops mining that material and invites the learner to name another part themselves, in their own words, with no candidates supplied. That is the only move that cannot re-ask what they have already answered, since they choose what is next. It is deliberately not `repeated`'s response, which retires the anchor and reaches into the goal for something untouched. Measured before it was written: `stalled` fires on **2 of 87** replies across all four real fixtures.
+
+### `NONMATERIAL` gains the possessives and demonstratives
+
+`STOP` in `signals.mjs` does not carry `its`, which is three characters and survives `content()`'s length filter; in a real session it held the anchor for three consecutive turns, the full `ANCHOR_MAX`. `helps`, `floor` and `below` held anchors in that same session and were deliberately left out — `floor` was the thing the learner was talking about, and a list that eats a learner's noun is worse than the gaps. Zero of 87 fixture turns change.
+
+### Measured and NOT built — a semantic re-ask gate
+
+A student reported being asked for something she had already said in a different sentence. The head ban does not reach that: it refuses a repeated construction, and this is a repeated request. The obvious answer was measured before being built, over 5,080 probe questions with the deterministic embedding already in `lib/embed.mjs`. The known re-asks score 0.69–0.74 against earlier questions, **below the corpus's own 90th percentile of 0.766**, and one scores 0.55 against her earlier replies, below the corpus median of 0.603. No threshold separates a re-ask from an ordinary follow-up. It reproduces v0.10.2's finding from the other side and is written into `docs/concept/dialogue.md` under Known limits so it is not paid for a third time.
+
+### Not done
+
+No probe has been run against the real endpoint. What is claimed here is what the guard refuses and how rarely the new trigger fires — nothing about whether the questions are better.
+
 ## [0.27.0] — 2026-09-03
 
 **The refusal line is composed in code, and the surface can now be asked whether anything could build from the specification.**

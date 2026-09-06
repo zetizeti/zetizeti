@@ -12,7 +12,7 @@ import { buildIndex, retrieve } from './lib/retrieval.mjs';
 import {
   loadMethodCore, buildSystemPrompt, buildTurnContext, validateOutput,
   loadCriticismCore, buildCriticismSystemPrompt, validateCriticismOutput,
-  CRITICISM_POINTERS, questionOpener, describeLocated,
+  CRITICISM_POINTERS, questionOpener, openerBans, headBans, describeLocated,
   PREP_CLOSING_AIM, PREP_CLOSING_AIM_SET, PREP_RESUMING_AIM,
   buildSpecSystemPrompt, validateSpecOutput, buildBuilderPrompt, validateBuildReport,
 } from './lib/dialogue.mjs';
@@ -742,8 +742,6 @@ app.post('/api/chat', requireUser, async (req, res) => {
   const stalled = !newMaterial.length;
   const repeated = readRepeat(studentTurns);
   const dwellRead = prepping ? null : readDwell({ studentTurns, stoneTurns, goal, repeated });
-  const featureInvite = !prepping && !!(dwellRead && dwellRead.invite);
-  const dwell = featureInvite ? null : dwellRead;
   // The learner has declined this question. Outranks everything: nothing is built on words that carry no
   // content, and the next question changes footing to material they themselves supplied earlier.
   const declined = isDecline(message) ? { anchorText: lastSubstantive([...studentTurns]) } : null;
@@ -751,6 +749,24 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // disturbed-reproduction indicator, worn protectively: their correction is authoritative, so the
   // steering that would press on is suppressed and the next question takes up what they re-stated.
   const corrected = !declined && isCorrection(message);
+  // 🔴 `stalled` NOW REACHES THE STEERING, AND ITS RESPONSE IS ITS OWN (6 Sep 2026). Since 17 August the
+  // two grades have had one consumer each — `stalled` the precision gate, `repeated` the dwell read —
+  // and `stalled` therefore could not change what the next question was ABOUT. A real session of
+  // 30 August spent eleven turns on one attribute while the learner's replies thinned to two words,
+  // and the reading that saw it reached nothing. The response here is NOT `repeated`'s: that retires the
+  // anchor and reaches for an untouched thing in the goal, which presumes the goal still has one. This
+  // one hands the topic back to the learner instead, which is the only move that cannot re-ask what they
+  // have already answered — they choose what is next, so the tool cannot choose it wrongly.
+  // ⚠️ MEASURED BEFORE IT WAS WRITTEN, on all four real fixtures: `stalled` fires on 2 of 87 replies
+  // (2.3%), once in the 28 July session and once in the 12 August one. It is rare on a learner who is
+  // doing well, which is the two-student rule's actual question and the licence for shipping it.
+  // ⚠️ It does NOT fire on a refusal or a correction: "i don't know" adds no new word either, and each of
+  // those already owns the turn.
+  const stalledInvite = stalled && !prepping && !declined && !corrected;
+  const featureInvite = !prepping && !!(dwellRead && dwellRead.invite);
+  // Dwell is suppressed by either invite, and for one reason: both mean STOP MINING THIS MATERIAL, and an
+  // anchor block would say the opposite in the same prompt.
+  const dwell = (featureInvite || stalledInvite) ? null : dwellRead;
   // WIDENING BY ASSOCIATIVE VALUE (lib/assoc.mjs) — join two things the learner said at different times
   // and has never been asked about together. Measured 28 Jul as the best single addition of the day:
   // dry replies 30%→17%, uptake 83%→95%, and the only configuration whose student writes MORE as the
@@ -765,7 +781,13 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // OPENER BAN — the question may not open with the word either of the last two questions opened with
   // (proactive here; enforced in the guard). 22 of 24 questions in a real session opened "When…" while
   // every sameness metric read clean.
-  const banOpeners = [...new Set(stoneTurns.slice(-2).map((q) => questionOpener(q)).filter(Boolean))];
+  // 🔴 WIDENED 2 → 3 AND JOINED BY A HEAD BAN (6 Sep 2026). A ban two questions wide forbids every
+  // opener cycle of length 1 or 2 and PERMITS one of length 3, so it does not bound repetition — it puts
+  // a FLOOR under the period. A real session of 30 August sat exactly on that floor for eighteen
+  // questions: what/how/where, six laps, no guard firing. Both windows come from ONE derivation in
+  // dialogue.mjs so the prompt and the guard cannot disagree.
+  const banOpeners = openerBans(stoneTurns);
+  const banHeads = headBans(stoneTurns);
   // PRECISION CAPACITY — pointed asks ("which one?", "what exactly?") only for a learner whose recent
   // replies show particulars ready to give: median material of the last three replies ≥ 10 content
   // words and no refusal in the last two. Two real students, opposite needs; the register follows the
@@ -823,6 +845,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
       declined,
       corrected,
       banOpeners,
+      banHeads,
       message,
     })
     : buildTurnContext({
@@ -836,8 +859,10 @@ app.post('/api/chat', requireUser, async (req, res) => {
       corrected,
       assoc: assoc ? associationBlock(assoc) : '',
       banOpeners,
+      banHeads,
       precision,
       featureInvite,
+      stalledInvite,
       message,
     });
 
@@ -869,6 +894,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
         focus,                                   // concept-only: a production question is withheld, not discouraged
         avoid: stoneTurns,
         banOpeners,
+        banHeads,
         noBinary: true,
         // noClosed — a question answerable "yes" is withheld and re-asked open (30 Jul 2026: three of
         // ten in a real session, and both of its thin replies followed one).
@@ -940,7 +966,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
     // situation → the question, so a chat can be replayed by the 2.0 "sounds-like-Prayas" harness. The
     // returned id lets the local UI attach an on-voice/off-voice label to this exact question. The guard's
     // work is captured too (a repaired question is a different kind of specimen from a first-pass one).
-    const capId = capture({ mode: prepping ? 'prep' : 'enquiry', prepStation: prepping ? (prepWalk.station ? prepWalk.station.key : prepWalk.phase) : null, prepPart: prepping ? prepWalk.part : null, chatKey: studentTurns[0] || goal, goal, discipline, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, dwell: featureInvite ? 'INVITE' : dwell ? `${dwell.anchor}×${dwell.returns}` : null, joined: assoc ? assoc.distance : null, declined: !!declined, corrected, repeated, stalled, newMaterial: newMaterial.slice(0, 3), shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
+    const capId = capture({ mode: prepping ? 'prep' : 'enquiry', prepStation: prepping ? (prepWalk.station ? prepWalk.station.key : prepWalk.phase) : null, prepPart: prepping ? prepWalk.part : null, chatKey: studentTurns[0] || goal, goal, discipline, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, dwell: featureInvite ? 'INVITE' : stalledInvite ? 'INVITE-STALLED' : dwell ? `${dwell.anchor}×${dwell.returns}` : null, joined: assoc ? assoc.distance : null, declined: !!declined, corrected, repeated, stalled, newMaterial: newMaterial.slice(0, 3), shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
       // Logged side by side so the comparison the todo doc asks for can be made on real transcripts
       // before anything is wired again. Local capture only — never in production (capture.mjs).
       sem: fs && fs.semFresh ? +fs.semFresh[fs.semFresh.length - 1].toFixed(3) : null,
@@ -1130,11 +1156,13 @@ async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocat
   // The composing layer is told what the guard will refuse (17 Aug 2026). Enquiry has done this since
   // 29 July; here the ban was enforced and never communicated, so the model could not comply with it.
   const critStoneEarly = priorMessages.filter((m) => m.role === 'stone').map((m) => m.content);
-  const critBans = [...new Set(critStoneEarly.slice(-2).map((q) => questionOpener(q)).filter(Boolean))];
+  const critBans = openerBans(critStoneEarly);
+  const critBanHeads = headBans(critStoneEarly);       // guard parity: the head ban is not enquiry's alone
   const system = buildCriticismSystemPrompt(criticismCore, {
     artefact: win.body, located, posture: pointer.aim, retrieved, goal, focus,
     brief, windowNote: win.windowed ? win.skeleton : '',
     banOpeners: critBans,
+    banHeads: critBanHeads,
     // the first clause of each recent question — enough for the model to see the shape it has been using
     avoidFrames: critStoneEarly.slice(-4).map((q) => String(q).replace(/\s+/g, ' ').trim().slice(0, 60)),
   });
@@ -1168,7 +1196,7 @@ async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocat
     // maxWords 45, not the enquiry cap: this surface quotes the text verbatim inside the question, which
     // is the method, and the measured mean here is 30.7 words against enquiry's 18.3.
     validate: (t) => validateCriticismOutput(t, { focus, brief: !!brief, artefactTerms,
-      maxWords: 45, avoid: critStone, banOpeners: critBanOpeners, noClosed: true, ownWords: critOwnWords,
+      maxWords: 45, avoid: critStone, banOpeners: critBanOpeners, banHeads: critBanHeads, noClosed: true, ownWords: critOwnWords,
       noCompound: true }),
     generate: (correction) => streamQuestion({
       system,
@@ -1333,7 +1361,8 @@ async function askSpecQuestion({ send, apiKey, meter, spec, assignment, priorMes
   // "By what" or "By which" four times, because a construction recurring every third question clears a
   // two-question window every time. Widened HERE rather than on the shared surfaces, which have their
   // own measured behaviour and did not ask for this.
-  const bans = [...new Set(stoneTurns.slice(-4).map((q) => questionOpener(q)).filter(Boolean))];
+  const bans = openerBans(stoneTurns, 4);   // FOUR here, deliberately: this surface has always been wider
+  const banHeads = headBans(stoneTurns);
   // The nouns the last three questions kept pointing at. Her words only — a word the stone introduced is
   // already refused elsewhere, and listing it here would tell the model to avoid something it should not
   // have said at all.
@@ -1349,6 +1378,7 @@ async function askSpecQuestion({ send, apiKey, meter, spec, assignment, priorMes
   const system = buildSpecSystemPrompt({
     spec, assignment, joint, asked, circling,
     banOpeners: bans,
+    banHeads,
     avoidFrames: stoneTurns.slice(-4).map((q) => String(q).replace(/\s+/g, ' ').trim().slice(0, 60)),
   });
   const messages = [
@@ -1365,7 +1395,7 @@ async function askSpecQuestion({ send, apiKey, meter, spec, assignment, priorMes
     mode: 'spec',
     // 32 words: shorter than criticism's 45 because there is no verbatim passage to carry, and longer
     // than enquiry's because a question here usually quotes a phrase of hers to point with.
-    validate: (t) => validateSpecOutput(t, { maxWords: 32, avoid: stoneTurns, banOpeners: bans,
+    validate: (t) => validateSpecOutput(t, { maxWords: 32, avoid: stoneTurns, banOpeners: bans, banHeads,
       ownWords: own, noCompound: true }),
     generate: (correction) => streamQuestion({
       system,

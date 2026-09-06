@@ -57,7 +57,7 @@ The learner's message arrives with the whole transcript. `server.mjs` assembles 
 [POSTURE]              felt-shift event, or a cadence nudge (warmth, widen, hedging, …)
 [PRECISION]            conditional — pointed asks, only when the learner can give particulars
 [SHAPE]                the sentence's form for this turn (plainness constraints)
-[DO NOT OPEN WITH …]   the opener ban
+[DO NOT OPEN WITH …]   the opener ban, and the three-word head ban beside it
 <the learner's message>
 [Reply with ONE short Socratic question only.]
 ```
@@ -259,13 +259,30 @@ There is a **length floor, not a ceiling**: questions of ≤12 words are refused
 **16%** at 20–24 words, and the gap survives excluding the decline path and excluding warmth. A very short
 question is usually an under-specified one.
 
-**The opener ban** is enforced: the question may not open with the word either of the two previous
+**The opener ban** is enforced: the question may not open with the word any of the **three** previous
 questions opened with, named in the prompt and rejected at the guard. Measured on real replies: **When-
 openers 94% → 6–17%, consecutive opener repeats 88% → 0%.**
 
 *Why enforcement was necessary:* both sameness metrics read those sessions as clean. `dupOpen` compares
 four-word prefixes (*"When the students are"* ≠ *"When you move from"*); `consec` compares content words
 and "when" is a stopword. **A one-word frame was invisible to both.**
+
+**The head ban** sits beside it and is wider: the question may not begin with the same **three words** as
+any of the last **six** questions. It exists because the opener ban alone could not stop a loop, and the
+reason is arithmetic rather than a bug. A ban two questions wide forbids every opener cycle of length one
+or two and *permits* one of length three, so it does not bound repetition — it puts a **floor** under the
+period. A real enquiry of 30 August 2026 sat exactly on that floor: eighteen questions whose openers ran
+`what how where` six times without a break, with no guard firing, over three templates repeated as frames.
+Replayed against the shipped guard as it then stood, **0 of those 18 were refused; under the two bans
+together, 15 of 18 are.**
+
+*The general shape, which is the part worth carrying:* **a guard whose satisfying set has a cheapest
+member will be met by that member.** Widening the window alone would only raise the floor from three to
+four, which is why the head ban is the substantive half — it refuses the *construction*, so changing the
+noun after it is not a way out.
+
+*What it cannot do:* it reads three words. A learner who is asked for something they have already given,
+in a different construction, is not helped by it at all — see Known limits.
 
 ### The repeat gate
 
@@ -385,12 +402,41 @@ transcript is theirs); the harness that runs them is public, in `scripts/flow-pr
 
 ## Known limits
 
+- 🔴 **Being asked for something you have already said, in different words, is not detected and there is
+  now a measurement saying it cannot be — not this way.** A student reported it on 6 September 2026 in
+  those terms, and the head ban does not reach it: that refuses a repeated *construction*, and this is a
+  repeated *request*. The obvious answer was a semantic gate, and it was measured before being built,
+  using the deterministic feature-hashed embedding already in `lib/embed.mjs`, over **5,080** probe
+  questions. Against earlier questions the corpus's median similarity is **0.660** and its 90th percentile
+  **0.766**; the known re-asks in the session that prompted this score **0.69–0.74**, *below* that 90th
+  percentile. Against earlier replies the corpus median is **0.603** and one known re-ask scores **0.55**,
+  below the median. **No threshold separates a re-ask from an ordinary on-topic follow-up** — a cut at 0.70
+  refuses 32% of all questions and a cut at 0.75 catches none of the re-asks. This is not a tuning problem:
+  every question in a focused conversation is about the same material, so topical similarity is high by
+  construction and carries no information about whether the answer was already given. **It reproduces
+  v0.10.2's finding from the other side** — five measures tried there, none separating a restater from a
+  developer — and is recorded here so the measurement is not paid for a third time. What ships instead is
+  structural and partial: the head ban, and the stalled invite below.
+- **The stalled invite is unmeasured on the route.** When a reply contains not one content word the learner
+  had not already used, the next question stops mining that material and invites them to name another part
+  themselves — the only move that cannot re-ask what they have already answered, since they choose what is
+  next. `stalled` fires on **2 of 87** replies across all four real fixtures (2.3%), so it is rare on a
+  learner who is doing well, which is the two-student rule's question. A twelve-round probe against the
+  real endpoint on 6 September came back clean — twelve distinct heads, no opener or head repeat, no guard
+  breach delivered — but the stalled invite did not fire in it, so what is claimed is the trigger's rarity
+  and nothing about the questions it produces.
 - **A hand-written word list cannot be finished, and `NONMATERIAL` is one.** Three separate gaps surfaced in
   a single day of conversation probes — inflections (`make` listed, `makes` not), apostrophe forms (`dont`
   listed, `don't` not) and the modals — and a fourth (`there`) is known and unpatched. Each was invisible
   because nothing asserts what an anchor *is* across a conversation, and each was measured against the real
   fixtures before being added. The probe now reports weak anchors every run, which is the durable answer:
   extending the list one word per run is the failure mode, and a visible gap beats a silent one.
+  A fifth gap closed on 6 September 2026: the **possessives and demonstratives**. `STOP` in `signals.mjs`
+  carries `their`, `them`, `they`, `this` and `that` and does *not* carry `its`, which is three characters
+  and so survives `content()`'s length filter — in a real session it held the anchor for three consecutive
+  turns, the full `ANCHOR_MAX`. `helps`, `floor` and `below` also held anchors there and were deliberately
+  NOT added: `floor` was the thing the learner was actually talking about, and a list that eats a learner's
+  noun is worse than the gaps. Zero of 87 fixture turns change.
 - Association joins still misfire on roughly 15–20% of firings — a pairing the learner rejects as
   unrelated. Distance and salience are not sufficient to make a pair worth joining, and the missing term
   is not yet known.
