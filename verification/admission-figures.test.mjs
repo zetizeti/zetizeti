@@ -6,7 +6,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -31,12 +31,33 @@ const SURFACES = [
   { name: 'README.md', text: readFileSync(join(dirname(APP), 'README.md'), 'utf8') },
 ];
 
-test('every public surface still carries the admission', () => {
+// 🔴 THE ADMISSION RULE WAS RETIRED BY PRAYAS ON 7 SEPTEMBER 2026 — *"not good enough yet goes - art is
+// never good enough and always good enough both."* The 16 August rule specified exactly this removal
+// condition in its own text (*"it comes down by Prayas saying so"*), so this is the rule ending as
+// written rather than being tidied away, which is what its assertion existed to prevent.
+//
+// **Why it goes, and it is not a softening.** *Not good enough yet* presupposes a bar and a target state,
+// which is a product claim. It was the last surviving piece of the service framing, one layer under the
+// maturity ladder retired the same day. A made thing has no state it is falling short of.
+//
+// **What survives, and is asserted below.** The concrete facts stay on the page as DESCRIPTION rather than
+// as confession — the method core is one note, the second voice asked two-box questions for months, and it
+// was found because somebody said it felt off. Those are checkable and a reader can use them. And the
+// corpus figure must still be TRUE wherever it appears, which is the half of this file that was never
+// about the admission: a number written into prose is generated once and then sits static, and nothing
+// rebuilds it when the corpus grows.
+test('the public surfaces still say plainly where the tool stands', () => {
   for (const s of SURFACES) {
-    assert.match(s.text, /does not do (this )?well enough yet|What it does not do yet|not yet good enough/i,
-      `${s.name} no longer admits what the tool does not do. This is a standing rule (Prayas, 16 Aug 2026) and it comes down only when he says the 1.0 bar is cleared — not because the copy reads self-deprecating.`);
-    assert.match(s.text, /stay patient with it and loses the others/,
-      `${s.name} dropped the 1.0 bar sentence. It is quoted identically wherever the bar is named, deliberately — it is a standard, not prose.`);
+    assert.match(s.text, /Where it stands/i,
+      `${s.name} dropped the section stating where the tool stands. The 16 Aug ADMISSION was retired on 7 Sep 2026 — the bar language went and the concrete facts did not.`);
+    // ⚠️ The wording moved on 7 Sep 2026 after a NON-CLAUDE read (Gemini Pro) caught that removing the
+    // bar language had INVERTED the sentence. `It holds people who stay patient with it and loses the
+    // others` was self-criticism only while `that is the bar it has not cleared` held it in place; alone,
+    // the same words read as the tool being selectively demanding — "a badge of elite, uncompromising
+    // depth". The demand now sits on the tool rather than the failure on the reader, which is the whole
+    // point of the sentence and was nearly lost in the retirement pass.
+    assert.match(s.text, /a great deal of patience/,
+      `${s.name} dropped the sentence describing what the tool asks of a person. It is a fact about the tool, not a grade against a bar — and not a boast about who it keeps.`);
   }
 });
 
@@ -78,4 +99,28 @@ test('the counter reads a real corpus, so the comparison cannot pass vacuously',
   const { entries, pending } = countCorpus();
   assert.ok(entries >= 200, `expected a corpus of a few hundred entries, found ${entries}`);
   assert.ok(pending <= entries, `pending (${pending}) cannot exceed entries (${entries})`);
+});
+
+
+// ── THE SOCIAL CARD IS GENERATED ONCE AND THEN SITS STATIC (7 September 2026) ──────────────────────
+// 🔴 `og-image.png` is a screenshot of `og-card.html`, and NOTHING REBUILDS IT. On 7 September the card
+// was corrected and every meta tag with it, and the image still said *A questioning partner for design
+// students* — three months old, and the most-seen surface the project has, because a link preview is
+// what people meet before the page. Prayas caught it: *"the og still uses the design student
+// framing..."*.
+//
+// This is the project's own recorded failure shape — *the dangerous half is what is generated once and
+// then static: badges, screenshots, cached values. Nothing rebuilds them, nothing checks them, no test
+// fails.* So this is the test that fails.
+//
+// Regenerate with:
+//   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --disable-gpu \
+//     --hide-scrollbars --window-size=1200,630 --screenshot=public/og-image.png og-card.html
+test('the social card image is not older than the card it is a picture of', () => {
+  const card = statSync(join(APP, 'og-card.html'));
+  const img = statSync(join(APP, 'public', 'og-image.png'));
+  assert.ok(img.mtimeMs >= card.mtimeMs,
+    `og-image.png (${new Date(img.mtimeMs).toISOString().slice(0, 10)}) is older than og-card.html `
+    + `(${new Date(card.mtimeMs).toISOString().slice(0, 10)}) — the link preview is showing text the card no longer says. `
+    + 'Re-screenshot it; the command is in the comment above this test.');
 });

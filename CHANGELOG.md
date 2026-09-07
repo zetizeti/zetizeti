@@ -6,9 +6,14 @@ Versioning follows [Semantic Versioning](https://semver.org), **aligned to git**
 running build reports its version at `GET /api/version`, in `GET /api/config`, in the boot log, and in
 the page footer. (See `app/lib/version.mjs`.)
 
-**What the numbers mean here.** zetizeti is a live, public pilot still being tuned by student feedback,
-so it sits in `0.x` — minor bumps carry new behaviour, patch bumps carry fixes. The major versions mark
-states of the tool's maturity, not feature milestones:
+**What the numbers mean here — changed 7 September 2026.** A **major version is an ARTIFACT ITERATION**: it
+names a different kind of thing being made, and it carries no claim about quality or maturity. Minor bumps
+carry new behaviour; patch bumps carry fixes. 🔴 **The majors used to mark maturity states** — 1.0 STABLE,
+2.0 UNIQUE, 3.0 PROVEN, where 1.0 meant *the questioning works satisfactorily for an ordinary student* —
+and that scheme is retired whole. It made a version number into a quality gate, which is why *not good
+enough yet* and a 1.0 read as contradictory under it. They are not. A first iteration of an artifact can be
+a poor artifact, and the admission stays on every public surface at any version. The retired ladder is kept
+in `docs/ops/roadmap.md` so it is not reinvented:
 
 - **`1.0` — stable.** It works satisfactorily for an *ordinary* student, not only a tolerant one.
   Stable does not mean "the churn stopped"; it means the questioning is sharp enough that a normal,
@@ -20,6 +25,38 @@ states of the tool's maturity, not feature milestones:
 Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for the rest. So the
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
+
+## [1.0.0] — 7 September 2026
+
+**The dialogue is the pedagogy. The first version that is about the dialogue.**
+
+🔴 **A major version here is an ARTIFACT ITERATION, not a maturity state, and that meaning changed today.** 1.0 is not a bar cleared. The 0.x versions were made by a tool that did not know a dialogue was its output — it described itself as a service for design students, which is an aid to an education conducted elsewhere. This is the first version that is about the thing it makes. A first iteration of an artifact can be a poor artifact.
+
+### The position
+
+- **The dialogue is the pedagogy — not the means to it, the whole of it.** Ordinary teaching treats a conversation as a vehicle carrying a concept or a correction, discardable once it has arrived. Nothing is carried here, so nothing is delivered, and the questioning is the entire event.
+- **The never-answer guard is constitutive, not restraint.** A tool that answers has not taught worse; it has done a lesser thing, which is transmission.
+- **The refusals stop being modesty.** No score, no progress, no percent-complete — each measures a learner, and the learner is not what gets made.
+- **The corpus is a precondition, never content.** The question about growing it is *does this give a dialogue more to be about*, never *does this cover more ground*.
+- 🔴 **Design is no longer the reigning context.** It stays as a fact about what the corpus holds — 274 design tensions across fifteen files — and goes as the frame: the tool's description, and the residency rule that made design the region inside which somebody could be invited.
+- 🔴 ***Not good enough yet* is off every public surface.** It presupposed a bar and a target state, which is a product claim and was the last surviving piece of the service framing. The concrete facts stay as description rather than confession, under *Where it stands*.
+
+### Built
+
+- **The transcript says what it is**, on both surfaces and in both PDFs. ⚠️ The old framing was also in the **typography** — questions at 10.5pt grey-gold against replies at 12.5pt near-black, a hierarchy saying the questions were light context. The two voices are typographic peers now. No sweep of the copy would have found that.
+- **The conversation probe reads a real saved dialogue** — `--transcript=<file.md>`. No server, no key, no model call. Breaches are recomputed against today's guard, so a July dialogue can be read against September's rules. ⚠️ The first version called `validateOutput` bare and under-reported breaches four-fold; **a reading apparatus that flatters what it reads is worse than none.**
+- **The submission surface** — `POST`/`GET`/`DELETE /api/submissions`, allowlist empty-is-closed, 404 rather than 403, its own table outside the boot purge, listings without bodies, withdrawal scoped to the owner in the statement. Invariant #8 held on the failure path. 🟢 The publish guard refuses any staged file carrying dialogue front matter **by shape, not by name or directory**, and was **proved by planting a dialogue and watching the publish abort.**
+- **The engagement reading** — a second paradigm beside conformance: reciprocity, reply-against-question trajectory, uptake in both directions, accumulation, and whether a dialogue ended or stopped. No composite, no aggregate. 🔴 **Nearly meaningless on a probe run** — an instructed persona cannot thin, trail off or end, measured at reciprocity 3.92 and a flat profile against a real dialogue's 1.38.
+
+### Measured
+
+- **The first reading of a real dialogue changed its verdict.** Session 20260729-c reads poor on conformance — 5 of 10 anchors weak, coverage 4 of 19, a rut of 5, 4 questions that would breach today — and alive on engagement: replies holding, eight of her own early words still live late, and a last reply still carrying new material. She had not run out; she was cut off by a question the guard has since been widened to refuse.
+- 473 tests pass, from 464.
+
+### Not built
+
+- ⚠️ **No upload UI.** The server side is complete and tested end to end; a resident posts the file. The rule against building a marking interface stands — this is an upload, not an editor — but a file picker is still owed.
+- ⚠️ The engagement readings are validated against nothing, and there is exactly one real dialogue in a readable form.
 
 ## [0.29.0] — 7 September 2026
 

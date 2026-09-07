@@ -43,6 +43,10 @@
 //   cd app
 //   NODE_ENV=development ZETIZETI_ALLOW_GUEST=1 node --env-file=.env server.mjs &
 //   node --env-file=.env scripts/enquiry-conversation-probe.mjs --rounds=10 --persona=agreeable
+//
+//   node scripts/enquiry-conversation-probe.mjs --transcript=path/to/dialogue.md
+//     Reads a REAL saved dialogue instead of running one. No server, no key, no model call.
+//     This is the reading that makes dialogue quality checkable rather than asserted.
 
 import { writeFileSync, mkdirSync, appendFileSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -71,9 +75,52 @@ const EDGE_FILE = arg('edge-file');
 // It is also honest about the play-acting: an instructed persona may simply decline to repeat, as it did
 // on the first ten-round run, and a probe that cannot produce the condition cannot report on it.
 const FORCE_REPEAT_AT = Number(arg('force-repeat-at', '0'));
+
+// ── READING A REAL DIALOGUE (7 September 2026) ────────────────────────────────────────────────────
+// 🔴 `--transcript=<file.md>` runs every reading below over a REAL saved dialogue instead of a
+// play-acted one. This is the whole reason the file exists twice over: since the dialogue became the
+// artifact, its quality is the only thing worth judging, and the apparatus for judging it was already
+// written here and pointed at a simulation.
+//
+// 🔴 IT SHARES THE READINGS RATHER THAN COPYING THEM. One derivation, two inputs — a second
+// implementation would drift, which is the defect class this project keeps meeting.
+//
+// What changes in this mode, and each is a gain rather than a compromise:
+//   · No server, no key, no cost, no model call. A dialogue is read offline.
+//   · The EDGE is not supplied; it is the learner's first turn, which is what an edge actually is.
+//   · Breaches are RE-COMPUTED against today's guard rather than read from a `validation` event the
+//     file never carried. So the reading answers a better question than the live probe can: would
+//     these questions pass the rules as they stand NOW? A dialogue from July can be read against
+//     September's guard, and that is how a released fix is checked against real past conversations.
+// ⚠️ What it cannot see: the anchor readings are recomputed from the turns and match what the route
+// computed only if the corpus and `lib/arc.mjs` have not changed since. Where they have, this reads
+// the dialogue as today's code would have steered it, not as it was steered. Say which you mean.
+const TRANSCRIPT = arg('transcript');
+
+// The inverse of buildTranscriptMd, kept deliberately in the same SHAPE as parseTranscriptMd in
+// public/index.html: front matter, then paragraphs, `**Q.**` marking the stone and everything else the
+// learner. Headings and the italic note are skipped by form, not by their wording — the wording changed
+// on 7 September and a parser keyed to it would have silently started reading boilerplate as a turn.
+function readTranscript(path) {
+  const src = readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
+  const fm = src.match(/^---\n([\s\S]*?)\n---\n/);
+  if (!fm || !/^source:\s*zetizeti\s*$/m.test(fm[1])) throw new Error(`${path} is not a zetizeti transcript`);
+  const kind = (fm[1].match(/^type:\s*(\S+)\s*$/m) || [])[1];
+  if (kind !== 'idea-transcript') throw new Error(`${path} is a ${kind || 'unknown'}, not an enquiry dialogue`);
+  const turns = [];
+  for (let para of src.slice(fm[0].length).split(/\n{2,}/)) {
+    para = para.trim();
+    if (!para || /^#/.test(para) || /^_[\s\S]*_$/.test(para)) continue;
+    const q = para.match(/^\*\*Q\.\*\*\s*([\s\S]+)$/);
+    turns.push(q ? { role: 'stone', content: q[1].trim() } : { role: 'student', content: para });
+  }
+  while (turns.length && turns[0].role === 'stone') turns.shift();   // a dialogue opens on the learner
+  if (!turns.length) throw new Error(`${path} holds no turns`);
+  return turns;
+}
 // Invented, and deliberately nothing like any student's project: a subject identifies a person as well
 // as a name does (the v0.14.2 finding).
-const EDGE = EDGE_FILE ? readFileSync(EDGE_FILE, 'utf8').trim() : (arg('edge')
+const EDGE = TRANSCRIPT ? '' : EDGE_FILE ? readFileSync(EDGE_FILE, 'utf8').trim() : (arg('edge')
   || 'A repair kiosk for bicycles at the edge of a market. A rider leaves the bike, walks off, and comes '
    + 'back to find it done. I want a paper receipt, a queue that is visible from the road, an awning for '
    + 'the monsoon, and a stool where somebody can wait if they would rather not leave.');
@@ -203,13 +250,25 @@ async function assertLiveBuild() {
 }
 
 (async () => {
-  await assertLiveBuild();
-  await signInAsGuest();
-  const goalWords = words(EDGE);
+  // Reading a saved dialogue needs no server and no key; only the live probe does.
+  const savedTurns = TRANSCRIPT ? readTranscript(TRANSCRIPT) : null;
+  if (!savedTurns) { await assertLiveBuild(); await signInAsGuest(); }
+  // 🔴 THE EDGE IS THE LEARNER'S FIRST TURN when reading a dialogue. Goal coverage asks how many of the
+  // things a person named at the start were ever asked about, and in a saved file that opening is
+  // simply there — it does not have to be supplied, and supplying one would measure against something
+  // the conversation never had.
+  const edgeText = savedTurns ? savedTurns[0].content : EDGE;
+  const goalWords = words(edgeText);
   console.log('='.repeat(78));
-  console.log(`persona  : ${PERSONA}${PERSONA === 'agreeable' ? '  (never complains; restates when out of material)' : '  (permitted to disengage)'}`);
-  console.log(`rounds   : ${ROUNDS}`);
-  console.log(`edge     : ${EDGE.slice(0, 96)}…`);
+  if (savedTurns) {
+    console.log(`reading  : ${TRANSCRIPT}`);
+    console.log(`source   : a real saved dialogue — no server, no model call, nothing generated here`);
+    console.log(`rounds   : ${savedTurns.filter((t) => t.role === 'stone').length} questions asked`);
+  } else {
+    console.log(`persona  : ${PERSONA}${PERSONA === 'agreeable' ? '  (never complains; restates when out of material)' : '  (permitted to disengage)'}`);
+    console.log(`rounds   : ${ROUNDS}`);
+  }
+  console.log(`edge     : ${edgeText.slice(0, 96)}${edgeText.length > 96 ? '…' : ''}`);
   console.log(`named    : ${goalWords.length} concrete things in their own opening`);
   console.log('='.repeat(78));
 
@@ -217,7 +276,52 @@ async function assertLiveBuild() {
   const rows = [];
   let question = null;
 
-  for (let round = 1; round <= ROUNDS; round++) {
+  // ── READING A SAVED DIALOGUE ────────────────────────────────────────────────────────────────────
+  // The same readings as the live path below, over turns that already happened. Breaches are
+  // RE-COMPUTED against today's guard, because the file carries no validation event — which makes this
+  // the only way to ask whether questions that shipped would still pass.
+  if (savedTurns) {
+    for (let i = 0; i < savedTurns.length; i++) {
+      if (savedTurns[i].role !== 'stone') continue;
+      const q = savedTurns[i].content;
+      const before = savedTurns.slice(0, i);
+      const stoneTurns = before.filter((t) => t.role === 'stone').map((t) => t.content);
+      const allStudent = before.filter((t) => t.role !== 'stone').map((t) => t.content);
+      const reply = savedTurns[i + 1] && savedTurns[i + 1].role !== 'stone' ? savedTurns[i + 1].content : '';
+      const withReply = reply ? [...allStudent, reply] : allStudent;
+      const prev = withReply[withReply.length - 2];
+      const repeated = reply && prev ? isRepeatOf(reply, prev) : false;
+      const dwell = readDwell({ studentTurns: withReply, stoneTurns: [...stoneTurns, q], goal: edgeText, repeated });
+      const ownWords = new Set(withReply.flatMap((t) => words(t)));
+      // 🔴 THE ROUTE'S OWN OPTION SET, NOT A BARE CALL — and the first version of this reader got it
+      // wrong, which is worth recording because of the DIRECTION of the error. `validateOutput` with no
+      // options is nearly inert: `noBinary`, `noClosed`, `noCompound`, `avoid`, `banOpeners`, `banHeads`
+      // and `maxWords` are all off by default, so a bare call reported a real dialogue as clean and would
+      // have told anyone reading it that the questions were better than they were. **A reading apparatus
+      // that flatters the thing it reads is worse than none.** Caught by checking one known-bad question
+      // — a `before or after` menu the guard was widened to refuse — coming back with no reasons.
+      // ⚠️ These are read off `server.mjs` and will drift from it. That is a real cost of recomputing
+      // rather than reading a stored verdict, and it is accepted because a saved dialogue carries no
+      // verdict at all; the gain is that a July dialogue can be read against September's rules.
+      const check = validateOutput(q, {
+        ownWords, avoid: stoneTurns, noBinary: true, noClosed: true, noCompound: true, maxWords: 34,
+      });
+      const tell = !check.reasons.every((r) => !/interprets what they said/.test(r));
+      const overlapPrev = stoneTurns.length
+        ? [...new Set(words(q))].filter((w) => words(stoneTurns[stoneTurns.length - 1]).includes(w)).length : 0;
+      const round = rows.length + 1;
+      rows.push({ round, question: q, reply, repeated, anchor: dwell?.anchor || (dwell?.invite ? 'INVITE' : null),
+        tell, pre: preambleOf(q), overlapPrev, breach: !check.ok, reasons: check.reasons || [] });
+      console.log(`\n── question ${round} ${'─'.repeat(48)}`);
+      console.log(`Q  ${q}`);
+      console.log(`A  ${reply.replace(/\n+/g, ' ').slice(0, 150)}${reply.length > 150 ? '…' : ''}${reply ? '' : '(no reply — the dialogue ended here)'}`);
+      console.log(`   anchor=${rows[rows.length - 1].anchor || '—'}  repeat=${repeated ? 'YES' : 'no'}`
+        + `  overlap-with-last-Q=${overlapPrev}${tell ? '  TELL' : ''}${!check.ok ? '  WOULD BREACH TODAY' : ''}`);
+    }
+    history.push(...savedTurns);
+  }
+
+  for (let round = 1; !savedTurns && round <= ROUNDS; round++) {
     const stoneTurns = history.filter((h) => h.role === 'stone').map((h) => h.content);
     const studentTurns = history.filter((h) => h.role !== 'stone').map((h) => h.content);
 
@@ -282,6 +386,117 @@ async function assertLiveBuild() {
     }
   }
 
+  // ══ THE ENGAGEMENT READING (7 September 2026) ═══════════════════════════════════════════════════
+  //
+  // 🔴 A DIFFERENT PARADIGM FROM EVERYTHING ABOVE, AND THE OLD ONE IS NOT REPLACED — it is demoted.
+  // Every measure above answers *did the tool follow its rules*: anchors rotated, no rut, no breach, no
+  // tell. That is CONFORMANCE, and it was the right question while the tool was the thing being built.
+  // Since the dialogue became the artifact it reads the wrong object, because **a dialogue can be
+  // perfectly conformant and completely dead** — ten well-formed questions, ten thinning replies, and
+  // every conformance number green.
+  //
+  // 🔴 THE LINE THIS MUST NOT CROSS, and it is invariant #7's line exactly. *This person disengaged* is
+  // a characterisation of an inquirer and is forbidden. *Replies fell from 40 words to 6 across four
+  // turns while the questions held at 20* is a property of the dialogue, and is not. **Everything below
+  // describes the exchange and nothing describes either party.** Where a number is unflattering it is
+  // unflattering about the artifact, which is the only thing here that can be judged.
+  //
+  // 🔴 NO SCORE, NO GRADE, NO AGGREGATE. One dialogue at a time, read by a person. There is deliberately
+  // 🔴 THESE READINGS ARE FOR A REAL DIALOGUE AND ARE NEARLY MEANINGLESS ON A PROBE RUN — measured
+  // 7 September 2026, the first time they were used. The play-acted student wrote 603 words against 154
+  // asked (reciprocity 3.92) and produced a PERFECTLY FLAT reply profile across ten turns, ▆▆▆▅▅▅▅▅▅▅.
+  // A real dialogue from 29 July read 1.38 and ▃▄▅▂▄▅▂▅▃. **A person's investment fluctuates — four
+  // words when a question does not land, forty when it does — and an instructed persona is generous on
+  // every turn by construction.** So it cannot thin, cannot trail off, and cannot end; the three things
+  // engagement is mostly made of are the three it cannot produce. This is the project's own standing
+  // finding — *a model doesn't close the tab* — arriving at a new instrument, now with numbers on it.
+  // ⚠️ The conformance measures above are NOT affected: they read the tool's behaviour, and a play-acted
+  // student is a fair enough subject for that. Engagement reads the exchange, and half of the exchange
+  // is then a fiction.
+  // no composite: five readings that disagree are more useful than one number that hides the
+  // disagreement, and a mean across dialogues would be a metric about reception, which not-knowing
+  // refuses. ⚠️ These are DESCRIPTIONS and none of them is validated against anything. No study says a
+  // reciprocity of 2.1 is better than 1.4. They are here to be read beside the transcript, not instead
+  // of it.
+  const turnsWithReply = rows.filter((r) => r.reply && r.reply.trim());
+  const qLen = (r) => String(r.question).trim().split(/\s+/).length;
+  const aLen = (r) => String(r.reply).trim().split(/\s+/).length;
+
+  // 1 · RECIPROCITY — whose words the dialogue is made of. A dialogue where one side does all the
+  // talking is a questionnaire or a lecture, whichever way it leans. Reported as a ratio, not a target.
+  const qWords = turnsWithReply.reduce((a, r) => a + qLen(r), 0);
+  const aWords = turnsWithReply.reduce((a, r) => a + aLen(r), 0);
+  const reciprocity = qWords ? aWords / qWords : 0;
+
+  // 2 · THINNING — the trajectory, first third against last third. A dialogue that is still going has
+  // replies that hold their length; one that has run out has replies that shrink while the questions do
+  // not. Both halves are reported, because a fall in BOTH is a conversation ending together and a fall
+  // in one is a conversation ending on one side.
+  const third = Math.max(1, Math.floor(turnsWithReply.length / 3));
+  const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
+  const aEarly = mean(turnsWithReply.slice(0, third).map(aLen));
+  const aLate  = mean(turnsWithReply.slice(-third).map(aLen));
+  const qEarly = mean(turnsWithReply.slice(0, third).map(qLen));
+  const qLate  = mean(turnsWithReply.slice(-third).map(qLen));
+
+  // 3 · UPTAKE, BOTH WAYS — and this is the measure the conformance set has no version of. `overlapPrev`
+  // above reads question-to-QUESTION overlap, which detects a rut. Uptake reads ACROSS the exchange:
+  // how much of each question comes out of the reply before it, and how much of each reply engages the
+  // question it answers. Two turns that share nothing are two monologues taking it in turns.
+  const uptakeQ = [], uptakeA = [];
+  for (let i = 0; i < turnsWithReply.length; i++) {
+    const prevReply = i > 0 ? words(turnsWithReply[i - 1].reply) : null;
+    const qw = words(turnsWithReply[i].question), aw = words(turnsWithReply[i].reply);
+    if (prevReply && prevReply.length) uptakeQ.push(qw.filter((w) => prevReply.includes(w)).length);
+    if (qw.length) uptakeA.push(aw.filter((w) => qw.includes(w)).length);
+  }
+
+  // 4 · ACCUMULATION — does the dialogue BUILD, or reset every turn? Material the person introduces
+  // early and that is still live late is what distinguishes a conversation from a series of unrelated
+  // exchanges. Counted as: content words first said by the person in the first half that reappear in
+  // the second half, on either side. 🔴 It is deliberately blind to WHO said it later — a question
+  // carrying somebody's earlier word forward is the dialogue building, not the tool echoing.
+  const half = Math.ceil(turnsWithReply.length / 2);
+  const earlyOwn = new Set(turnsWithReply.slice(0, half).flatMap((r) => words(r.reply)));
+  const lateAll = new Set(turnsWithReply.slice(half).flatMap((r) => [...words(r.reply), ...words(r.question)]));
+  const carried = [...earlyOwn].filter((w) => lateAll.has(w));
+
+  // 5 · ENDED, OR STOPPED — the question `turn_depth` structurally cannot answer, because a conversation
+  // that died at turn seven and one that finished at turn seven are the same row. A last reply carrying
+  // new material was still going when it stopped; a thin last reply had run out. ⚠️ This is the weakest
+  // reading here and is offered as a question rather than a verdict: somebody can end a good conversation
+  // with three words because they are satisfied, and nothing in the text distinguishes that.
+  const last = turnsWithReply[turnsWithReply.length - 1];
+  const priorWords = new Set(turnsWithReply.slice(0, -1).flatMap((r) => words(r.reply)));
+  const lastNew = last ? words(last.reply).filter((w) => !priorWords.has(w)).length : 0;
+
+  const spark = turnsWithReply.map((r) => {
+    const n = aLen(r);
+    return n === 0 ? '·' : '▁▂▃▄▅▆▇█'[Math.min(7, Math.floor(Math.log2(Math.max(1, n)) - 1))] || '▁';
+  }).join('');
+
+  console.log(`\n${'='.repeat(78)}`);
+  console.log('THE DIALOGUE  — properties of the exchange, not of anybody in it');
+  if (!savedTurns) console.log('🔴 ON A PROBE RUN THESE MEAN LITTLE — the student is play-acted. See the note below.');
+  console.log('-'.repeat(78));
+  console.log(`reciprocity          ${reciprocity.toFixed(2)}  (${aWords} words answered to ${qWords} asked)`);
+  console.log(`reply trajectory     ${aEarly.toFixed(0)} → ${aLate.toFixed(0)} words   `
+    + `${aLate < aEarly * 0.6 ? 'THINNING' : aLate > aEarly * 1.4 ? 'opening out' : 'holding'}`);
+  console.log(`question trajectory  ${qEarly.toFixed(0)} → ${qLate.toFixed(0)} words   `
+    + `${qLate < qEarly * 0.6 ? '(the questions thinned too — it ended together)' : '(the questions held)'}`);
+  console.log(`uptake  Q←last A     ${mean(uptakeQ).toFixed(1)} words   `
+    + `${mean(uptakeQ) < 1 ? '— the questions barely reach into what was just said' : ''}`);
+  console.log(`uptake  A←this Q     ${mean(uptakeA).toFixed(1)} words   `
+    + `${mean(uptakeA) < 1 ? '— the replies barely engage the question asked' : ''}`);
+  console.log(`accumulation         ${carried.length} of their early words still live late`
+    + `${carried.length ? `  — ${carried.slice(0, 6).join(', ')}` : '  — the dialogue reset every turn'}`);
+  console.log(`last reply           ${last ? aLen(last) : 0} words, ${lastNew} of them new`
+    + `  ${lastNew >= 3 ? '(still going when it stopped)' : '(had run out, or was done)'}`);
+  console.log(`shape                ${spark}   (reply lengths, first to last)`);
+  console.log('-'.repeat(78));
+  console.log('⚠️  none of these is validated against anything, and there is no composite on purpose.');
+  console.log('   Read them beside the transcript, never instead of it.');
+
   console.log(`\n${'='.repeat(78)}`);
   // An apostrophe in an anchor is a contraction, and a contraction is never material — counted here
   // rather than in WEAK because the list cannot enumerate them and this reading must not flatter itself.
@@ -300,11 +515,14 @@ async function assertLiveBuild() {
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   mkdirSync(join(APP, '..', 'docs', 'ops', 'flow-probe-runs'), { recursive: true });
   const out = join(APP, '..', 'docs', 'ops', 'flow-probe-runs', `enquiry-conversation-${stamp}.json`);
-  writeFileSync(out, JSON.stringify({ persona: PERSONA, rounds: ROUNDS, edge: EDGE,
+  writeFileSync(out, JSON.stringify({
+    source: savedTurns ? 'saved-dialogue' : 'probe',
+    transcript: savedTurns ? TRANSCRIPT : undefined,
+    persona: savedTurns ? undefined : PERSONA, rounds: savedTurns ? rows.length : ROUNDS, edge: edgeText,
     summary: { distinct, weak: weakAnchors.length, weakWords: [...new Set(weakAnchors)], turns: anchors.length, repeats, covered, named: goalWords.length, meanOverlap, longestRut, rutWord, tells, breaches },
     rows }, null, 2));
   appendFileSync(join(APP, '..', 'docs', 'ops', 'flow-probe-log.md'),
-    `\n- **enquiry-conversation-probe** ${stamp} · persona \`${PERSONA}\` · ${ROUNDS} rounds — `
+    `\n- **enquiry-conversation-probe** ${stamp} · ${savedTurns ? `READ \`${TRANSCRIPT.split('/').slice(-1)[0]}\` (a real dialogue)` : `persona \`${PERSONA}\``} · ${savedTurns ? rows.length : ROUNDS} rounds — `
     + `${distinct} distinct anchors (${weakAnchors.length} weak), ${repeats} student repeats, coverage ${covered}/${goalWords.length}, `
     + `longest rut ${longestRut} on \`${rutWord}\`, ${tells} tells, ${breaches} breaches. \`${out.split('/').slice(-1)[0]}\`\n`);
   console.log(`\nwritten: ${out}`);

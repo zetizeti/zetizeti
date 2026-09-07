@@ -8,17 +8,17 @@
 <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <meta name="theme-color" content="#0a1428" />
-<meta name="description" content="A questioning partner for design students. It asks the questions; you do the thinking — name the edge you're trying to sharpen and it asks back, grounding each question in the real, unresolved tensions of your discipline. The thinking stays yours." />
+<meta name="description" content="It asks the questions; you do the thinking. Name the edge you are working on and the stone asks back, grounded in real, unresolved tensions. There is no answer it is holding back." />
 <meta property="og:type" content="website" />
 <meta property="og:title" content="zetizeti — it asks the questions, you do the thinking" />
-<meta property="og:description" content="A questioning partner for design students. It asks the questions; you do the thinking — each one grounded in the real, unresolved tensions of your discipline." />
+<meta property="og:description" content="It asks the questions; you do the thinking. The refusal to answer is enforced in code, not asked of the model." />
 <meta property="og:url" content="https://zetizeti.com" />
 <meta property="og:image" content="https://zetizeti.com/og-image.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="zetizeti — it asks the questions, you do the thinking" />
-<meta name="twitter:description" content="A questioning partner for design students. The thinking stays yours." />
+<meta name="twitter:description" content="It asks the questions; you do the thinking. The refusal to answer is enforced in code." />
 <meta name="twitter:image" content="https://zetizeti.com/og-image.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -203,6 +203,19 @@
   .capmark button.not.on{background:rgba(216,72,48,.16); border-color:var(--vermilion); color:var(--vermilion)}
   body.capturing::after{content:"\25CF capturing"; position:fixed; right:12px; bottom:10px; z-index:40; font-family:var(--mono); font-size:10px; letter-spacing:.1em; color:var(--vermilion); opacity:.7; pointer-events:none}
   .nav-author{color:var(--vermilion) !important}
+  /* 🔴 COLOUR ONLY, and that is the whole reason this works. `.nav-studio` set `display:flex` with no
+     matching `[hidden]` rule, so an author display rule outranked the UA's and the element rendered for
+     everyone from 10 to 13 August — the kicker with no tools after it. A nav link that sets no display
+     lets the browser's own `[hidden]{display:none}` do the hiding, which cannot be got wrong. */
+  .nav-deposit{color:var(--turq-bright) !important}
+  .deposit-row{display:flex; gap:12px; align-items:center; margin:20px 0 10px}
+  .deposit-note{font-size:13px; color:var(--faint); margin:6px 0 0}
+  .deposit-note.bad{color:var(--vermilion)}
+  .deposit-list{margin-top:22px}
+  .deposit-item{display:flex; gap:14px; align-items:center; padding:9px 0; border-bottom:1px solid rgba(120,120,140,.16)}
+  .deposit-name{flex:1; font-size:14px}
+  .deposit-meta{font-family:var(--mono); font-size:11px; color:var(--faint)}
+  .vsub.dim{color:var(--faint)}
   .author-head{margin:6px 0 18px}
   .author-tag{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--vermilion); opacity:.85}
   .author-sub{font-family:var(--text); color:var(--bone-dim); max-width:60ch; line-height:1.7; margin:8px 0 0; font-size:15px}
@@ -654,6 +667,7 @@
       <a id="navCrit">critique</a>
       <a id="navSpec">spec</a>
       <a id="navAuthor" class="nav-author" hidden>author</a>
+      <a id="navDeposit" class="nav-deposit" hidden>deposit</a>
       <a id="navAbout">about</a>
       <span class="nav-studio" id="navStudio" hidden><span class="studio-kicker">studio</span></span>
       <a id="navAdmin" class="nav-admin" hidden>review</a>
@@ -680,9 +694,8 @@
         </div>
         <span class="ethos">It asks the questions. You do the thinking.</span>
         <span class="ethos-sub">One voice helps you <em>develop</em> an idea; the other <em>stress-tests</em> it — to see if it holds.</span>
-        <p class="lede">A questioning partner for design students. Name the edge you're trying to <b>develop</b> and the stone asks back, grounded in the real tensions of your discipline — or bring an idea you want to <b>stress-test</b>, and it questions <em>that</em> to see whether it holds, pointing to where the text quietly decided for you. It never hands you the answer; the thinking stays <b>yours</b>.</p>
+        <p class="lede">Name the edge you are trying to <b>develop</b> and the stone asks back, against tensions in the field that were never settled. Or bring an idea you want to <b>stress-test</b>: it questions <em>that</em> instead, and points to where the text quietly decided for you. <b>It never hands you the answer, and that is enforced rather than promised</b> — every question is held back and checked by code before it reaches you, which is why they do not arrive word by word.</p>
         <p class="nameline">The name doubles <em>zeti</em>, from the Greek <em>zetetic</em> — "proceeding by inquiry" — with an echo of the Sanskrit <em>neti neti</em>, "not this, not this". <a id="aboutLink" class="aboutlink">What the two voices are →</a></p>
-        <p class="notyet"><b>It does not do this well enough yet.</b> It works for students who stay patient with it and loses the others.</p>
         <div class="signin">
           <a class="btn-google" href="/auth/google" id="googleBtn">
             <svg width="18" height="18" viewBox="0 0 48 48" fill="#1a1206" aria-hidden="true">
@@ -708,7 +721,7 @@
       <h2 class="vh">Begin an enquiry</h2>
 
       <div id="enquiryUI">
-      <p class="vsub">Name the edge you're trying to <b>develop</b> and the stone asks back, grounded in the real tensions of design. The thinking stays yours. Nothing is saved — each enquiry lives only while this tab is open.</p>
+      <p class="vsub">Say what you are working on and where it resists you. The questions come back in your own words, against tensions in the field that were never settled. Nothing is saved here — the conversation is yours and this holds no copy of it, so download it if you want to keep it.</p>
       <div class="newq">
         <input id="newqName" placeholder="Name what you're trying to do — e.g. “onboarding for a meditation app”" />
         <button id="newqBtn">begin</button>
@@ -828,10 +841,31 @@
   </section>
 
   <!-- ===== PROGRESS ===== -->
+  <!-- ── DEPOSIT A DIALOGUE ────────────────────────────────────────────────────────────────────────
+       🔴 AN UPLOAD, NOT AN EDITOR. There is deliberately nothing here to type into. A resident marks
+       the markdown in their own editor and sends the file; a textarea is one element away from the
+       marking interface the residency terms forbid, and once one existed somebody would mark in it.
+       The three controls are: choose a file, see what you have sent, take one back. -->
+  <section class="view" id="view-deposit">
+    <div class="wrap short">
+      <h2 class="vh">Deposit a dialogue</h2>
+      <p class="vsub">A dialogue you saved, marked wherever the questioning failed you and with what it
+        should have asked instead. Mark it in your own editor — there is nothing to type here. Send the
+        <code>.md</code>; it is the file you already have and nothing else holds a copy of it.</p>
+      <p class="vsub">You can take any of them back at any time, and that is not a negotiation.</p>
+      <div class="deposit-row">
+        <input type="file" id="depositFile" accept=".md,text/markdown,text/plain" />
+        <button class="btn" id="depositSend" disabled>send it</button>
+      </div>
+      <p class="deposit-note" id="depositNote" hidden></p>
+      <div id="depositList" class="deposit-list"></div>
+    </div>
+  </section>
+
   <section class="view" id="view-progress">
     <div class="wrap short">
       <h2 class="vh">Where your enquiries have travelled</h2>
-      <p class="vsub">Progress here is not a score. It's the edge getting sharper — how many times you re-drew each goal, and the line from vague to sharp. Private to you.</p>
+      <p class="vsub">Nothing here is scored, because a score would be about you and what gets made is the conversation. This shows how the goal was re-drawn as it went. It is private to you, it exists nowhere else, and it goes when the tab does.</p>
       <div class="qlist" id="progressList"></div>
     </div>
   </section>
@@ -843,6 +877,7 @@
       <span class="backlink" id="aboutBack">‹ back</span>
       <h2 class="vh">The two voices</h2>
       <p class="vsub">zetizeti is a whetstone. A whetstone does not cut for you; it is the stone you draw your own edge against. It asks; it does not answer. It has two voices — <b>one helps you develop an idea, the other stress-tests an idea to see if it holds</b>; both ask questions in your own words, and neither hands you a conclusion.</p>
+      <p class="vsub"><b>The conversation is not a route to something else.</b> A tool that teaches you something has a thing to deliver — a method, a correction — and the talking is how it travels; once it has arrived, the talking can be thrown away. Nothing is being delivered here. <b>No answer is handed over because there is none to hand over.</b></p>
 
       <div class="about-mode">
         <div class="about-tag">first voice · to develop</div>
@@ -869,14 +904,13 @@
       <div class="about-mode">
         <div class="about-tag">what holds across both</div>
         <h3>Questions only. The thinking stays yours.</h3>
-        <p>The second voice is not a looser version of the first — it is the same discipline, held tighter. Both speak in questions and nothing else. Both reuse your exact words rather than paraphrasing them. Neither explains, advises, reassures, concludes, or scores. There are no grades here, no leaderboards, no percent-complete — only the edge getting sharper, which is private to you. <b>It asks the questions; you do the thinking — whether the premature answer came from you, or from a machine.</b></p>
+        <p>The second voice is not a looser version of the first — it is the same discipline, held tighter. Both speak in questions and nothing else. Both reuse your exact words rather than paraphrasing them. Neither explains, advises, reassures, concludes, or scores. There are no grades here, no leaderboards, no percent-complete. Those measure a person, and what gets made here is a conversation. <b>It asks the questions; you do the thinking — whether the premature answer came from you, or from a machine.</b></p>
       </div>
 
       <div class="about-mode crit">
         <div class="about-tag">what it does not do yet</div>
-        <h3>It is not yet good enough at this</h3>
-        <p>Everything above is what zetizeti is for. It is not yet good enough at it.</p>
-        <p>It works for students who stay patient with it and loses the others. That is the bar it has not cleared, and clearing it is what a 1.0 would mean here.</p>
+        <h3>Where it stands</h3>
+        <p>It asks a great deal of patience. People who do not have it to give leave, and most people do not have it to give.</p>
         <p class="about-want">The method core, Part A, is one note where it should be many. Until v0.16.0 the second voice asked two-box questions: is it this, or is it that. A student picked from those boxes instead of describing what was in front of them. It ran that way for months. It was found because a student said it felt off and could not say why.</p>
       </div>
 
@@ -1120,7 +1154,7 @@ async function loadStudioFooter(){
   if(typeof u.questions==='number'){ $('fsAff').innerHTML='that buys about <b>'+plus(u.questions)+' questions</b>'; }
   $('studioFooter').hidden=false;
 }
-const views = { login:$('view-login'), quests:$('view-quests'), conversation:$('view-conversation'), progress:$('view-progress'), about:$('view-about'), criticism:$('view-criticism'), 'criticism-chat':$('view-criticism-chat'), spec:$('view-spec'), 'spec-chat':$('view-spec-chat'), admin:$('view-admin'), author:$('view-author') };
+const views = { login:$('view-login'), quests:$('view-quests'), conversation:$('view-conversation'), progress:$('view-progress'), about:$('view-about'), criticism:$('view-criticism'), 'criticism-chat':$('view-criticism-chat'), spec:$('view-spec'), 'spec-chat':$('view-spec-chat'), admin:$('view-admin'), author:$('view-author'), deposit:$('view-deposit') };
 function showView(name){
   for(const k in views) views[k].classList.toggle('active', k===name);
   // topbar hidden on the landing, and on About when reached before sign-in (nav links would 404).
@@ -1164,6 +1198,7 @@ async function route(path){
   if(crit){ openNewCritique(); return; }
   switch(path){
     case '/about':    showView('about'); break;
+    case '/deposit':  showView('deposit'); loadDeposits(); break;
     case '/critique': openNewCritique(); break;
     case '/spec':     openNewSpec(); break;
     case '/author':   openAuthor(); break;
@@ -1224,6 +1259,10 @@ let turnsSinceNudge=99;
   if(cfg.version) document.querySelectorAll('.build-ver').forEach(e=>{ e.textContent='v'+cfg.version; });
   cfg.capture = !!c.capture;   // LOCAL capturing instance only — enables the on-voice/off-voice marks + author mode
   if(cfg.capture){ document.body.classList.add('capturing'); const na=$('navAuthor'); if(na) na.hidden=false; }
+  // 🔴 IDENTITY, NOT WALLET — the split the studio strip already makes. Whether somebody may deposit a
+  // dialogue has nothing to do with whether a key has been vended for them, and reading it off a wallet
+  // endpoint is exactly how a whole cohort saw nothing on day one.
+  try{ const pool=await api('/api/pool'); const nd=$('navDeposit'); if(nd && pool && pool.resident) nd.hidden=false; }catch(e){}
   // Dev-only guest entry (the server only offers this off-production) — so the app is drivable
   // locally without Google OAuth configured. Hidden on the real, OAuth-only site.
   if(cfg.guestAllowed){
@@ -2346,8 +2385,14 @@ function buildTranscriptMd(){
   let body='';
   for(const h of history){ if(h.role==='interlocutor') body+='**Q.** '+String(h.content).replace(/\n+/g,' ')+'\n\n'; else body+=String(h.content)+'\n\n'; }
   return '---\nsource: zetizeti\ntype: idea-transcript\ntopic: '+topic+'\ndate: '+new Date().toISOString()+'\nturns: '+turns+(focus==='concept'?'\nfocus: concept-only':'')+'\n---\n\n'
-    +'# Idea transcript — '+topic+'\n\n'
-    +"_An AI Club idea transcript from zetizeti. The student's own responses are the substance; the questions are light context._\n\n"
+    +'# A dialogue — '+topic+'\n\n'
+    // 🔴 THE FILE SAYS WHAT IT IS (7 Sep 2026). It read "An AI Club idea transcript… the student's own
+    // responses are the substance; the questions are light context" — which said `student`, and called
+    // half of the dialogue CONTEXT. Both were the aid framing written into the artifact itself: a
+    // transcript is a record of something, and this is the thing. Nothing else holds a copy.
+    +'_This is a dialogue with zetizeti, and it is the whole of what happened — the questions and your\n'
+    +'answers together, neither one the context for the other. It exists nowhere else: nothing was stored,\n'
+    +'nothing was scored, and no copy was kept. What you do with it is yours to decide._\n\n'
     +body;
 }
 function downloadFile(name, text, mime){ const b=new Blob([text],{type:mime+';charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1500); }
@@ -2363,11 +2408,16 @@ function pdfWriter(){
 function downloadTranscriptPdf(){
   const w=pdfWriter(); if(!w){ alert('PDF library not loaded — try the .md instead.'); return; }
   const { doc, block }=w;
-  block('Idea transcript — '+transcriptTopic(), 'bold', 18, [20,20,40], 22, 6);
-  block("An AI Club idea transcript from zetizeti. Your responses are the substance; the questions are context.", 'italic', 10, [120,120,130], 14, 12);
+  block('A dialogue — '+transcriptTopic(), 'bold', 18, [20,20,40], 22, 6);
+  block("This is a dialogue with zetizeti and it is the whole of what happened. It exists nowhere else: nothing was stored, nothing was scored, and no copy was kept.", 'italic', 10, [120,120,130], 14, 12);
+  // 🔴 THE TWO VOICES ARE TYPOGRAPHIC PEERS (7 September 2026). Until today the question was set at 10.5pt
+  // italic in grey-gold on tight leading and the reply at 12.5pt near-black on generous leading — a
+  // hierarchy saying the questions were light context and the answers the substance. That is the aid
+  // framing expressed in LAYOUT, which no sweep of the copy would ever have found. Same size, same ink,
+  // same leading now; the italic marks who is speaking and does not rank them.
   for(const h of history){
-    if(h.role==='interlocutor') block('Q.  '+h.content, 'italic', 10.5, [150,120,40], 15, 5);   // question: light context
-    else block(h.content, 'normal', 12.5, [25,25,35], 17, 13);                                    // response: the substance
+    if(h.role==='interlocutor') block('Q.  '+h.content, 'italic', 12, [25,25,35], 17, 9);
+    else block(h.content, 'normal', 12, [25,25,35], 17, 13);
   }
   doc.save(transcriptName('pdf'));
 }
@@ -2403,8 +2453,10 @@ function buildCritTranscriptMd(artefact, turns, focusMode){
   let body='';
   for(const h of (turns||[])){ if(h.role==='stone') body+='**Q.** '+String(h.content).replace(/\n+/g,' ')+'\n\n'; else body+=String(h.content)+'\n\n'; }
   return '---\nsource: zetizeti\ntype: critique-transcript\ntopic: '+topic+'\ndate: '+new Date().toISOString()+'\nturns: '+mine+(focusMode==='concept'?'\nfocus: concept-only':'')+'\n---\n\n'
-    +'# Critique transcript — '+topic+'\n\n'
-    +'_A critique from zetizeti. The stone questioned the text below, never you; your own responses are the substance. Nothing here was scored, ranked, or compared against anything._\n\n'
+    +'# A dialogue about a text — '+topic+'\n\n'
+    +'_This is a dialogue with zetizeti about the text below, and it is the whole of what happened. The\n'
+    +'stone questioned the text, never you. It exists nowhere else: nothing was stored, nothing was scored,\n'
+    +'ranked or compared against anything, and no copy was kept._\n\n'
     +'## the text under question\n\n'
     +'> '+String(artefact||'').trim().replace(/\n+/g,'\n> ')+'\n\n'
     +'## the questioning\n\n'
@@ -2413,13 +2465,15 @@ function buildCritTranscriptMd(artefact, turns, focusMode){
 function downloadCritTranscriptPdf(){
   const w=pdfWriter(); if(!w){ alert('PDF library not loaded — try the .md instead.'); return; }
   const { doc, block }=w;
-  block('Critique transcript — '+critTranscriptTopic(critArtefact), 'bold', 18, [20,20,40], 22, 6);
-  block('A critique from zetizeti. The stone questioned the text below, never you; your responses are the substance. Nothing was scored, ranked, or compared.', 'italic', 10, [120,120,130], 14, 12);
+  block('A dialogue about a text — '+critTranscriptTopic(critArtefact), 'bold', 18, [20,20,40], 22, 6);
+  block('This is a dialogue with zetizeti about the text below, and it is the whole of what happened. The stone questioned the text, never you. Nothing was stored, scored, ranked or compared.', 'italic', 10, [120,120,130], 14, 12);
   block('the text under question', 'bold', 9.5, [150,120,40], 13, 4);
   block(critArtefact||'', 'italic', 11, [70,70,85], 15, 14);
+  // The two voices are typographic peers here for the same reason as the enquiry PDF above. The text
+  // under question stays visually distinct, because it is a third thing and neither party said it.
   for(const h of critHistory){
-    if(h.role==='stone') block('Q.  '+h.content, 'italic', 10.5, [150,120,40], 15, 5);   // question: light context
-    else block(h.content, 'normal', 12.5, [25,25,35], 17, 13);                            // response: the substance
+    if(h.role==='stone') block('Q.  '+h.content, 'italic', 12, [25,25,35], 17, 9);
+    else block(h.content, 'normal', 12, [25,25,35], 17, 13);
   }
   doc.save(critTranscriptName('pdf'));
 }
@@ -2691,6 +2745,71 @@ async function authorAsk(){
   authorState.busy=false; $('authorSend').disabled=false; $('authorInput').focus();
 }
 $('navAuthor').addEventListener('click', ()=>go('/author'));
+
+// ── DEPOSIT ────────────────────────────────────────────────────────────────────────────────────
+// 🔴 IT IS AN UPLOAD. The file is read IN THE TAB with FileReader and posted as text — the same shape
+// as resuming a transcript and as the criticism surface's PDF read. Nothing is captured; something is
+// sent, and that distinction is the whole safety of the surface.
+$('navDeposit').addEventListener('click', ()=>go('/deposit'));
+
+function depositNote(msg, bad){
+  const n=$('depositNote'); if(!n) return;
+  n.hidden=!msg; n.textContent=msg||''; n.classList.toggle('bad', !!bad);
+}
+async function loadDeposits(){
+  const list=$('depositList'); if(!list) return;
+  try{
+    const r=await api('/api/submissions');
+    const rows=(r&&r.submissions)||[];
+    if(!rows.length){ list.innerHTML='<p class="vsub dim">Nothing sent yet.</p>'; return; }
+    // Metadata only — the server never returns a body, so there is nothing here to read back.
+    list.innerHTML=rows.map(x=>`<div class="deposit-item"><span class="deposit-name">${
+      (x.filename||'a dialogue').replace(/[<>&]/g,'')}</span><span class="deposit-meta">${
+      Math.round(x.bytes/1024)} KB · ${new Date(x.created_at).toLocaleDateString()}</span>`
+      + `<button class="btn-quiet" data-withdraw="${x.id}">withdraw</button></div>`).join('');
+    list.querySelectorAll('[data-withdraw]').forEach(b=>b.addEventListener('click', ()=>withdrawDeposit(b.dataset.withdraw)));
+  }catch(e){ list.innerHTML=''; }
+}
+async function withdrawDeposit(id){
+  // No confirmation step, deliberately. Withdrawal is not a negotiation, and a dialogue is the
+  // depositor's — asking them twice whether they meant it is the interface arguing with them.
+  try{
+    await api('/api/submissions/'+encodeURIComponent(id), { method:'DELETE' });
+    depositNote('withdrawn.');
+    loadDeposits();
+  }catch(e){ depositNote('could not withdraw that one.', true); }
+}
+(function wireDeposit(){
+  const f=$('depositFile'), b=$('depositSend'); if(!f||!b) return;
+  let text=null, name=null;
+  f.addEventListener('change', ()=>{
+    const file=f.files&&f.files[0]; text=null; b.disabled=true; depositNote('');
+    if(!file) return;
+    name=file.name;
+    const rd=new FileReader();
+    rd.onload=()=>{
+      const t=String(rd.result||'');
+      // Refused HERE as well as at the server, so somebody learns it is the wrong file before sending
+      // it rather than after. The server's refusal is the one that binds.
+      if(!/^---\r?\n[\s\S]*?^source:\s*zetizeti\s*$/m.test(t)){
+        depositNote('That is not a zetizeti dialogue — send the .md you saved from a conversation here.', true);
+        return;
+      }
+      text=t; b.disabled=false; depositNote(`${name} — ${Math.round(t.length/1024)} KB, ready.`);
+    };
+    rd.onerror=()=>depositNote('could not read that file.', true);
+    rd.readAsText(file);
+  });
+  b.addEventListener('click', async ()=>{
+    if(!text) return;
+    b.disabled=true; depositNote('sending…');
+    try{
+      await api('/api/submissions', { method:'POST', body: JSON.stringify({ filename:name, body:text }) });
+      depositNote('sent. It is yours and you can take it back whenever you like.');
+      f.value=''; text=null; loadDeposits();
+    }catch(e){ depositNote('that did not send.', true); b.disabled=false; }
+  });
+})();
 $('authorNew').addEventListener('click', openAuthor);
 $('authorSend').addEventListener('click', authorAsk);
 $('authorInput').addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); authorAsk(); } });

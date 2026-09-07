@@ -5,7 +5,7 @@
 <h3 align="center">It asks the questions. You do the thinking.</h3>
 
 <p align="center">
-  A questioning partner for design students — live at <a href="https://zetizeti.com">zetizeti.com</a>
+  It asks the questions; the conversation is the whole of it — live at <a href="https://zetizeti.com">zetizeti.com</a>
 </p>
 
 <p align="center">
@@ -25,19 +25,26 @@
 
 ---
 
-zetizeti is a web Socratic-inquiry toolkit for design students. The interlocutor — *"the stone"* — is a
-whetstone: it does not cut for you; it is the thing you draw your own edge against. It asks; it does not
-answer. Every architectural decision in this repository exists to enforce one commitment:
-**the tool never deposits a conclusion.** What a learner finds for themselves, they keep; what they are
-told, they borrow.
+zetizeti is a web Socratic questioning instrument. The interlocutor — *"the stone"* — is a whetstone: it
+does not cut for you; it is the thing you draw your own edge against. It asks; it does not answer.
+
+**What it makes is a dialogue, and the dialogue is not a route to something else.** Ordinary teaching
+treats a conversation as a vehicle carrying a concept or a correction, discardable once that has arrived.
+Nothing is carried here. There is no payload, so there is nothing the questioning could be a means to, and
+the conversation is the entire event. Every architectural decision in this repository exists to enforce one
+commitment: **the tool never deposits a conclusion.** What somebody finds for themselves, they keep; what
+they are told, they borrow.
+
+*(It read "a toolkit for design students" until 7 September 2026. That description framed it as an aid to
+an education conducted elsewhere, and it is retired.)*
 
 <p align="center">
   <img src="docs/images/landing.webp" alt="The zetizeti landing — name an edge, the stone asks back" width="760">
 </p>
 
-## What it does not do yet
+## Where it stands
 
-It works for students who stay patient with it and loses the others. That is the bar the versioning ladder calls 1.0. This does not clear it.
+It asks a great deal of patience. People who do not have it to give leave, and most people do not have it to give.
 
 201 of the 274 corpus entries are still awaiting sign-off on their framing. Their citations are verified — that gate is absolute and no entry ships without it — and the curtain states which of the two states each entry is in, per entry, in the learner's own view. The method core (Part A) is a single note where it should be many. The reading plan on the criticism surface was measured against the clock it replaced and came back null on question quality: it changes the route, not what gets asked. Until v0.16.0 that surface asked two-box questions, which handed the student a menu instead of a question. It was found because a student said it felt off and could not say why.
 

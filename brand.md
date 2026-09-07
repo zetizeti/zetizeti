@@ -11,7 +11,7 @@
 **"It asks the questions. You do the thinking."**
 
 ## Longer
-A questioning partner for design students. Name what you're trying to do; it asks back. It never tells you what to do — it grounds each question in the real, unresolved tensions of your discipline, and leaves the thinking to you.
+It asks the questions; you do the thinking. Name what you're trying to do and it asks back, grounding each question in real, unresolved tensions. It never tells you what to do, because it has nothing to hand over. What it makes is the conversation, and leaves the thinking to you.
 
 ## Voice
 Spare, attentive, unhurried. Second person. Asks; does not assert. Never reassures, never concludes. The interlocutor is "the stone."

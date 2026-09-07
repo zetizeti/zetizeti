@@ -28,8 +28,7 @@ import {
   beginMaint, maintConfigured, userIsMaint,
   personalAllowlistConfigured, personalAllowlistSize,
   studentsAllowlistConfigured, studentsAllowlistSize,
-  aiClubAllowlistConfigured, aiClubAllowlistSize, setAiClubRoster, aiClubRosterSource,
-} from './lib/auth.mjs';
+  aiClubAllowlistConfigured, aiClubAllowlistSize, setAiClubRoster, aiClubRosterSource, emailIsResident, residentAllowlistConfigured } from './lib/auth.mjs';
 import { resolveAiClubKey, forgetKey, creditEngineConfigured, fetchAiClubRoster } from './lib/credit-engine.mjs';
 import { TIER, tierForUser, tiersForUser, cohortSummary } from './lib/cohorts.mjs';
 import {
@@ -58,7 +57,8 @@ import { embedNeural, neuralReady, warmEmbeddings } from './lib/embed.mjs';
 import { readFeltShifts, itemWords } from './lib/feltshift.mjs';   // the felt-shift event detector (v0.10.0)
 import { resolveVersion } from './lib/version.mjs';
 import { capture, labelCapture, captureEnabled } from './lib/capture.mjs';   // LOCAL operator-only test-chat capture (never in production)
-import { buildStudentSystemPrompt, pickSeed } from './lib/author.mjs';        // LOCAL "author mode" — the play-acted student
+import { buildStudentSystemPrompt, pickSeed } from './lib/author.mjs';
+import { addSubmission, listSubmissions, withdrawSubmission } from './lib/db.mjs';        // LOCAL "author mode" — the play-acted student
 
 // Build version (SemVer, aligned to git tags — see lib/version.mjs). Resolved once at boot: from the
 // image's version.json in production, live from `git describe` in dev.
@@ -324,17 +324,22 @@ app.get('/api/usage', requireUser, async (req, res) => {
 // gated by the ₹ budget and the per-user turn allowance, not by a distinct-users-per-day limit.)
 app.get('/api/pool', requireUser, (req, res) => {
   const tier = tierOf(req.user.email);
+  // 🔴 IDENTITY, NOT WALLET (the split the studio strip already makes, v0.12.0). Whether somebody may
+  // deposit a dialogue has nothing to do with whether a key has been vended for them — reading it off a
+  // wallet endpoint is exactly how a whole cohort saw nothing on day one.
+  const resident = emailIsResident(req.user.email);
   // AI Club students don't draw on the pool — their cap is OpenRouter's per-key limit (invisible here).
   // Report the pool as off, tagged with the tier, so the front-end shows no (misleading) free-message counter.
-  if (tier === TIER.AI_CLUB) { res.json({ enabled: false, tier, aiClub: true }); return; }
+  if (tier === TIER.AI_CLUB) { res.json({ enabled: false, tier, aiClub: true, resident }); return; }
   // POOL_PERSONAL is own-key billing (no ₹ ceiling, no per-user turn cap) → no free-message counter,
   // same as AI Club. Only the STUDENTS tier has a metered turn allowance to report.
-  if (tier !== TIER.POOL_STUDENTS) { res.json({ enabled: false, tier }); return; }
+  if (tier !== TIER.POOL_STUDENTS) { res.json({ enabled: false, tier, resident }); return; }
   const day = utcDay();
   // The day is "open" when neither the per-day $ cap nor the lifetime ₹ budget is exhausted. Each
   // guard is inert when its env var is unset, so an instance capped only in rupees is read correctly.
   const dayOpen = !dayCapReached(day) && !budgetExhausted();
   res.json({
+    resident,
     enabled: true,
     tier,                                     // 'memorability'
     userTurnsPerDay: POOL_USER_TURNS,
@@ -1516,6 +1521,57 @@ app.post('/api/spec/build', requireUser, async (req, res) => {
   res.end();
 });
 
+// ── THE SUBMISSION SURFACE (7 September 2026) ────────────────────────────────────────────────────
+// 🔴 IT IS AN UPLOAD, NOT TELEMETRY, and every property below follows from that. Nothing is captured;
+// something is SENT. A resident marks a dialogue they already hold — the service never had a copy —
+// and deposits it deliberately. This is the only route by which a dialogue reaches anybody but the
+// person who was in it, which is what makes it the artifact's apparatus rather than a convenience.
+//
+// 🔴 INVARIANT #8 IS LIVE HERE, NOT CARVED OUT. #8 forbids the request body being LOGGED — captured
+// incidentally while processing. A submission endpoint does not log its body; it receives it, which is
+// the request's purpose. The real risk is the body reaching an ERROR log on a failed upload, which is
+// exactly the shape #8 names, so nothing in these handlers passes `req.body` to console on any path.
+function requireResident(req, res, next) {
+  // 404, never 403 — the route does not admit it exists to somebody not on the list. Same discipline as
+  // `beginGuest` and the maintenance door.
+  if (!residentAllowlistConfigured || !emailIsResident(req.user?.email)) {
+    res.status(404).json({ error: 'not found' });
+    return;
+  }
+  next();
+}
+
+const SUBMISSION_MAX = 400_000;   // a long dialogue is ~40k; this refuses a pasted archive, not a real one
+
+app.post('/api/submissions', requireUser, requireResident, (req, res) => {
+  const body = typeof req.body?.body === 'string' ? req.body.body : '';
+  const filename = typeof req.body?.filename === 'string' ? req.body.filename : null;
+  if (!body.trim()) { res.status(400).json({ error: 'empty submission' }); return; }
+  if (Buffer.byteLength(body, 'utf8') > SUBMISSION_MAX) { res.status(413).json({ error: 'too large' }); return; }
+  // The file must be a zetizeti dialogue. Not a validation of content — a refusal to become a general
+  // file drop on a service that stores nothing else.
+  if (!/^---\r?\n[\s\S]*?^source:\s*zetizeti\s*$/m.test(body)) {
+    res.status(400).json({ error: 'that is not a zetizeti dialogue — send the .md you saved from here' });
+    return;
+  }
+  try {
+    const row = addSubmission(req.user.id, req.user.email, { filename, body });
+    res.json({ ok: true, ...row });
+  } catch { res.status(500).json({ error: 'could not store the submission' }); }   // never echoes the body
+});
+
+app.get('/api/submissions', requireUser, requireResident, (req, res) => {
+  res.json({ submissions: listSubmissions(req.user.id) });   // metadata only — never the body
+});
+
+// 🔴 WITHDRAWAL IS NOT A NEGOTIATION (CLAUDE.md, the residency terms). It deletes, and only the
+// depositor may do it — ownership is checked in the statement rather than trusted from the request.
+app.delete('/api/submissions/:id', requireUser, requireResident, (req, res) => {
+  const gone = withdrawSubmission(req.user.id, String(req.params.id || ''));
+  if (!gone) { res.status(404).json({ error: 'not found' }); return; }
+  res.json({ ok: true, withdrawn: true });
+});
+
 // LOCAL "author mode" (build 2.0) — role-flipped: PRAYAS is the stone, this LLM play-acts a design
 // student, and HIS questions are captured as the first-hand voice corpus. Both endpoints 404 unless this
 // is a capturing dev instance (captureEnabled is hard-guarded off in production), so author mode cannot
@@ -1579,10 +1635,16 @@ app.use(express.static(join(__dirname, 'public'), {
   setHeaders: (res, p) => { if (p.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache'); },
 }));
 
+// 🔴 EVERY CLIENT ROUTE MUST BE IN THIS LIST, and `verification/spec-face.test.mjs` now asserts it by
+// reading BOTH lists. A path the client router knows and this list does not answers `Cannot GET` on a
+// reload or a shared link, and nothing else catches it: every unit test passes and the view renders
+// perfectly when reached by clicking. Two were found on 7 September 2026 by rendering the page —
+// `/deposit`, newly added, and `/enquiry`, which had been 404 IN PRODUCTION for as long as the route
+// had existed. Grep for the consumer, not the producer: the client is the producer of routes here.
 // SPA deep links — serve the app shell for the client routes so /critique, /about, /enquiry/:id
 // etc. resolve on a direct load or refresh (real shareable URLs, not hash links). The API routes
 // and static assets are matched first above; only genuine client paths fall through to here.
-app.get(['/about', '/critique', '/critique/:id', '/spec', '/progress', '/enquiries', '/enquiry/:id', '/admin', '/author'], (req, res) => {
+app.get(['/about', '/critique', '/critique/:id', '/spec', '/progress', '/enquiries', '/enquiry', '/enquiry/:id', '/admin', '/author', '/deposit'], (req, res) => {
   res.setHeader('Cache-Control', 'no-cache');
   res.sendFile(join(__dirname, 'public', 'index.html'));
 });

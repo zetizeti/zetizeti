@@ -164,3 +164,18 @@ test('🔴 the report renders a list and has nowhere to put a number', () => {
     'something in the render reads a length — a count on unfinished work is a mark');
   assert.ok(!/dropped/.test(body), 'the dropped tally is being shown; it is a fact about the model, not about her');
 });
+
+
+// ── EVERY CLIENT ROUTE MUST BE A SERVER DEEP LINK (7 September 2026) ───────────────────────────────
+// 🔴 A path the client router knows and the server does not answers `Cannot GET /deposit` on a reload
+// or a shared link, and NOTHING catches it: every unit test passes, the view renders when reached by
+// clicking, and it fails only for somebody arriving at the URL directly. Found by rendering the page,
+// which is the one thing that catches this class — the same lesson as the `hidden` guard.
+test('every path in the client router is served as a deep link', () => {
+  const server = readFileSync(new URL('../server.mjs', import.meta.url), 'utf8');
+  const routed = [...code.matchAll(/case '(\/[a-z-]+)':/g)].map((m) => m[1]);
+  const deepLinks = (server.match(/app\.get\(\[([^\]]+)\]/) || [])[1] || '';
+  const missing = routed.filter((p) => !deepLinks.includes(`'${p}'`));
+  assert.deepEqual(missing, [],
+    `these client routes are not served on a reload: ${missing.join(', ')} — add them to the SPA deep-link list in server.mjs`);
+});

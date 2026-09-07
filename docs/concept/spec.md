@@ -3,7 +3,7 @@
 **Created:** 23 May 2026, 16:55:04 · **Last updated:** 23 May 2026 (login build)
 **Status:** 🔨 BUILT (working prototype in `app/`) — no longer parked. The web-deployable,
 clean-corpus version exists and runs.
-**One line:** A web Socratic inquiry toolkit (questions only) over a copyright-clean,
+**One line:** A web Socratic questioning instrument (questions only) over a copyright-clean,
 verified synthetic corpus — the releasable answer to the in-copyright local agent below.
 
 ---
