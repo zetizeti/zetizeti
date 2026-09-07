@@ -386,94 +386,118 @@ async function assertLiveBuild() {
     }
   }
 
-  // ══ THE ENGAGEMENT READING (7 September 2026) ═══════════════════════════════════════════════════
+  // ══ NOTES ON A DIALOGUE — read the way a script editor reads a scene ═══════════════════════════
   //
-  // 🔴 A DIFFERENT PARADIGM FROM EVERYTHING ABOVE, AND THE OLD ONE IS NOT REPLACED — it is demoted.
-  // Every measure above answers *did the tool follow its rules*: anchors rotated, no rut, no breach, no
-  // tell. That is CONFORMANCE, and it was the right question while the tool was the thing being built.
-  // Since the dialogue became the artifact it reads the wrong object, because **a dialogue can be
-  // perfectly conformant and completely dead** — ten well-formed questions, ten thinning replies, and
-  // every conformance number green.
+  // 🔴 REVISED 7 September 2026 (Prayas: *"engagement needs to be assessed if at all like cinema
+  // dialogue"*). The first version of this section produced sensor VALUES — reciprocity, trajectory,
+  // uptake, accumulation. That was the wrong instrument twice over. **Cinema dialogue has been assessed
+  // seriously for a century and has never once been measured.** A script editor computes nothing; they
+  // read the scene and write notes: *this is on the nose · nothing happens between four and nine · you
+  // could cut this and lose nothing*. No score, no comparison across films, no target to optimise
+  // toward — which is exactly the apparatus this practice refuses everywhere else, and I had begun
+  // rebuilding it under the word "engagement", a word whose industry meaning is time-on-site.
   //
-  // 🔴 THE LINE THIS MUST NOT CROSS, and it is invariant #7's line exactly. *This person disengaged* is
-  // a characterisation of an inquirer and is forbidden. *Replies fell from 40 words to 6 across four
-  // turns while the questions held at 20* is a property of the dialogue, and is not. **Everything below
-  // describes the exchange and nothing describes either party.** Where a number is unflattering it is
-  // unflattering about the artifact, which is the only thing here that can be judged.
+  // 🔴 SO THESE ARE NOTES, AND EVERY ONE OF THEM POINTS AT A TURN. The output is not a verdict on the
+  // dialogue; it is a list of places to go and read, with the reason it is worth reading. **The value of
+  // a note is entirely in what it makes somebody open the transcript to.** Where a number appears it is
+  // there to locate a turn, never to rank a dialogue.
   //
-  // 🔴 NO SCORE, NO GRADE, NO AGGREGATE. One dialogue at a time, read by a person. There is deliberately
-  // 🔴 THESE READINGS ARE FOR A REAL DIALOGUE AND ARE NEARLY MEANINGLESS ON A PROBE RUN — measured
-  // 7 September 2026, the first time they were used. The play-acted student wrote 603 words against 154
-  // asked (reciprocity 3.92) and produced a PERFECTLY FLAT reply profile across ten turns, ▆▆▆▅▅▅▅▅▅▅.
-  // A real dialogue from 29 July read 1.38 and ▃▄▅▂▄▅▂▅▃. **A person's investment fluctuates — four
-  // words when a question does not land, forty when it does — and an instructed persona is generous on
-  // every turn by construction.** So it cannot thin, cannot trail off, and cannot end; the three things
-  // engagement is mostly made of are the three it cannot produce. This is the project's own standing
-  // finding — *a model doesn't close the tab* — arriving at a new instrument, now with numbers on it.
-  // ⚠️ The conformance measures above are NOT affected: they read the tool's behaviour, and a play-acted
-  // student is a fair enough subject for that. Engagement reads the exchange, and half of the exchange
-  // is then a fiction.
-  // no composite: five readings that disagree are more useful than one number that hides the
-  // disagreement, and a mean across dialogues would be a metric about reception, which not-knowing
-  // refuses. ⚠️ These are DESCRIPTIONS and none of them is validated against anything. No study says a
-  // reciprocity of 2.1 is better than 1.4. They are here to be read beside the transcript, not instead
-  // of it.
+  // 🔴 NO AGGREGATE IS AVAILABLE, and that is now structural rather than a promise. There is nothing
+  // here to sum: a note is a turn index and a sentence. Two dialogues produce two lists of notes, and
+  // lists of notes do not average. The previous version emitted numbers that invited comparison and I
+  // compared two of them within minutes of writing it, which is the whole argument for this change.
+  //
+  // ⚠️ Notes are made by a reader with craft, and this makes only the ones a machine can make honestly.
+  // It cannot see subtext, cannot tell whether anybody wanted anything, and cannot hear a line that
+  // nobody would say. It reads the transcript for FOUR shapes the craft has names for.
   const turnsWithReply = rows.filter((r) => r.reply && r.reply.trim());
-  const qLen = (r) => String(r.question).trim().split(/\s+/).length;
-  const aLen = (r) => String(r.reply).trim().split(/\s+/).length;
+  const notes = [];
+  const wordsOf = (t) => new Set(words(t));
 
-  // 1 · RECIPROCITY — whose words the dialogue is made of. A dialogue where one side does all the
-  // talking is a questionnaire or a lecture, whichever way it leans. Reported as a ratio, not a target.
-  const qWords = turnsWithReply.reduce((a, r) => a + qLen(r), 0);
-  const aWords = turnsWithReply.reduce((a, r) => a + aLen(r), 0);
-  const reciprocity = qWords ? aWords / qWords : 0;
-
-  // 2 · THINNING — the trajectory, first third against last third. A dialogue that is still going has
-  // replies that hold their length; one that has run out has replies that shrink while the questions do
-  // not. Both halves are reported, because a fall in BOTH is a conversation ending together and a fall
-  // in one is a conversation ending on one side.
-  const third = Math.max(1, Math.floor(turnsWithReply.length / 3));
-  const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
-  const aEarly = mean(turnsWithReply.slice(0, third).map(aLen));
-  const aLate  = mean(turnsWithReply.slice(-third).map(aLen));
-  const qEarly = mean(turnsWithReply.slice(0, third).map(qLen));
-  const qLate  = mean(turnsWithReply.slice(-third).map(qLen));
-
-  // 3 · UPTAKE, BOTH WAYS — and this is the measure the conformance set has no version of. `overlapPrev`
-  // above reads question-to-QUESTION overlap, which detects a rut. Uptake reads ACROSS the exchange:
-  // how much of each question comes out of the reply before it, and how much of each reply engages the
-  // question it answers. Two turns that share nothing are two monologues taking it in turns.
-  const uptakeQ = [], uptakeA = [];
-  for (let i = 0; i < turnsWithReply.length; i++) {
-    const prevReply = i > 0 ? words(turnsWithReply[i - 1].reply) : null;
-    const qw = words(turnsWithReply[i].question), aw = words(turnsWithReply[i].reply);
-    if (prevReply && prevReply.length) uptakeQ.push(qw.filter((w) => prevReply.includes(w)).length);
-    if (qw.length) uptakeA.push(aw.filter((w) => qw.includes(w)).length);
+  // ── 1 · COULD IT BE CUT? ─────────────────────────────────────────────────────────────────────────
+  // The strongest test in the craft, and the reason it is first. Remove the turn: does anything after
+  // it still depend on it? A turn is DEAD if no later question or reply uses material that entered the
+  // dialogue at that turn. Not "a weak turn" — a turn that could be deleted with nothing downstream
+  // noticing, which is the script editor's actual test and is nothing like a low score.
+  for (let i = 0; i < turnsWithReply.length - 1; i++) {
+    const r = turnsWithReply[i];
+    const before = new Set(turnsWithReply.slice(0, i).flatMap((x) => [...words(x.question), ...words(x.reply)]));
+    const introduced = [...new Set([...words(r.question), ...words(r.reply)])].filter((w) => !before.has(w));
+    if (!introduced.length) { notes.push([r.round, 'nothing new entered here at all — the turn could be cut and nothing before or after would change']); continue; }
+    const after = new Set(turnsWithReply.slice(i + 1).flatMap((x) => [...words(x.question), ...words(x.reply)]));
+    const survived = introduced.filter((w) => after.has(w));
+    if (!survived.length) notes.push([r.round, `what entered here (${introduced.slice(0, 4).join(', ')}) is never touched again — cuttable`]);
   }
 
-  // 4 · ACCUMULATION — does the dialogue BUILD, or reset every turn? Material the person introduces
-  // early and that is still live late is what distinguishes a conversation from a series of unrelated
-  // exchanges. Counted as: content words first said by the person in the first half that reappear in
-  // the second half, on either side. 🔴 It is deliberately blind to WHO said it later — a question
-  // carrying somebody's earlier word forward is the dialogue building, not the tool echoing.
-  const half = Math.ceil(turnsWithReply.length / 2);
-  const earlyOwn = new Set(turnsWithReply.slice(0, half).flatMap((r) => words(r.reply)));
-  const lateAll = new Set(turnsWithReply.slice(half).flatMap((r) => [...words(r.reply), ...words(r.question)]));
-  const carried = [...earlyOwn].filter((w) => lateAll.has(w));
+  // ── 2 · DOES THE LINE DO SOMETHING? ──────────────────────────────────────────────────────────────
+  // A question that could have been asked at any point in the conversation is doing nothing. The test
+  // is whether it is ANCHORED to the moment: does it reach into the reply immediately before it?
+  // This catches the rut, the generic question and the metronome in one category, and it catches them
+  // as a craft fault rather than as a threshold crossing.
+  // ⚠️ CALIBRATED ONCE AND WRONG. The first version asked whether the question shared ANY word with the
+  // previous reply, and it passed a dialogue the conformance read found sitting on one word for five
+  // consecutive questions — because a question recycling the topic noun still "touches" the last reply.
+  // **The furniture of a conversation is not uptake.** What the craft actually asks is whether the line
+  // takes something the previous answer ADDED; recycling the subject is the definition of a line that
+  // could have been said at any point.
+  for (let i = 1; i < turnsWithReply.length; i++) {
+    const priorAll = new Set(turnsWithReply.slice(0, i - 1).flatMap((x) => [...words(x.question), ...words(x.reply)]));
+    const addedByLastReply = words(turnsWithReply[i - 1].reply).filter((w) => !priorAll.has(w));
+    const q = words(turnsWithReply[i].question);
+    if (!addedByLastReply.length) continue;                    // they added nothing; that is their turn, not the question's fault
+    if (!q.some((w) => addedByLastReply.includes(w))) {
+      notes.push([turnsWithReply[i].round,
+        `takes nothing the last answer added (they brought ${addedByLastReply.slice(0, 3).join(', ')}) — this question could have been asked at any point`]);
+    }
+  }
 
-  // 5 · ENDED, OR STOPPED — the question `turn_depth` structurally cannot answer, because a conversation
-  // that died at turn seven and one that finished at turn seven are the same row. A last reply carrying
-  // new material was still going when it stopped; a thin last reply had run out. ⚠️ This is the weakest
-  // reading here and is offered as a question rather than a verdict: somebody can end a good conversation
-  // with three words because they are satisfied, and nothing in the text distinguishes that.
-  const last = turnsWithReply[turnsWithReply.length - 1];
-  const priorWords = new Set(turnsWithReply.slice(0, -1).flatMap((r) => words(r.reply)));
-  const lastNew = last ? words(last.reply).filter((w) => !priorWords.has(w)).length : 0;
+  // ── 3 · ON THE NOSE ──────────────────────────────────────────────────────────────────────────────
+  // A line that says exactly what it means, with no gap between surface and intent. In a questioning
+  // tool this is the question that ANNOUNCES ITS OWN FUNCTION — *what would help you clarify…*,
+  // *how might you explore…*. The craft's oldest complaint, and the tool has been groping at it under
+  // the name PREAMBLE_TELLS without the vocabulary.
+  const ON_THE_NOSE = /\b(clarify|explore|unpack|reflect on|think about|consider|examine|articulate|define)\b/i;
+  for (const r of turnsWithReply) {
+    if (ON_THE_NOSE.test(r.question)) {
+      notes.push([r.round, `on the nose — the question names the thinking it wants instead of asking for the thing (${(r.question.match(ON_THE_NOSE) || [])[0]})`]);
+    }
+  }
 
-  const spark = turnsWithReply.map((r) => {
-    const n = aLen(r);
-    return n === 0 ? '·' : '▁▂▃▄▅▆▇█'[Math.min(7, Math.floor(Math.log2(Math.max(1, n)) - 1))] || '▁';
-  }).join('');
+  // ── 4 · HAS THE THING MOVED? ─────────────────────────────────────────────────────────────────────
+  // Not *did they learn*, which is the aid frame and unmeasurable. Whether the ACCOUNT OF THE PROBLEM
+  // at the end differs from the account at the start — a property of the text, not a claim about
+  // anybody. One note either way, and it is the only note about the dialogue as a whole.
+  // ⚠️ AND THIS ONE WAS NOISE ON A SHORT ENDING. Comparing the LAST REPLY against the first gave 100%
+  // on a fifteen-word closing line, which says nothing — a short answer shares few words with anything.
+  // It now reads the closing THIRD against the opening third, and refuses to say anything at all when
+  // there is too little text on either side to mean it. A reading that produces a figure where there is
+  // nothing to read is worse than one that declines.
+  if (turnsWithReply.length >= 6) {
+    const third = Math.max(2, Math.floor(turnsWithReply.length / 3));
+    const open = new Set(turnsWithReply.slice(0, third).flatMap((x) => words(x.reply)));
+    const close = new Set(turnsWithReply.slice(-third).flatMap((x) => words(x.reply)));
+    if (open.size >= 12 && close.size >= 12) {
+      const shared = [...close].filter((w) => open.has(w)).length;
+      const moved = 1 - shared / close.size;
+      notes.push([turnsWithReply[turnsWithReply.length - 1].round, moved > 0.7
+        ? `by the close they are describing it in largely different terms — ${Math.round(moved * 100)}% of what they say late is not in what they said early. Read the first and last thirds together and see whether the thing moved or the subject changed.`
+        : `they are describing it in much the same terms at the close as at the start (${Math.round(moved * 100)}% new late). Read the first and last thirds together.`]);
+    }
+  }
+
+  console.log(`\n${'='.repeat(78)}`);
+  console.log('NOTES ON THE DIALOGUE  — read the way a scene is read, not scored');
+  if (!savedTurns) console.log('🔴 ON A PROBE RUN THESE ARE WORTH LITTLE — the student is play-acted. See the note in the source.');
+  console.log('-'.repeat(78));
+  if (!notes.length) {
+    console.log('  no notes. That is not praise — it means nothing this reads for was present.');
+  } else {
+    notes.sort((a, b) => a[0] - b[0]);
+    for (const [turn, text] of notes) console.log(`  turn ${String(turn).padStart(2)}   ${text}`);
+  }
+  console.log('-'.repeat(78));
+  console.log(`  ${notes.length} note(s) on ${turnsWithReply.length} turns. Every one names a turn; go and read those turns.`);
+  console.log('  There is no score here and nothing to sum — notes do not average.');
 
   console.log(`\n${'='.repeat(78)}`);
   console.log('THE DIALOGUE  — properties of the exchange, not of anybody in it');

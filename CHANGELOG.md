@@ -26,6 +26,18 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.0.1] — 7 September 2026
+
+**Notes on a dialogue, not measurements of one.**
+
+- 🔴 **The engagement reading is replaced by NOTES, read the way a script editor reads a scene** (Prayas: *"engagement needs to be assessed if at all like cinema dialogue"*). Cinema dialogue has been assessed seriously for a century and never once measured: a script editor computes nothing and writes notes. **The previous version emitted sensor values — reciprocity, trajectory, uptake, accumulation — and I compared two of them within minutes of writing it**, which is the argument for the change. *Engagement* is also the industry's word for time-on-site, and optimising it is how attention gets extracted.
+- **Four shapes with names the craft already has:** could it be cut · does the line do something · on the nose · has the thing moved. Every note points at a turn and says why it is worth reading.
+- 🔴 **No aggregate is available, structurally rather than by promise.** A note is a turn index and a sentence; lists of notes do not average. A comment saying *no composite* is a report, and a guard that only reports is not a guard.
+- ⚠️ **Calibrated once and wrong, caught on the first real dialogue.** *Does the line do something* first asked whether a question shared any word with the previous reply, and passed a dialogue that sat on one word for five consecutive questions — **the furniture of a conversation is not uptake**. And *has the thing moved* gave 100% off a fifteen-word closing line. Both recalibrated; the second now declines to speak when there is too little text.
+- 🟢 **Checked by doing what the notes instruct.** On a real July dialogue it flagged the turn where the learner said the vendor *"must guess the buyer's budget based entirely on visual cues like body language"* and the question came back about the transaction record. ⚠️ One false positive left unfixed on purpose: a typo read as new vocabulary, and the fix would be stemming, which starts quietly deciding two words are the same word.
+- **The fixture replays were run** — the standing two-student rule, owed since the lens repair and not run at the time. Guard 100% on both, uptake level on the terse student and +5 on the dense one. ⚠️ `judge%` rose on both (24→27, 11→17) and `reQ` nearly doubled on the terse one; consistent with more lens material reaching each turn, but one replay each against a non-deterministic model is a hypothesis, not a finding.
+- **`flow-probe.mjs` carries the dialogue out** rather than discarding it after computing aggregates, so a replay can be read rather than only scored.
+
 ## [1.0.0] — 7 September 2026
 
 **The dialogue is the pedagogy. The first version that is about the dialogue.**
