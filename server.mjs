@@ -478,7 +478,7 @@ async function feltForTurn({ goal, history, message }) {
 app.post('/api/chat', requireUser, async (req, res) => {
   const {
     message = '', history = [], goal = '', kind = 'turn',
-    honed = 0, exchanges = 0, lineage = [], discipline = 'all', turnsSinceNudge = 99,
+    honed = 0, exchanges = 0, lineage = [], turnsSinceNudge = 99,
   } = req.body || {};
   // CONCEPT-ONLY FOCUS (12 Aug 2026). Whitelisted rather than passed through: only the exact string
   // 'concept' turns it on, so an unknown value is no focus rather than an unspecified one.
@@ -545,8 +545,8 @@ app.post('/api/chat', requireUser, async (req, res) => {
   //       this turn (small corpus, everything excluded), retry without the exclusion so it degrades to
   //       "rotate", never "empty".
   //   (c) WIDER EXCLUSION (27 Jul 2026) — drop what the last THREE turns served, not just the previous
-  //       one. With a discipline selected a student draws on a few dozen entries at three per turn, so
-  //       across a twenty-turn arc a one-turn exclusion lets the same tensions return every other turn:
+  //       one. A student draws on a small share of the corpus at three per turn, so across a
+  //       twenty-turn arc a one-turn exclusion lets the same tensions return every other turn:
   //       the aims rotate while the grounding underneath them repeats. Still degrades to "rotate" via
   //       the cycle-back below, never to "empty".
   const prev = studentTurns[studentTurns.length - 2] || '';
@@ -565,14 +565,14 @@ app.post('/api/chat', requireUser, async (req, res) => {
   ].filter(Boolean);
   const excludeIds = (!prepping && studentTurns.length >= 2)
     ? [...new Set(recentWindows.flatMap((w) =>
-        retrieve(corpus, w, { limit: 3, extraTerms: goalTerms, discipline, focus }).map((r) => r.id)))]
+        retrieve(corpus, w, { limit: 3, extraTerms: goalTerms, focus }).map((r) => r.id)))]
     : [];
-  let retrieved = retrieve(corpus, windowText, { limit: 3, extraTerms: goalTerms, discipline, excludeIds, focus });
+  let retrieved = retrieve(corpus, windowText, { limit: 3, extraTerms: goalTerms, excludeIds, focus });
   if (!retrieved.length && excludeIds.length) {   // cycle-back: rotation emptied the results → re-include
     // NOTE the focus is carried into the cycle-back too. Dropping it here would make a making entry
     // reappear on exactly the turns where rotation had emptied the pool — the failure would be rare,
     // silent, and would look like the guard misfiring rather than the filter leaking.
-    retrieved = retrieve(corpus, windowText, { limit: 3, extraTerms: goalTerms, discipline, focus });
+    retrieved = retrieve(corpus, windowText, { limit: 3, extraTerms: goalTerms, focus });
   }
   const curtain = retrieved.map((r) => ({ id: r.id, snippet: r.snippet, sources: r.sources, provenance: r.provenance }));
 
@@ -966,7 +966,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
     // situation → the question, so a chat can be replayed by the 2.0 "sounds-like-Prayas" harness. The
     // returned id lets the local UI attach an on-voice/off-voice label to this exact question. The guard's
     // work is captured too (a repaired question is a different kind of specimen from a first-pass one).
-    const capId = capture({ mode: prepping ? 'prep' : 'enquiry', prepStation: prepping ? (prepWalk.station ? prepWalk.station.key : prepWalk.phase) : null, prepPart: prepping ? prepWalk.part : null, chatKey: studentTurns[0] || goal, goal, discipline, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, dwell: featureInvite ? 'INVITE' : stalledInvite ? 'INVITE-STALLED' : dwell ? `${dwell.anchor}×${dwell.returns}` : null, joined: assoc ? assoc.distance : null, declined: !!declined, corrected, repeated, stalled, newMaterial: newMaterial.slice(0, 3), shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
+    const capId = capture({ mode: prepping ? 'prep' : 'enquiry', prepStation: prepping ? (prepWalk.station ? prepWalk.station.key : prepWalk.phase) : null, prepPart: prepping ? prepWalk.part : null, chatKey: studentTurns[0] || goal, goal, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, dwell: featureInvite ? 'INVITE' : stalledInvite ? 'INVITE-STALLED' : dwell ? `${dwell.anchor}×${dwell.returns}` : null, joined: assoc ? assoc.distance : null, declined: !!declined, corrected, repeated, stalled, newMaterial: newMaterial.slice(0, 3), shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
       // Logged side by side so the comparison the todo doc asks for can be made on real transcripts
       // before anything is wired again. Local capture only — never in production (capture.mjs).
       sem: fs && fs.semFresh ? +fs.semFresh[fs.semFresh.length - 1].toFixed(3) : null,
@@ -1112,7 +1112,7 @@ async function resolveKeyForCriticism(req, res, send) {
 // Compose + stream ONE criticism question, guard it (verdict-drift, EVERY turn), and report its cost.
 // Shared by open + turn. Anchored to the artefact on every turn. Persists NOTHING — the client holds the
 // artefact, the reading, and the running transcript, and sends them back each turn.
-async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocated = null, discipline, goal, priorMessages, studentTurn, focus = null, segments = [], blurIds = [], brief = '' }) {
+async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocated = null, goal, priorMessages, studentTurn, focus = null, segments = [], blurIds = [], brief = '' }) {
   // Anti-sameness on the criticism surface (Siddhi, 16 Jul: it "constantly framing 'is this a property
   // or a verdict' to whatever answer I give"). This is the SAME machinery the enquiry path got on 13 Jul
   // and which this surface never had: watch the stone repeating ITSELF (selfEcho over its own prior
@@ -1139,10 +1139,10 @@ async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocat
   // rotate retrieval off the previous turn's tensions when it's circling (recency filter, invariant #1 safe).
   const prevStudent = [...priorMessages].reverse().find((m) => m.role !== 'stone')?.content || '';
   const excludeIds = (selfEcho >= 0.5 && prevStudent)
-    ? retrieve(corpus, prevStudent, { limit: 3, extraTerms: goalTermsOf(goal), discipline, focus }).map((r) => r.id)
+    ? retrieve(corpus, prevStudent, { limit: 3, extraTerms: goalTermsOf(goal), focus }).map((r) => r.id)
     : [];
-  let retrieved = retrieve(corpus, probe, { limit: 3, extraTerms: goalTermsOf(goal), discipline, excludeIds, focus });
-  if (!retrieved.length && excludeIds.length) retrieved = retrieve(corpus, probe, { limit: 3, extraTerms: goalTermsOf(goal), discipline, focus });
+  let retrieved = retrieve(corpus, probe, { limit: 3, extraTerms: goalTermsOf(goal), excludeIds, focus });
+  if (!retrieved.length && excludeIds.length) retrieved = retrieve(corpus, probe, { limit: 3, extraTerms: goalTermsOf(goal), focus });
   // WINDOW the artefact. Under 8,000 characters this is byte-identical to what it always was — the whole
   // text — so every paste that could have been made before this release behaves exactly as it did. Past
   // that, only the live region goes in verbatim and the rest as opening words, bounded to WINDOW_BUDGET.
@@ -1216,7 +1216,7 @@ async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocat
   send('token', { t: full });                                // the ACCEPTED question, delivered whole
   send('validation', { ...guarded.check, attempts: guarded.attempts, regenerated: guarded.regenerated });
   // LOCAL, operator-only capture (no-op in production and unless ZETIZETI_CAPTURE_DIR is set).
-  const capId = capture({ mode: 'criticism', chatKey: artefact, goal, discipline, turn: stoneTurns.length, artefact, student: studentTurn || null, pointer: pointer.key, located: located ? located.text : null, retrieved: retrieved.map((r) => r.id), question: full, guard: guarded.check.ok, attempts: guarded.attempts, rejected: guarded.rejected });
+  const capId = capture({ mode: 'criticism', chatKey: artefact, goal, turn: stoneTurns.length, artefact, student: studentTurn || null, pointer: pointer.key, located: located ? located.text : null, retrieved: retrieved.map((r) => r.id), question: full, guard: guarded.check.ok, attempts: guarded.attempts, rejected: guarded.rejected });
   if (capId) send('capture', { id: capId });
   return { qCost };                                          // nothing persisted server-side; client keeps the turn
 }
@@ -1229,7 +1229,6 @@ app.post('/api/criticism/open', requireUser, async (req, res) => {
   const b = req.body || {};                                  // NEVER logged
   const text = typeof b.text === 'string' ? b.text.trim() : '';
   const goal = typeof b.goal === 'string' ? b.goal : '';
-  const discipline = typeof b.discipline === 'string' ? b.discipline : 'all';
   const focus = b.focus === 'concept' ? 'concept' : null;
   // The student's own project BRIEF, as CONTEXT for unpacking the text (v0.15.0). Never the object of the
   // critique — buildCriticismSystemPrompt says so and validateCriticismOutput enforces it. Named `brief`
@@ -1261,7 +1260,7 @@ app.post('/api/criticism/open', requireUser, async (req, res) => {
     send('status', { t: 'composing a question…' });
     const { qCost } = await askCriticismQuestion({
       send, apiKey: key.apiKey, meter: key.meter, artefact: text, forcedLocated: located,
-      discipline, goal, priorMessages: [], studentTurn: null, focus,
+      goal, priorMessages: [], studentTurn: null, focus,
       segments, blurIds: ids, brief: digestBrief(briefText),
     });
     // Survival curve, depth 1: the paste that opened this critique. Counts only — see db.mjs.
@@ -1279,7 +1278,6 @@ app.post('/api/criticism/turn', requireUser, async (req, res) => {
   const b = req.body || {};                                  // NEVER logged
   const artefact = typeof b.artefact === 'string' ? b.artefact : '';
   const goal = typeof b.goal === 'string' ? b.goal : '';
-  const discipline = typeof b.discipline === 'string' ? b.discipline : 'all';
   const message = typeof b.message === 'string' ? b.message.trim() : '';
   const focus = b.focus === 'concept' ? 'concept' : null;
   const priorMessages = Array.isArray(b.priorMessages) ? b.priorMessages : [];
@@ -1303,7 +1301,7 @@ app.post('/api/criticism/turn', requireUser, async (req, res) => {
     send('status', { t: 'composing a question…' });          // the question is buffered until it passes the guard
     const { qCost } = await askCriticismQuestion({
       send, apiKey: key.apiKey, meter: key.meter,
-      artefact, forcedLocated: located, discipline, goal,
+      artefact, forcedLocated: located, goal,
       priorMessages, studentTurn: message || null, focus,
       segments, blurIds, brief: digestBrief(briefText),
     });
@@ -1523,17 +1521,16 @@ app.post('/api/spec/build', requireUser, async (req, res) => {
 // is a capturing dev instance (captureEnabled is hard-guarded off in production), so author mode cannot
 // exist on the live site. Runs on the local operator key (POOL_KEY); not metered — this is building, not
 // serving. JSON (not SSE) — the student's turns are short.
-async function studentReply({ discipline, messages }) {
-  const system = buildStudentSystemPrompt({ discipline });
+async function studentReply({ messages }) {
+  const system = buildStudentSystemPrompt();
   return (await streamQuestion({ system, messages, maxTokens: 240, temperature: 0.9, reasoning: { enabled: false }, onToken: () => {}, apiKey: POOL_KEY })).trim();
 }
 app.post('/api/author/open', requireUser, async (req, res) => {
   if (!captureEnabled) { res.status(404).json({ error: 'not a capturing instance' }); return; }
   if (!POOL_KEY) { res.status(503).json({ error: 'no local key (set OPENROUTER_API_KEY)' }); return; }
   const seed = (typeof req.body?.seed === 'string' && req.body.seed.trim()) || pickSeed();
-  const discipline = typeof req.body?.discipline === 'string' ? req.body.discipline : 'all';
   try {
-    const student = await studentReply({ discipline, messages: [{ role: 'user', content: `(Tutorial begins. Your project: "${seed}". Introduce it in your own words in a sentence or two — what you're trying to do, a bit unresolved — as your opening. Do not ask anything.)` }] });
+    const student = await studentReply({ messages: [{ role: 'user', content: `(Tutorial begins. Your project: "${seed}". Introduce it in your own words in a sentence or two — what you're trying to do, a bit unresolved — as your opening. Do not ask anything.)` }] });
     res.json({ seed, student });
   } catch (err) { res.status(500).json({ error: String(err?.message || err) }); }
 });
@@ -1541,19 +1538,18 @@ app.post('/api/author/turn', requireUser, async (req, res) => {
   if (!captureEnabled) { res.status(404).json({ error: 'not a capturing instance' }); return; }
   const b = req.body || {};
   const seed = typeof b.seed === 'string' ? b.seed : '';
-  const discipline = typeof b.discipline === 'string' ? b.discipline : 'all';
   const transcript = Array.isArray(b.transcript) ? b.transcript : [];   // [{role:'student'|'stone', content}]
   const question = typeof b.question === 'string' ? b.question.trim() : '';
   if (!question) { res.status(400).json({ error: 'no question' }); return; }
   // CAPTURE Prayas's question — the gold — with the student turn that prompted it (the situation → his ask).
   const lastStudent = [...transcript].reverse().find((m) => m.role === 'student')?.content || '';
-  capture({ mode: 'author', chatKey: seed || transcript[0]?.content || question, turn: transcript.filter((m) => m.role === 'stone').length, discipline, student: lastStudent, question });
+  capture({ mode: 'author', chatKey: seed || transcript[0]?.content || question, turn: transcript.filter((m) => m.role === 'stone').length, student: lastStudent, question });
   try {
     const messages = [
       ...transcript.map((m) => ({ role: m.role === 'student' ? 'assistant' : 'user', content: m.content })),
       { role: 'user', content: question },
     ];
-    res.json({ student: await studentReply({ discipline, messages }) });
+    res.json({ student: await studentReply({ messages }) });
   } catch (err) { res.status(500).json({ error: String(err?.message || err) }); }
 });
 

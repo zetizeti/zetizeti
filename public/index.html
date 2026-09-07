@@ -1183,7 +1183,7 @@ async function api(path, opts){
 function esc(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 function el(html){ const t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstChild; }
 
-let me=null, quests=[], discipline='all';
+let me=null, quests=[];
 // shared "pool" key state: whether a free shared key is configured, the daily per-user allowance,
 // and how many free messages this user has left today (null until fetched).
 let cfg={poolEnabled:false, poolUserTurns:0}, poolTurnsLeft=null, poolBudget=null, isAiClub=false;
@@ -1306,7 +1306,7 @@ $('aboutBack').addEventListener('click', ()=>go('/'));
 // artefact + the running transcript and sends them with each turn. Endpoints: POST /api/criticism/open
 // (paste → reading + first question) and POST /api/criticism/turn (artefact + transcript → next question).
 // The chat reuses the conversation view's .turn/.composer/.edge CSS; no p5 viz.
-let critDiscipline='all', critArtefact=null, critHistory=[], critReading=null, critBrief='';
+let critArtefact=null, critHistory=[], critReading=null, critBrief='';
 /**
  * WHAT THE STUDENT IS BRINGING. 'paste' is the surface as it existed before documents — type or paste into
  * the composer and the first send becomes the text under question. 'document' opens a file instead.
@@ -1478,7 +1478,8 @@ $('navSpec').addEventListener('click', ()=>go('/spec'));
 $('critBack').addEventListener('click', ()=>go('/'));
 $('critChatBack').addEventListener('click', ()=>go('/'));
 $('critNew').addEventListener('click', openNewCritique);
-// Discipline picker removed (Foundation is common) — critDiscipline stays 'all' → all corpuses always-on.
+// Discipline picker removed (Foundation is common); the discipline logic itself was removed on
+// 7 September 2026 — the whole corpus is always in the pool and lenses come in on relevance.
 $('critDemo').addEventListener('click', runCritDemo);
 $('critChatSend').addEventListener('click', sendCritTurn);
 $('specNew').addEventListener('click', openNewSpec);
@@ -2053,7 +2054,7 @@ async function critStream(url, payload, node, onReading, retry){
 
 function streamCriticismOpen(text){
   const node=critAddStone('');
-  critStream('/api/criticism/open', { text, goal:'', discipline:critDiscipline, focus:critFocus, brief:critBrief }, node,
+  critStream('/api/criticism/open', { text, goal:'', focus:critFocus, brief:critBrief }, node,
     (reading)=>attachCritReading(node, reading));
 }
 function streamCriticismTurn({ message, segment }){
@@ -2064,7 +2065,7 @@ function streamCriticismTurn({ message, segment }){
   if(message) critHistory.push({role:'you', content:message});
   const node=critAddStone('');
   critStream('/api/criticism/turn',
-    { artefact:critArtefact, goal:'', discipline:critDiscipline, message:message||'', segment:segment||null, priorMessages:prior, focus:critFocus, brief:critBrief },
+    { artefact:critArtefact, goal:'', message:message||'', segment:segment||null, priorMessages:prior, focus:critFocus, brief:critBrief },
     node, null);
 }
 
@@ -2623,7 +2624,7 @@ async function streamStone(message, kind, reuseNode){
   try{
     // Stateless: no quest_id. The browser sends the whole transcript + turnsSinceNudge; the server stores nothing.
     const res = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ message, history:history.slice(0,-1), goal, kind, honed, exchanges, lineage, discipline, turnsSinceNudge, focus, prep:prepText, tasks:prepTasksText, sheetName:prepName }) });
+      body: JSON.stringify({ message, history:history.slice(0,-1), goal, kind, honed, exchanges, lineage, turnsSinceNudge, focus, prep:prepText, tasks:prepTasksText, sheetName:prepName }) });
     const reader=res.body.getReader(), dec=new TextDecoder(); let buf='';
     while(true){
       const {value,done}=await reader.read(); if(done) break;
@@ -2671,7 +2672,7 @@ async function openAuthor(){
   showView('author'); $('authorStream').innerHTML=''; authorState={ seed:'', transcript:[], busy:true };
   const n=authorThinking();
   try{
-    const r=await api('/api/author/open',{ method:'POST', body:JSON.stringify({ discipline:'all' }) });
+    const r=await api('/api/author/open',{ method:'POST', body:JSON.stringify({}) });
     n.remove(); authorState.seed=r.seed||''; authorState.transcript=[{role:'student',content:r.student}];
     authorBubble('student', r.student);
   }catch(e){ n.querySelector('.body').innerHTML=`<span style="color:var(--muted);font-style:italic">couldn't reach the student — ${esc(String(e))}</span>`; }
@@ -2683,7 +2684,7 @@ async function authorAsk(){
   authorBubble('you · asking', q, 'you');
   const n=authorThinking();
   try{
-    const r=await api('/api/author/turn',{ method:'POST', body:JSON.stringify({ seed:authorState.seed, discipline:'all', transcript:authorState.transcript, question:q }) });
+    const r=await api('/api/author/turn',{ method:'POST', body:JSON.stringify({ seed:authorState.seed, transcript:authorState.transcript, question:q }) });
     n.remove(); authorState.transcript.push({role:'stone',content:q}, {role:'student',content:r.student});
     authorBubble('student', r.student);
   }catch(e){ n.querySelector('.body').innerHTML=`<span style="color:var(--muted);font-style:italic">${esc(String(e))}</span>`; }

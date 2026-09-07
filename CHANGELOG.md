@@ -21,6 +21,19 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [0.29.0] — 7 September 2026
+
+**The lens system had never run, and the discipline logic is removed.**
+
+- `LENS_DISCIPLINES` was read only inside `if (discipline && discipline !== 'all')`, and `discipline` was never anything but `'all'` — the picker had been gone for months. The always-on lens mechanism was therefore unreachable for the whole life of the feature. The fourth time here a mechanism was written, tested and unreachable.
+- **The discipline logic is removed rather than repaired** — the filter, the `retrieve()` parameter, both chat routes, the author-mode clause and the client globals. It carried a latent wrong claim: eight disciplines are named in the docs and the corpus holds six values, so selecting *game design* or *photography* would have matched nothing. The `discipline` field on an entry survives as the lens marker; the SQLite column keeps its default rather than taking a migration for no gain.
+- **Lenses are now added on relevance, with no cap.** `withLenses` keeps the `limit` best entries and adds every lens covering at least as many of the learner's distinct words as the weakest entry the turn already uses. `retrieve()` can return more than `limit`.
+- **The relevance test involves no chosen number.** A positional band of twelve returned 7.5 entries a turn against a limit of 3, once fourteen; a bm25 floor then admitted nothing in twenty queries of twenty, since everything below position `limit` scores strictly worse by construction. Distinct-term coverage is the measure on which a lower-ranked entry can genuinely equal the head.
+- **"As many as relevant" counts lenses, not entries** — six `memorability` entries answering one word are one lens six times. Best entry per qualifying lens: 4.75 entries a turn, at most eight. A lens that outranks the field material stays in the head on merit.
+- One stop-word list, hoisted to module scope, so the MATCH and the relevance test derive from the same terms.
+- 464 tests pass. `retrieve()`'s count assertions in `test/loopiness.test.mjs` changed from `=== 3`; the new lens test was proved by running it against the pre-fix file and watching it fail.
+- ⚠️ **Unmeasured against a real conversation.** Unit-level and corpus-level only, on invented queries. No probe has been run against the live endpoint.
+
 ## [0.28.0] — 2026-09-06
 
 ### The metronome — a guard that set the period of the loop it was meant to prevent
