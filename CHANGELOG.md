@@ -26,6 +26,38 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.3.0] — 8 September 2026
+
+**Each mechanism is now the consequence of a position, and the position it was resting on turned out to be trivial.**
+
+Prayas: *"the copy is too tool-like. no critical framing"*, then *"be the frame around the specifics — each mechanism stated as the consequence of a position"*, then *"dont flaunt things which are obvious and not unique. be specific. be deep. look well-read."*
+
+🔴 **A POSITION THAT ANY COMPETENT ENGINEER WOULD ALSO HOLD IS NOT A POSITION.** The first version of this framing led with *a rule that only reports is not a rule* — check before you return, which is ordinary practice and reads as one. His verdict: *"too trivial, normal."* **The non-obvious claim was one layer under it**, and the project had already paid to learn it: an instruction in the system prompt told the model not to invent a premise from v0.11.2 to v0.17.0 and it invented them the whole time. *An instruction to a model is not a rule* is the position; the external check is what follows. ⚠️ **The tell is that the "so" still parses when you delete the position** — if a competent build would arrive at the same mechanism without the argument, the argument is decoration.
+
+🔴 **AND THE LIST IS THE LIMIT OF THE CLAIM, WHICH IS THE PART A TOOL WOULD NORMALLY HIDE.** The page now says that a fluent, well-formed question carrying none of the marked constructions can still put a verdict in front of you, and nothing here would catch it. That is invariant #3's own regulative wording reaching a public surface for the first time.
+
+🔴 **A DERIVATION MARKER USED FOUR TIMES IS A TEMPLATE, AND THE TEMPLATE IS VISIBLE.** Four paragraphs, four `So:`, each in the same slot, each closing on a landing — nine of nine paragraphs landed. **The document read as filled in rather than written.** Two markers removed, four landings cut; the derivations that survive derive without announcing that they do.
+
+🔴 **ONE MECHANISM DID NOT FOLLOW FROM ITS POSITION AND WAS JOINED TO IT BY A SEMICOLON.** *No model may certify a citation* entails checking citations; it does not entail the human-read flag, which is a judgement about framing rather than a claim about fact. It read as derived because of where it sat. Now its own paragraph with its own position. ⚠️ *The curtain* and *both states* also had no referent anywhere on the page.
+
+### Cut as obvious
+
+*It never hands you the answer* (already demonstrated two clauses earlier) · *nothing here keeps a copy of it* on the home page, where it sat as a naked privacy boast two screens from the about page disowning that framing · *the asking is the whole of it*, restating its own previous sentence as an epigram · *None of this is original and the lineage is worth naming*, which announced that a paragraph was worth reading and claimed modesty as a character trait.
+
+### The three costs now stand without being cashed in
+
+The lost streaming, the lost recall, and the untested model swap were each followed by a sentence converting the admission into evidence of virtue — the in-paragraph pivot the standing rule forbids. All three removed. **The cheap-model paragraph now says outright that the swap has not been run on the current build**, rather than proposing the test in the subjunctive beside two costs actually paid.
+
+### Well-read, and one attribution refused
+
+The Clean Language borrowing is stated with its own negative result: a test harness put roughly 1,900 question-and-reply pairs through it and the classic felt-sense moves came back refused between a quarter and two-fifths of the time. ⚠️ **The sentence now says *a test harness*, which resolves a collision with not-knowing** — a sample size is not a usage count, and it was written ambiguously enough to read as one. 🔴 **The attribution to a named individual was removed rather than guessed:** memory said David Grove, Perplexity says Lawley and Tompkins, and a page whose argument is that citations must be checked is the worst place to assert a contested one. Freire is named with the book, verified.
+
+### Open, for Prayas
+
+⚠️ *Pedagogy of the Oppressed* puts a banned word on the page inside a book title. A citation is not the site's own vocabulary, so it stays — but the word is visible to a reader scanning, and the call is his.
+
+⚠️ **Copula share is 47% and cannot come down while this brief holds.** *Each mechanism as the consequence of a position* produces a definitional *X is Y* at the head of every paragraph by construction. Pass one's fix and pass three's brief are in direct conflict; changing it means changing the frame.
+
 ## [1.2.1] — 8 September 2026
 
 **The landing page told every visitor they get zero questions a day.**
