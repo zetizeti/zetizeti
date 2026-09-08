@@ -13,6 +13,17 @@ import { fileURLToPath } from 'node:url';
 const APP = dirname(dirname(fileURLToPath(import.meta.url)));
 const read = (...p) => readFileSync(join(APP, ...p), 'utf8');
 
+// 🔴 THE PUBLISHED TREE HAS A DIFFERENT SHAPE AND THIS FILE ASSUMED THE WORKING ONE (8 Sept 2026).
+// `publish-public.sh` flattens `app/` to the export root, so README.md sits BESIDE `public/` there
+// and one level ABOVE it here. This suite resolved it only the working way, so it threw ENOENT at
+// import time on any clone of the public repo — the whole file failing before a single assertion
+// ran. Found by running the staged export rather than by reading the manifest, which is the same
+// discipline as reading the staged tree instead of trusting the guard verdict. ⚠️ A test suite that
+// cannot start in the repo people actually clone is worse than one that is absent: it says the code
+// is broken and names the wrong thing.
+const existing = (...candidates) => candidates.find((f) => { try { statSync(f); return true; } catch { return false; } });
+const README = existing(join(dirname(APP), 'README.md'), join(APP, 'README.md'));
+
 // The corpus is the source of truth for both figures. An entry is a `## ` heading; a pending entry
 // carries the provenance line that only Prayas's sign-off removes (invariant #0).
 function countCorpus() {
@@ -28,7 +39,7 @@ function countCorpus() {
 
 const SURFACES = [
   { name: 'landing + about page (public/index.html)', text: read('public', 'index.html') },
-  { name: 'README.md', text: readFileSync(join(dirname(APP), 'README.md'), 'utf8') },
+  { name: 'README.md', text: readFileSync(README, 'utf8') },
 ];
 
 // 🔴 THE ADMISSION RULE WAS RETIRED BY PRAYAS ON 7 SEPTEMBER 2026 — *"not good enough yet goes - art is
@@ -116,7 +127,11 @@ test('the counter reads a real corpus, so the comparison cannot pass vacuously',
 // Regenerate with:
 //   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --disable-gpu \
 //     --hide-scrollbars --window-size=1200,630 --screenshot=public/og-image.png og-card.html
-test('the social card image is not older than the card it is a picture of', () => {
+test('the social card image is not older than the card it is a picture of', (t) => {
+  // ⚠️ The card SOURCE is not published (og-card.html is off the whitelist) while the image it
+  // generates is. Absent card = published clone = nothing this test can check. Present card =
+  // the working tree, where it must always run.
+  if (!existing(join(APP, 'og-card.html'))) return t.skip('og-card.html is not in the published export');
   const card = statSync(join(APP, 'og-card.html'));
   const img = statSync(join(APP, 'public', 'og-image.png'));
   assert.ok(img.mtimeMs >= card.mtimeMs,

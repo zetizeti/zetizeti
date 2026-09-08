@@ -26,6 +26,46 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.1.0] — 8 September 2026
+
+**The pages say what the tool is for. The copy plan's step two, four days late.**
+
+🔴 **The plan of 7 September had five steps and only the first ran**, so the surfaces still described the mechanism and never the claim. A reader could finish either page knowing exactly what would not be done to them and not knowing what any of it was for. Step two — decide the opening line — gated three, four and five, and it was still open.
+
+🔴 **The structural reason is worth keeping, because it will recur.** That plan is made almost entirely of prohibitions: no theory vocabulary with seven words named, no audience, no performed humility, no counts, no moral drawn, no first person. Against all of it, exactly one positive instruction with its wording left open. **A plan built from filters converges on whatever survives every filter**, and what survives is mechanism — it names no person, claims no outcome, uses no working word, and can be checked line by line. That is why both pages filled with how the locating works and what the guard refuses.
+
+⚠️ **And most of the argument is correctly unusable as copy.** What a format installs, what schooling shrinks, what the 2013 text got wrong — all of it is an account of the reader's condition, and this copy never tells a reader what they are. That much of the plainness stays.
+
+### Changed
+
+- **The claim is on the landing page**, in the line under the ethos: nothing is being delivered here, the questions carry nothing to you, the asking is the whole of it. The two-voices summary it displaced moved into the lede, which already described both.
+- **What is made is named, on both pages and the card.** You leave with the conversation — not a record of it, not what it taught you. On the about page it carries the three checkable facts: it did not exist before, nobody else holds a copy, and it dies with the tab unless you take it.
+- **The two *nothing is saved* passages gained their second half.** They had read as privacy refusals, which is true and half the sentence.
+- **The refusals finish their own sentence.** *Those measure a person* used to stop there; it now says what does get made.
+- 🔴 **The 7 September Tier-1 sweep MISSED A SURFACE.** The about page still grounded each question in *a real, unresolved tension of your discipline* — a mechanism v0.29.0 deleted the same morning. Five surfaces were listed and swept; this was a sixth nobody had counted.
+- 🔴 **The README said the tool was *saved, resumable*, false since the ephemeral pivot.** A public doc asserting the opposite of an invariant, standing unread. It now describes the download-and-bring-it-back mechanism that is actually there.
+- **The social card is regenerated**, which the mtime test now enforces.
+
+### What the cold read caught, and it was not vocabulary
+
+🔴 **The strongest finding was a pronoun with no referent.** The page speaks of the tool in the third person throughout and has no *we* anywhere; the new copy said *ours to keep* and *it is not ours* four times, carrying the central custody claim on a plural that named nobody. **The unanchored plural is where the ghostwriter leaks in**, and here it was load-bearing. Every instance is gone.
+
+🔴 **Performed humility, shipped and cut before it went out.** *None of this is restraint — a tool with something to deliver would be right to deliver it…* is a claim about the tool's interior that no visitor can check, it is generosity to absent competitors, and it converted a paragraph's list of absences into integrity **inside that paragraph**, which is the prohibited pivot exactly. Cut; the plain version already opens the page.
+
+⚠️ **The register fault survived a rewrite that only removed the decorative words.** Twenty-two of forty-four sentences ran on *is/are*, seven were the same pseudo-cleft rotated, eleven were *not X but Y*, and six of six paragraphs closed on a landing. **That is the twice-rejected punchline-per-slide fault at lower volume and higher frequency** — no longer one per slide, one per sentence. Re-verbed where the sentence was mine; the pre-existing instances are listed below and untouched.
+
+- **A refrain was byte-identical across two surfaces.** *Nothing is kept here, because there is nothing here that is ours to keep* appeared three times, twice character-for-character. A human restating a line they care about says it differently, because they are saying it for a different reason in a different place.
+- **A binding rule was breached in five words, and it predates this release.** *whether **the** premature answer came from you* — the definite article presupposes the reader arrived with one and calls it premature. Naming a reader's condition back to them is what this tool refuses everywhere in its architecture. Now indefinite.
+- **The SDC paragraph's closing sentence is deleted rather than reworded.** It was a two-word landing and a second claim to be the root of the same refusals; the two sentences before it say the thing plainly and can be checked.
+
+⚠️ **Four faults were found and deliberately NOT fixed, because each is a judgement about the site's own long-standing voice rather than a fault in what was written today:** the 39-word split-ratio sentence in the critique block (an abstract-noun subject, a four-deep relative chain, a personified practice, a colon-binary, and five working terms including *self-frame*, none introduced); *the stone* and *the field* arriving unintroduced in the first paragraph a stranger reads; *split-domain cognition* named as a label the plain explanation beside it does not need. **Prayas's to settle.**
+
+⚠️ **No detector score was available** — the humanizer servers were not connected — so this is one hostile read plus counts, by Claude reading Claude. A non-Claude or human read is still owed on a first-contact surface.
+
+### Rendered and looked at
+
+390, 760, 1440 and 1920, plus the about page in full. 🔴 **The first draft pushed the landing past one screen on a phone**, putting the sign-in button below the fold and breaking the never-scroll rule; the artifact paragraph gave up its elaboration to the about page, where it belongs, and it fits again. ⚠️ Headless Chrome at 390 clips horizontally with or without these changes — an artefact of rendering without mobile emulation, identical in the pre-edit copy, and not introduced here.
+
 ## [1.0.1] — 7 September 2026
 
 **Notes on a dialogue, not measurements of one.**

@@ -152,9 +152,10 @@ These are load-bearing decisions, documented in [`CONTRIBUTING.md`](CONTRIBUTING
 - **No scores, no grades, no verdicts** — a 245-dimension "quality score" is a deposited conclusion
   wearing the clothes of feedback. The tool locates; the human judges.
 - **No aggregation** — every reading and every critique is per-instance. Nothing is averaged, ranked,
-  benchmarked, or rolled into a profile. Saved, resumable — never compared.
-- **No gamification** — no leaderboards, badges, streaks, or percent-complete. Progress is the learner's
-  edge getting sharper, private to them.
+  benchmarked, or rolled into a profile. Nothing is stored server-side either: the learner downloads the
+  transcript and brings it back to resume, so the conversation is theirs and never ours to compare.
+- **No gamification** — no leaderboards, badges, streaks, or percent-complete. Those measure a person. This
+  makes a conversation, and the learner keeps it.
 - **No user modelling** — the tool keeps no model of how you think.
 - **No embeddings in retrieval** — Clean Language reuses your *literal* words, so retrieval is exact-word
   FTS5. Semantic search would quietly substitute the tool's reading for yours.
