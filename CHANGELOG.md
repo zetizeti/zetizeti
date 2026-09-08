@@ -26,6 +26,33 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.2.0] — 8 September 2026
+
+**The argument is on the pages, and the version that named its own category is undone.**
+
+Prayas, twice: *"the home and about copy is still plain. no mention of any of the context in doc"*, then *"I dont want it to seem like a generic ai-based edu tool"* and *"it is more specific"*.
+
+🔴 **A DENIAL INSTALLS THE FRAME IT DENIES, AND THIS RELEASE SHIPPED ONE AND TOOK IT BACK WITHIN THE HOUR.** The first attempt led with *It is not a study aid, and it is not trying to be one*, followed by a roster of absences — no task, no syllabus, marks nothing, no dashboard, no grades, no leaderboards, no percent-complete. **A reader arriving cold was not thinking *study aid* until the page said it.** You cannot negate a category without invoking it, and the roster underneath is an edtech feature list read backwards, so the page handed over a complete mental model of a study platform and then denied being one. The frame was self-inflicted and the fix was a deletion. ⚠️ It also put the banned word *aid* on the tool, twice, on two surfaces, which the literal check would have caught and did not, because it was reading for the tool being CALLED an aid rather than for the tool denying it was one.
+
+🔴 **FIXING ONE GRAMMAR HABIT HANDS ITS JOB TO ANOTHER.** v1.1.0's cold read found copula dominance — 22 of 44 sentences on *is/are*. That was fixed: 26% in this pass, down from 50%. **The work went to negation instead, 21 of 38 sentences and roughly thirty negation tokens in thirty-eight sentences.** And the new tic caused the edtech problem directly, because every negation needs a foil and the foil the page kept reaching for was a study platform. **A style fault is a load that moves rather than a bug that clears.**
+
+🔴 **FOUR TECHNICAL FACTS READ AS SUBSTANTIATION AS A SET AND AS TEXTURE WHEN SCATTERED.** They were written as one passage, then dissolved into three sections during the reframe, and the cold read could not find them at all — one was gone entirely, one survived only in a meta description no reader sees. They are now four numbered paragraphs under one heading: the buffer, exact-word retrieval, the written-not-scraped corpus with its two flags, and the deliberately cheap model. ⚠️ **The cheap-model claim is the strongest single answer to *is this a generic AI tool*** — no marketing page would ever say it — and it was the one that got lost.
+
+### On the pages now
+
+- **The refusal, located.** A question is generated, held, read by code against a list of marks, regenerated once if it carries one, and only then delivered — which is why it arrives whole instead of word by word, and the streaming was given up to make the check possible.
+- **Retrieval matches your literal words.** Exact-word, unstemmed, no embeddings, no semantic search in the path, because a semantic match would put a machine's paraphrase of what you said where what you said had been and then question the paraphrase. ⚠️ This had been sitting in the meta description only.
+- **The corpus is written, not scraped**, with citations checked before an entry can ship and a second flag that only a person can clear. **Nobody is qualified to have a conversation** — no credential exists, and a conversation that ran the same way every time would stop being one, which is why what gets made here cannot be graded.
+- 🔴 ***The field* was never named, twice, in the same clause that promised grounding.** Now *tensions practitioners argue about and have not settled*.
+
+### Left alone, deliberately
+
+⚠️ **The cold read asked for two cuts in *Where it stands*** — *It asks a great deal of patience* and *most people do not have it to give* — on the ground that they are unfalsifiable and pivot an abandonment problem into a filter. **Not made.** That passage is the admission, its wording is protected from softening by rule, and removing the strongest statement of the fault to satisfy a style objection is the softening the rule exists to stop. Recorded rather than acted on.
+
+⚠️ ***The stone* is unglossed on the landing** and the about page introduces it. Flagged and left; it is the project's own name for the thing.
+
+**Census, pass to pass:** copula 50% → 26% · unanchored plurals 4 → 0 · paragraph-closing landings 100% → 67% · negation-led sentences, not measured → 55%.
+
 ## [1.1.0] — 8 September 2026
 
 **The pages say what the tool is for. The copy plan's step two, four days late.**

@@ -8,10 +8,10 @@
 <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <meta name="theme-color" content="#0a1428" />
-<meta name="description" content="It asks the questions; you do the thinking. Nothing is being delivered here — the questions carry nothing to you. You leave with the conversation, and nothing here keeps a copy of it." />
+<meta name="description" content="It asks the questions; you do the thinking. The refusal to answer runs in code rather than in an instruction to the model, and retrieval matches your literal words — exact-word, no embeddings. You leave with the conversation, and nothing here keeps a copy of it." />
 <meta property="og:type" content="website" />
 <meta property="og:title" content="zetizeti — it asks the questions, you do the thinking" />
-<meta property="og:description" content="It asks the questions; you do the thinking. Nothing is delivered here — the asking is the whole of it, and you leave with the conversation." />
+<meta property="og:description" content="It asks the questions; you do the thinking. The refusal to answer runs in code, not in an instruction to the model. You leave with the conversation." />
 <meta property="og:url" content="https://zetizeti.com" />
 <meta property="og:image" content="https://zetizeti.com/og-image.png" />
 <meta property="og:image:width" content="1200" />
@@ -694,8 +694,8 @@
         </div>
         <span class="ethos">It asks the questions. You do the thinking.</span>
         <span class="ethos-sub">Nothing is being delivered here. The questions carry nothing to you — the asking is the whole of it.</span>
-        <p class="lede">One voice helps you <b>develop</b> an idea: name the edge you are working on and the stone asks back, against tensions in the field that were never settled. The other <b>stress-tests</b> one — bring an idea and it questions <em>that</em> instead, pointing to where the text quietly decided for you. <b>It never hands you the answer, and that is enforced rather than promised</b> — every question is held back and checked by code before it reaches you, which is why they do not arrive word by word.</p>
-        <p class="lede">You leave with the conversation. Not a record of it, not what it taught you — the conversation. <b>Nothing here keeps a copy of it.</b></p>
+        <p class="lede">One voice helps you <b>develop</b> an idea: name the edge you are working on and the stone asks back, against tensions practitioners argue about and have not settled. The other <b>stress-tests</b> one, pointing to where a text quietly decided for you. <b>It never hands you the answer.</b></p>
+        <p class="lede">Retrieval matches your <b>literal</b> words: exact-word, no embeddings, nothing paraphrasing what you said before it gets questioned. The refusal to answer is a buffer rather than an instruction — a question is generated, held, checked by code and only then delivered. And the model is a cheap one on purpose. You leave with the conversation itself, and <b>nothing here keeps a copy of it.</b></p>
         <p class="nameline">The name doubles <em>zeti</em>, from the Greek <em>zetetic</em> — "proceeding by inquiry" — with an echo of the Sanskrit <em>neti neti</em>, "not this, not this". <a id="aboutLink" class="aboutlink">What the two voices are →</a></p>
         <div class="signin">
           <a class="btn-google" href="/auth/google" id="googleBtn">
@@ -901,6 +901,30 @@
         <p>When you paste a text in, nothing about it is decided by a model. It is first broken into segments, and each segment is tagged by plain, stated rules — is this <em>describing</em>, or is it quietly <em>deciding</em>? A value worn as a property (the <em>clean</em> interface), a directive (you <em>should</em>…), a verdict relayed as settled (<em>obviously</em>, best practice) — each is caught by a rule about grammar and a short list of words, not by anything trained on the open web. A second step, also only arithmetic, settles which of those spots the question will point at. Only then does the model arrive, and only to do one thing: phrase a single question about that one spot, in the text's own words. A last check confirms what comes back is still a question, and carries no verdict of its own.</p>
         <p>This is deliberate, and it has three consequences worth naming plainly. The reading <b>cannot fail</b> — there is no model call to time out or hallucinate; the worst case is that a spot reads as neutral. It is <b>reproducible</b> — the same text yields the same spots every time, not a different mood on a different day. And it is <b>inspectable</b> — every spot it marks carries the reason it was marked, down to the exact word and the rule that caught it. You can ask the tool why, and get an answer you could check by hand.</p>
         <p class="about-want"><b>Its blind spots are a list, not a mystery.</b> What the tool treats as a deciding word is a short, readable list — not weights you must take on trust. It is deliberately blunt: it would rather miss a smuggled verdict than invent one where there is none. And when it does miss — and it will — the fix is a line added to that list, something you can see and argue with, not a retraining no one can audit. The model does the language; the rules do the locating; <b>you do the judging.</b> Where another tool asks you to trust what it cannot show you, this one shows you how little it is deciding.</p>
+      </div>
+
+      <div class="about-mode">
+        <div class="about-tag">four things you can check in the source</div>
+        <h3>Where the refusal actually lives</h3>
+        <p><b>One. The refusal to answer is a buffer, not an instruction to the model.</b> A question is generated, held, read by code against a list of marks, regenerated once if it carries one, and only then delivered. That is why a question arrives whole instead of word by word: the streaming was given up to make the check possible, and the trade is visible every time you use it.</p>
+        <p><b>Two. Retrieval matches your literal words.</b> Exact-word, unstemmed, no embeddings and no semantic search anywhere in the path. A semantic match would put a machine's paraphrase of what you said where what you said had been, and then question the paraphrase.</p>
+        <p><b>Three. The corpus is written, not scraped.</b> Every citation under an entry is checked against a real source before that entry can ship, and whether a person has read the framing is a second flag that only a person can clear. The curtain shows you both states while it asks.</p>
+        <p><b>Four. The model is a cheap one on purpose.</b> The corpus carries the substance and the model composes a question in your own words, which is the whole of its job. A larger one would write better sentences and would not make a better question.</p>
+        <p class="about-want">It sets no task and marks nothing, and it could not tell you whether you improved — saying that would mean watching you. <b>Most teaching moves a conclusion from somebody who has one to somebody who does not, and nothing is moved here.</b> For as long as the conversation runs, nobody hands you a conclusion, because <b>there is none here to hand.</b></p>
+      </div>
+
+      <div class="about-mode crit">
+        <div class="about-tag">the one thing that cannot be turned into a technique</div>
+        <h3>Nobody is qualified to have a conversation</h3>
+        <p>A dialogue asks no credential of either side. Two people make a good one without being licensed to; somebody with the wrong training makes a better one than an expert having a bad day. No body certifies it. Nobody is professionally good at it, because a conversation that ran the same way every time would stop being one.</p>
+        <p class="about-want">That is why what gets made here cannot be graded. A grade needs a standard, a standard needs somebody entitled to set it, and for this there is no such person — <b>which is a fact about conversations rather than a policy set here.</b></p>
+      </div>
+
+      <div class="about-mode">
+        <div class="about-tag">what the questions are made of</div>
+        <h3>A conversation needs something real to be about</h3>
+        <p>Questions with nothing behind them run out in four turns and turn into pleasantries. So each one is grounded in a tension practitioners argue about and have not settled — written out, with the register a person actually speaks it in before they have the term for it, the ways it usually fails, and the sources. Each entry says on its own face which state it is in: the citations under it are checked before it can ship, and whether a person has read the framing is a separate flag that only a person can clear.</p>
+        <p class="about-want"><b>This material is not the subject being taught.</b> Nothing here is trying to get it into you, and the test for adding more is whether it gives a conversation more to be about — never whether it covers more ground. That is also why none of it is scraped: it is written and then checked, because a wrong source in front of somebody thinking sends them somewhere wrong.</p>
       </div>
 
       <div class="about-mode">
