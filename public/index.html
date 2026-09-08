@@ -1295,9 +1295,18 @@ let turnsSinceNudge=99;
     const sg=document.querySelector('.signin');
     if(sg && !$('guestBtn')) sg.appendChild(el(`<a class="btn-login" id="guestBtn" href="/auth/guest" style="opacity:.85">continue as guest · local dev</a>`));
   }
-  $('signinNote').textContent = cfg.poolEnabled
-    ? `Sign in with Google to begin — ${cfg.poolUserTurns} questions a day, free, for the course cohort. No posting, no contacts.`
-    : 'Sign in with Google to begin. Access is arranged by the person running this instance. No posting, no contacts.';
+  // 🔴 THE COUNT AND THE COHORT ARE GONE (Prayas, 8 September 2026: "not needed, remove").
+  // It rendered `${cfg.poolUserTurns} questions a day` and the value is 0, because the daily turn
+  // cap has been DISABLED SINCE 29 JULY 2026 — his own decision, "no turn cap. adaptive". Every
+  // enforcement path guards `POOL_USER_TURNS > 0` and `poolEvent` returns `turnsLeft: null`, so
+  // nobody was ever blocked and the header counter stayed hidden. ⚠️ ONLY THIS SENTENCE READ THE
+  // VALUE WITHOUT ASKING WHETHER IT WAS SET, so a disabled control rendered as an allowance of
+  // zero and told every visitor on the landing screen that they get no questions. A default that
+  // means "off" and a value that means "none" are the same integer, and the difference has to be
+  // carried by the reader of it. The other three readers carry it; this one did not.
+  // The cohort framing goes with it: the landing page no longer describes the tool as being for
+  // a course.
+  $('signinNote').textContent = 'Sign in with Google to begin. Access is arranged by the person running this instance. No posting, no contacts.';
   me = r.user;
   try{ localStorage.setItem('zetizeti_in', me ? '1' : '0'); }catch(e){}
   if(bl) bl.hidden=true;

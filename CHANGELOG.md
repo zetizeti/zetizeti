@@ -26,6 +26,16 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.2.1] — 8 September 2026
+
+**The landing page told every visitor they get zero questions a day.**
+
+🔴 **THE TURN CAP IS NOT BROKEN — IT HAS BEEN DISABLED SINCE 29 JULY 2026**, on Prayas's own instruction (*"no turn cap. adaptive"*), because a fixed daily count bounded something that costs almost nothing and cut off exactly the students the pilot wants. `POOL_USER_TURNS` defaults to `0` meaning *off*. Every enforcement path guards `POOL_USER_TURNS > 0`, and `poolEvent` returns `turnsLeft: null` so the header counter stays hidden. **Nobody was ever blocked.**
+
+🔴 **ONE READER OF THAT VALUE DID NOT ASK WHETHER IT WAS SET.** The sign-in note interpolated it directly — `${cfg.poolUserTurns} questions a day` — so a disabled control rendered as an allowance of zero, on the landing screen, under the sign-in button, for six weeks. ⚠️ **A default meaning *off* and a value meaning *none* are the same integer, and the difference has to be carried by whoever reads it.** Three readers carried it and the fourth did not, and the fourth was the only one a visitor sees. Nothing failed, no test covered it, and the sentence read as a deliberate statement of policy.
+
+**Removed rather than corrected** (Prayas: *"not needed, remove"*). The note is one line now with no number in it. ⚠️ **The cohort framing went with it** — it also read *free, for the course cohort*, which is the education framing taken off these pages in v1.2.0, sitting on the landing screen the whole time that release was being written.
+
 ## [1.2.0] — 8 September 2026
 
 **The argument is on the pages, and the version that named its own category is undone.**
