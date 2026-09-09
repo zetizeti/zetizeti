@@ -86,6 +86,7 @@ const PUBLIC_SCRIPTS = [
   'signoff-run.txt',
   'signoff-web.mjs',
   'signoff.mjs',
+  'stamp-test-badge.mjs',   // runs the suite and writes the README badge, so nobody types the number
   'stamp-version.mjs',
   'stress-locator.mjs',
   'sync-mcp.mjs',

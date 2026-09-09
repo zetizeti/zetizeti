@@ -26,6 +26,16 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.5.3] — 9 September 2026
+
+**A badge that had been 225 tests out of date on the public front page, and two concept docs still stating a permission v1.4.0 removed.**
+
+**The README said `tests 285 passing`. The suite is 510.** Nothing rebuilt it, no test failed, and it had been asserting the old number for an unknown number of releases — this project's own *generated once and then static* case, landing on the one page a stranger reads first. The number is no longer typed by anybody: `scripts/stamp-test-badge.mjs` runs the suite, reads the count the runner itself reports, and writes it, with `--check` for a release gate. 🔴 **It refuses to stamp when anything failed**, because a true number under the word *passing* would be worse than the stale one it replaces. Proved by planting 42 and watching `--check` refuse and the stamp repair it.
+
+**`docs/concept/progress-signals.md` never mentioned v1.4.0 at all** and still read *encouragement aimed at the thread is allowed; a grade of the person is not.* That permission is gone: the clause may say the learner's words back and may not value them. The paragraph now carries the narrowing, dated, with the point that what the +15% measured was **the clause being present** — the measurement stands, the licence it was read as granting does not. `dialogue.md` had the same sentence three lines above the paragraph retiring it, so the document stated the old rule and then the new one; it now points forward instead of contradicting itself.
+
+⚠️ **NOT REDEPLOYED, deliberately, and the live build correctly reports 1.5.2.** Nothing in this release ships: `make-caprover-tar.sh` takes `server.mjs`, `lib/`, `public/`, `corpus/` and the package files, and a README, two concept docs, a script and a verification file are none of those. A redeploy would have bought a fresh 502 window for a byte-identical container. **The stamp gap is recorded in `docs/ops/status.md` so it reads as a decision rather than a failed deploy.**
+
 ## [1.5.2] — 9 September 2026
 
 **The two missing after-runs were taken, so the replay comparison is four fixtures rather than two — and the result is mixed in a way that is worth more than a clean one would have been.**

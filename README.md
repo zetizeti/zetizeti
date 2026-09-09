@@ -12,7 +12,7 @@
   <a href="https://zetizeti.com"><img src="https://img.shields.io/badge/live-zetizeti.com-0f7d72?style=flat-square" alt="live at zetizeti.com"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/zetizeti/zetizeti?style=flat-square&color=173a8c" alt="AGPL-3.0"></a>
   <a href="https://github.com/zetizeti/zetizeti/releases"><img src="https://img.shields.io/github/v/release/zetizeti/zetizeti?style=flat-square&color=f0b324" alt="release"></a>
-  <img src="https://img.shields.io/badge/tests-285%20passing-0f7d72?style=flat-square" alt="285 tests passing">
+  <img src="https://img.shields.io/badge/tests-510%20passing-0f7d72?style=flat-square" alt="510 tests passing">
 </p>
 
 <p align="center">

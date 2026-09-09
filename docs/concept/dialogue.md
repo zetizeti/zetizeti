@@ -226,8 +226,9 @@ warmth fired **zero times**. The development route reaches the student who is de
 so. The wording must name the *specific* thing just added — generic praise is the hollow flattery a
 discerning student distrusts.
 
-The line it must never cross is **inquiry, not inquirer**: encouragement aimed at the thread is allowed;
-a grade of the person is not.
+The line it must never cross is **inquiry, not inquirer**: a grade of the person is not allowed, and since
+v1.4.0 neither is a verdict on the thread — see *No verdicts* immediately below, which narrows this line
+rather than sitting beside it.
 
 **No verdicts (v1.4.0).** The clause before the question may say their words back and may not value them. Twenty real dialogues held eight preambles that did — *is doing real work*, *is opening something*, *is becoming clearer* — every one the system prompt's or the warmth posture's own example sentence said back. Both instructions are gone and seven appraisal constructions are refused at the guard, never acquitted by the learner having used the word. This retires the *light encouragement* setting of 24 July; what the +15 arc measured was the clause being present, and an acknowledgement made of their words is still one.
 

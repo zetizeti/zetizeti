@@ -164,7 +164,17 @@ learner senses they are being managed.
 > turns by any other nudge. It keeps a one-turn gap of its own, so it can never run consecutively,
 > and it still requires real movement **and** fresh ground: warmth on new tokens alone is the hollow
 > praise a discerning student distrusts. The invariant it must not cross is *inquiry-not-inquirer*,
-> not warm-versus-cool — encouragement aimed at the thread is allowed; a grade of the person is not.
+> not warm-versus-cool — a grade of the person was never allowed here.
+>
+> 🔴 **NARROWED IN v1.4.0, 9 September 2026, and this paragraph read the old way until then.** It said
+> *encouragement aimed at the thread is allowed*, and that permission is gone: the clause may say the
+> learner's words back and **may not value them**, so no verdict on the thread either — not *is doing
+> real work*, not *is opening something*, not *is becoming clearer*. Twenty real dialogues held eight
+> such preambles and every one was this document's own example sentence said back to it. What the
+> +15% above measured was **the clause being present**, and an acknowledgement made of the learner's
+> own words is still a clause; the measurement stands, the licence it was read as granting does not.
+> The firing rule described above is unchanged — what changed is what the posture is permitted to say.
+> Seven appraisal constructions are refused at the guard on both surfaces. See `dialogue.md`, *No verdicts*.
 
 **Joint firing, because stuck and dwelling look the same.** "Shift the angle" never fires on cycling
 (#5) alone — only on cycling **and** flat insight (#2) **and** flat specificity (#1) together. And
