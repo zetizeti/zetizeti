@@ -26,6 +26,18 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.5.4] — 9 September 2026
+
+**v1.5.3 was not deployed on a reason that was false, and this deploys it.**
+
+Prayas: ***"why not deployed? not needed?"***
+
+**`package.json` and `package-lock.json` are in `make-caprover-tar.sh`'s whitelist, and `version.json` is stamped at tar time.** So a bump always changes the image, and v1.5.3's container was never byte-identical to v1.5.2's — the claim that it was is the only reason the deploy was skipped. Since every release bumps `package.json` by this project's own rule, **there is no such thing here as a release that ships nothing**, and the "docs-only release" category the previous entry invented does not exist.
+
+🔴 **The reasoning failed in a way this file already names.** It argued from what the whitelist is *for* — the working app — rather than from what it *lists*, and one `tar -tf zetizeti.tar` would have settled it in a second. That is the same shape as *a config line saying where something lives is not evidence that it is there*, and as *report is not evidence*: a summary of a mechanism was trusted over the mechanism. ⚠️ **And the second-order error is the worse one.** Rather than removing the divergence, a note was written into `docs/ops/status.md` explaining why the live build disagreed with the tag — a document routing around a fault, which this project holds will outlive the fault, because anyone reading it does the safe thing and nobody looks again. Both the note and the rule are removed; the CHANGELOG entry for v1.5.3 keeps its false paragraph, marked, so the error is not re-derived.
+
+⚠️ The 502 window a redeploy costs is real and was the honest half of the argument. It is roughly thirty seconds, and it does not buy anything against a live build reporting a version that no longer exists in the repository.
+
 ## [1.5.3] — 9 September 2026
 
 **A badge that had been 225 tests out of date on the public front page, and two concept docs still stating a permission v1.4.0 removed.**
@@ -34,7 +46,7 @@ stable, not a departure from it.
 
 **`docs/concept/progress-signals.md` never mentioned v1.4.0 at all** and still read *encouragement aimed at the thread is allowed; a grade of the person is not.* That permission is gone: the clause may say the learner's words back and may not value them. The paragraph now carries the narrowing, dated, with the point that what the +15% measured was **the clause being present** — the measurement stands, the licence it was read as granting does not. `dialogue.md` had the same sentence three lines above the paragraph retiring it, so the document stated the old rule and then the new one; it now points forward instead of contradicting itself.
 
-⚠️ **NOT REDEPLOYED, deliberately, and the live build correctly reports 1.5.2.** Nothing in this release ships: `make-caprover-tar.sh` takes `server.mjs`, `lib/`, `public/`, `corpus/` and the package files, and a README, two concept docs, a script and a verification file are none of those. A redeploy would have bought a fresh 502 window for a byte-identical container. **The stamp gap is recorded in `docs/ops/status.md` so it reads as a decision rather than a failed deploy.**
+🔴 **CORRECTED IN v1.5.4 — THIS PARAGRAPH WAS FALSE AND IS KEPT SO THE ERROR IS NOT REPEATED.** It read: *not redeployed, deliberately… nothing in this release ships… a redeploy would have bought a fresh 502 window for a byte-identical container.* **`package.json` is in the tar whitelist and `version.json` is stamped at tar time**, so a bump always changes the image and the container was never byte-identical. The sentence reasoned from what the whitelist is *for* instead of reading what it *lists*, which one `tar -tf` would have settled. v1.5.3 was deployed as part of v1.5.4.
 
 ## [1.5.2] — 9 September 2026
 
