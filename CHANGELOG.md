@@ -26,6 +26,28 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.3.1] — 9 September 2026
+
+**Every conversation opened on the same line, and the reason was a constant nobody chose.**
+
+Twenty AI Club dialogues from one Wednesday session — the first body of real dialogue the 1.0 bar has ever had to be read against — all began *What would have to be true for …* with the topic swapped. `APPROACHES` in `lib/arc.mjs` holds five moves, and all three call sites indexed it at `Math.max(0, studentTurns.length - 1) % set.length`, which is **0 on every first turn of every conversation**. The rotation turned every turn, as its own comment says it should; its phase was a constant that fell out of a modulo seeded at zero.
+
+🔴 **NEITHER BAN CAN REACH TURN ONE.** The opener ban and the head ban both compare against previous questions, and a first question has none — so the most-repeated line in the entire corpus was the one line no guard could see. It reads worst exactly where it matters most: a first question is the only one a learner meets before deciding what this is, and twenty students in one room could compare screens.
+
+🔴 **THE FIRST DIAGNOSIS WAS WRONG IN THE EXPENSIVE DIRECTION.** It was first read as the 29 July pruning of `APPROACHES` to its measured-best move having collapsed the repertoire — and acting on that would have undone a correct measurement to repair a defect that lived somewhere else. The repertoire was five wide throughout. The defect was the index.
+
+**Fix:** one helper, `approachFor(set, studentTurns, goal)`, feeding all three call sites, because a repair applied per-call-site leaves the accident standing wherever a fourth site appears. The phase is an FNV-1a hash of the learner's own goal — stateless, deterministic, the ephemeral pivot untouched, a replayed fixture reproduces exactly. Nothing pruned, widened or re-measured. **Proved both ways on the twenty real edges: before, 20 of 20 landed on `APPROACHES[0]`; after, four each across all five.** ⚠️ Two learners who paste identical words still get identical openings — the honest limit of a stateless fix, and a room handed one brief will still cluster.
+
+### Also repaired
+
+- **`LEGACY_APPROACHES` carried a literal `undefined`.** It referenced `APPROACHES[5]`, which does not exist — one steering line in eight on the `poetic` probe variant. Nothing live reads that set, so no learner met it; it degraded the instrument variants are compared with, which is the worse place for a silent fault to sit.
+- **`scripts/enquiry-conversation-probe.mjs` threw `reciprocity is not defined` at the end of every run**, transcript mode and probe mode alike. The 7 September notes rewrite deleted the engagement computation and left its print block standing — crashing after the notes and before the conformance summary and the run JSON, so it looked like a working probe with a short tail, and no run had been written to `flow-probe-runs/` since 6 September. Removed rather than restored: the sensor values were superseded on purpose, and a half-deletion that still prints is how a retired mechanism comes back.
+- **The same probe's `interpretive tells` counted one of two checks.** `dialogue.mjs` refuses an interpretive preamble by two detectors with two reason strings; the probe tested for one and printed `0` on twenty dialogues in which four questions had been refused by the other. Both counted now, and the line says what it counts.
+
+### Twenty real dialogues are now fixtures
+
+Saved on Prayas's instruction, publish-excluded, from five before. Every one of the twenty ends on an unanswered question, because the class ended; every one opened with the pasted studio brief rather than an edge of the learner's own. The full reading, against the artifact criteria only, sits beside them and found four things this release does not touch: the rut moved from the construction to the noun (fifteen consecutive questions on one word), there is no move for *I cannot parse that*, 62 of 458 questions shipped breaching after all four generations, and four questions praised before asking.
+
 ## [1.3.0] — 8 September 2026
 
 **Each mechanism is now the consequence of a position, and the position it was resting on turned out to be trivial.**

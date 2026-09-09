@@ -284,6 +284,8 @@ noun after it is not a way out.
 *What it cannot do:* it reads three words. A learner who is asked for something they have already given,
 in a different construction, is not helped by it at all — see Known limits.
 
+**The rotation's phase (v1.3.1, 9 September 2026).** The approach that shapes a question — one of five in `APPROACHES` — rotates every turn, and until this release the rotation began at the same place in every conversation: index `studentTurns.length - 1`, which is 0 on any first turn. Twenty real dialogues from one room all opened *What would have to be true for …*, and neither ban could see it because both compare against previous questions and a first question has none. The starting point is now a hash of the learner's own goal — stateless and deterministic, so nothing is stored and a fixture replays exactly — and the twenty real edges land four to a move across all five instead of twenty on one.
+
 ### The repeat gate
 
 A question sharing any five-word run with an earlier question — quoted learner text stripped first — is
@@ -482,6 +484,8 @@ transcript is theirs); the harness that runs them is public, in `scripts/flow-pr
 
 
 ---
+
+**Identical openings still produce identical first questions.** The rotation's phase is taken from the learner's own words and nothing else, because nothing else is available to a service that stores nothing. Two people who paste the same brief therefore start on the same move, and a class handed one brief will cluster on it. A within-room no-repeat rule would need the service to know about other conversations, which it does not and must not.
 
 ## The concept-only focus (v0.14.0, 12 August 2026)
 

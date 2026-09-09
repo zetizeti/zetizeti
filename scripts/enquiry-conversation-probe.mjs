@@ -95,6 +95,15 @@ const FORCE_REPEAT_AT = Number(arg('force-repeat-at', '0'));
 // ⚠️ What it cannot see: the anchor readings are recomputed from the turns and match what the route
 // computed only if the corpus and `lib/arc.mjs` have not changed since. Where they have, this reads
 // the dialogue as today's code would have steered it, not as it was steered. Say which you mean.
+// 🔴 TWO CHECKS REFUSE AN INTERPRETIVE PREAMBLE AND THIS READING COUNTED ONLY ONE (9 September 2026).
+// `dialogue.mjs` refuses the clause before a question twice over, and the two say different things:
+// PREAMBLE_TELLS matches a named tell and reports "interprets what they said"; the ownWords ratio check
+// reports "states a reading they did not give". This probe tested for the first alone, so its summary
+// line printed `interpretive tells 0` across twenty real dialogues in which four questions had been
+// refused by the second — a reading that names a class and counts half of it. Both, now, from one
+// pattern feeding both branches.
+const INTERPRETIVE = /interprets what they said|states a reading they did not give/;
+
 const TRANSCRIPT = arg('transcript');
 
 // The inverse of buildTranscriptMd, kept deliberately in the same SHAPE as parseTranscriptMd in
@@ -306,7 +315,7 @@ async function assertLiveBuild() {
       const check = validateOutput(q, {
         ownWords, avoid: stoneTurns, noBinary: true, noClosed: true, noCompound: true, maxWords: 34,
       });
-      const tell = !check.reasons.every((r) => !/interprets what they said/.test(r));
+      const tell = !check.reasons.every((r) => !INTERPRETIVE.test(r));
       const overlapPrev = stoneTurns.length
         ? [...new Set(words(q))].filter((w) => words(stoneTurns[stoneTurns.length - 1]).includes(w)).length : 0;
       const round = rows.length + 1;
@@ -349,7 +358,7 @@ async function assertLiveBuild() {
     const dwell = readDwell({ studentTurns: allStudent, stoneTurns: [...stoneTurns, question], goal: EDGE, repeated });
     const pre = preambleOf(question);
     const tell = !validateOutput(question, { ownWords: new Set(allStudent.flatMap((t) => words(t))) })
-      .reasons.every((r) => !/interprets what they said/.test(r));
+      .reasons.every((r) => !INTERPRETIVE.test(r));
     const qw = new Set(words(question));
     const overlapPrev = stoneTurns.length
       ? [...qw].filter((w) => words(stoneTurns[stoneTurns.length - 1]).includes(w)).length : 0;
@@ -499,27 +508,16 @@ async function assertLiveBuild() {
   console.log(`  ${notes.length} note(s) on ${turnsWithReply.length} turns. Every one names a turn; go and read those turns.`);
   console.log('  There is no score here and nothing to sum — notes do not average.');
 
-  console.log(`\n${'='.repeat(78)}`);
-  console.log('THE DIALOGUE  — properties of the exchange, not of anybody in it');
-  if (!savedTurns) console.log('🔴 ON A PROBE RUN THESE MEAN LITTLE — the student is play-acted. See the note below.');
-  console.log('-'.repeat(78));
-  console.log(`reciprocity          ${reciprocity.toFixed(2)}  (${aWords} words answered to ${qWords} asked)`);
-  console.log(`reply trajectory     ${aEarly.toFixed(0)} → ${aLate.toFixed(0)} words   `
-    + `${aLate < aEarly * 0.6 ? 'THINNING' : aLate > aEarly * 1.4 ? 'opening out' : 'holding'}`);
-  console.log(`question trajectory  ${qEarly.toFixed(0)} → ${qLate.toFixed(0)} words   `
-    + `${qLate < qEarly * 0.6 ? '(the questions thinned too — it ended together)' : '(the questions held)'}`);
-  console.log(`uptake  Q←last A     ${mean(uptakeQ).toFixed(1)} words   `
-    + `${mean(uptakeQ) < 1 ? '— the questions barely reach into what was just said' : ''}`);
-  console.log(`uptake  A←this Q     ${mean(uptakeA).toFixed(1)} words   `
-    + `${mean(uptakeA) < 1 ? '— the replies barely engage the question asked' : ''}`);
-  console.log(`accumulation         ${carried.length} of their early words still live late`
-    + `${carried.length ? `  — ${carried.slice(0, 6).join(', ')}` : '  — the dialogue reset every turn'}`);
-  console.log(`last reply           ${last ? aLen(last) : 0} words, ${lastNew} of them new`
-    + `  ${lastNew >= 3 ? '(still going when it stopped)' : '(had run out, or was done)'}`);
-  console.log(`shape                ${spark}   (reply lengths, first to last)`);
-  console.log('-'.repeat(78));
-  console.log('⚠️  none of these is validated against anything, and there is no composite on purpose.');
-  console.log('   Read them beside the transcript, never instead of it.');
+  // 🔴 THE SENSOR-VALUE SECTION PRINTED HERE UNTIL 9 SEPTEMBER 2026 AND ITS COMPUTATION WAS ALREADY GONE.
+  // The 7 September notes rewrite replaced the engagement reading — reciprocity, trajectory, uptake,
+  // accumulation — with the notes above, on the argument recorded in CLAUDE.md: two sensor values were
+  // compared against each other within minutes of being written, which is the apparatus this practice
+  // refuses. The computation was deleted in that pass and the PRINT BLOCK was left standing, so every
+  // run of this probe — transcript mode and probe mode alike — threw `reciprocity is not defined` here,
+  // AFTER the notes had printed and BEFORE the conformance summary below and the run JSON at the end.
+  // It therefore looked like a working probe with a short tail, and no run has been written to
+  // docs/ops/flow-probe-runs/ since. Removed rather than restored: the values were superseded on
+  // purpose, and a half-deletion that still prints is how a retired mechanism comes back.
 
   console.log(`\n${'='.repeat(78)}`);
   // An apostrophe in an anchor is a contraction, and a contraction is never material — counted here
@@ -532,7 +530,7 @@ async function assertLiveBuild() {
   console.log(`goal coverage             ${covered}/${goalWords.length} things they named were asked about`);
   console.log(`mean overlap w/ prev Q    ${meanOverlap.toFixed(2)} content words`);
   console.log(`longest rut               ${longestRut} consecutive questions on "${rutWord}"`);
-  console.log(`interpretive tells        ${tells}`);
+  console.log(`interpretive preambles    ${tells}   (both checks: a named tell, and a reading they did not give)`);
   console.log(`guard breaches delivered  ${breaches}`);
   console.log('='.repeat(78));
 
