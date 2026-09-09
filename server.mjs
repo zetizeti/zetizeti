@@ -488,6 +488,13 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // CONCEPT-ONLY FOCUS (12 Aug 2026). Whitelisted rather than passed through: only the exact string
   // 'concept' turns it on, so an unknown value is no focus rather than an unspecified one.
   const focus = req.body?.focus === 'concept' ? 'concept' : null;
+  // THE SETTING (9 Sep 2026) — self-serve or in class, from the page's switch. Whitelisted like `focus`:
+  // only the exact string 'in-class' is the other setting; anything else is self-serve, which is what
+  // this route always did. It is reported back on the validation event and captured locally, and the
+  // transcript carries it. 🔴 IT IS NOT YET READ BY THE STEERING — Prayas said the two settings are
+  // different and has not said how, and this file does not guess a scope he has not defined. The line
+  // where a difference would be applied is the buildTurnContext call below; nothing is passed to it yet.
+  const setting = req.body?.setting === 'in-class' ? 'in-class' : 'self-serve';
 
   const goalTerms = (goal.toLowerCase().match(/[a-z0-9]+/g) || []).filter((t) => t.length > 2);
 
@@ -1008,12 +1015,13 @@ app.post('/api/chat', requireUser, async (req, res) => {
     send('token', { t: full });                  // the ACCEPTED question, delivered whole
     send('validation', { ...guarded.check, attempts: guarded.attempts, regenerated: guarded.regenerated, fallback: !!guarded.fallback,
       // which footing this turn took — what the last message WAS and what the tool did about it, never who they are
-      footing: askingBack ? 'asking-back' : declined ? 'declined' : corrected ? 'corrected' : rutInvite ? 'rut-invite' : stalledInvite ? 'stalled-invite' : featureInvite ? 'invite' : null });
+      footing: askingBack ? 'asking-back' : declined ? 'declined' : corrected ? 'corrected' : rutInvite ? 'rut-invite' : stalledInvite ? 'stalled-invite' : featureInvite ? 'invite' : null,
+      setting });
     // LOCAL, operator-only capture (no-op in production and unless ZETIZETI_CAPTURE_DIR is set) — the
     // situation → the question, so a chat can be replayed by the 2.0 "sounds-like-Prayas" harness. The
     // returned id lets the local UI attach an on-voice/off-voice label to this exact question. The guard's
     // work is captured too (a repaired question is a different kind of specimen from a first-pass one).
-    const capId = capture({ mode: prepping ? 'prep' : 'enquiry', prepStation: prepping ? (prepWalk.station ? prepWalk.station.key : prepWalk.phase) : null, prepPart: prepping ? prepWalk.part : null, chatKey: studentTurns[0] || goal, goal, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, dwell: featureInvite ? 'INVITE' : stalledInvite ? 'INVITE-STALLED' : dwell ? `${dwell.anchor}×${dwell.returns}` : null, joined: assoc ? assoc.distance : null, declined: !!declined, corrected, repeated, stalled, newMaterial: newMaterial.slice(0, 3), shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
+    const capId = capture({ mode: prepping ? 'prep' : 'enquiry', setting, prepStation: prepping ? (prepWalk.station ? prepWalk.station.key : prepWalk.phase) : null, prepPart: prepping ? prepWalk.part : null, chatKey: studentTurns[0] || goal, goal, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, dwell: featureInvite ? 'INVITE' : stalledInvite ? 'INVITE-STALLED' : dwell ? `${dwell.anchor}×${dwell.returns}` : null, joined: assoc ? assoc.distance : null, declined: !!declined, corrected, repeated, stalled, newMaterial: newMaterial.slice(0, 3), shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
       // Logged side by side so the comparison the todo doc asks for can be made on real transcripts
       // before anything is wired again. Local capture only — never in production (capture.mjs).
       sem: fs && fs.semFresh ? +fs.semFresh[fs.semFresh.length - 1].toFixed(3) : null,

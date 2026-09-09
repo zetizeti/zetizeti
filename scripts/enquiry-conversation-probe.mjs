@@ -66,6 +66,9 @@ const BASE = arg('base', 'http://localhost:3999');
 const ROUNDS = Number(arg('rounds', '10'));
 const PERSONA = arg('persona', 'agreeable');
 const DISCIPLINE = arg('discipline', 'all');
+// --setting=in-class | self-serve (9 Sep 2026): the page's setting switch, sent with every turn. The twenty
+// 9 September fixtures were all held in class; a replay should say so when it is measuring that.
+const SETTING = arg('setting', 'self-serve') === 'in-class' ? 'in-class' : 'self-serve';
 const EDGE_FILE = arg('edge-file');
 // 🔴 --force-repeat-at=N makes the student hand back their previous reply, unchanged, at round N.
 // This exists because a unit test on `readDwell` proves the FUNCTION responds to a repeat and proves
@@ -366,7 +369,7 @@ async function assertLiveBuild() {
     const ev = await sse('/api/chat', {
       message: round === 1 ? EDGE : studentTurns[studentTurns.length - 1],
       history: history.slice(0, -1).map((h) => ({ role: h.role === 'stone' ? 'interlocutor' : 'student', content: h.content })),
-      goal: EDGE, kind: round === 1 ? 'open' : 'turn', exchanges: round - 1, discipline: DISCIPLINE,
+      goal: EDGE, kind: round === 1 ? 'open' : 'turn', exchanges: round - 1, discipline: DISCIPLINE, setting: SETTING,
       turnsSinceNudge: 99,
     });
     question = ev.filter((e) => e.event === 'token').map((e) => e.data.t).join('').trim();
@@ -574,7 +577,7 @@ async function assertLiveBuild() {
   writeFileSync(out, JSON.stringify({
     source: savedTurns ? 'saved-dialogue' : 'probe',
     transcript: savedTurns ? TRANSCRIPT : undefined,
-    persona: savedTurns ? undefined : REPLAY_FIXTURE ? 'replay' : PERSONA, replay: REPLAY || undefined, rounds: savedTurns ? rows.length : rows.length, edge: edgeText,
+    persona: savedTurns ? undefined : REPLAY_FIXTURE ? 'replay' : PERSONA, replay: REPLAY || undefined, setting: savedTurns ? undefined : SETTING, rounds: savedTurns ? rows.length : rows.length, edge: edgeText,
     summary: { distinct, weak: weakAnchors.length, weakWords: [...new Set(weakAnchors)], turns: anchors.length, repeats, covered, named: goalWords.length, meanOverlap, longestRut, rutWord, tells, breaches },
     rows }, null, 2));
   appendFileSync(join(APP, '..', 'docs', 'ops', 'flow-probe-log.md'),

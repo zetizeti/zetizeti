@@ -26,6 +26,18 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.5.0] — 9 September 2026
+
+**A switch between two settings — self-serve, and in class — and no guess at what differs between them.**
+
+Prayas: *"they use on their own and with me around both - make a switch (self-serve, in class) - both modes are different."* Earlier the same afternoon: *"no closing, how do they know when to close? I decide when to close"* and *"I make students use zetizeti in class - I am there."*
+
+**The switch** sits in the enquiry surface's top row beside the concept-only control, in the same grammar the page's two other switches share — hard edge, mono label, a mark that fills rather than slides — and in its own register, vermilion, because a third switch in either neighbour's colour would read as a third half of one control. Unpressed is self-serve, which is what the page always did; pressed is in class. Nothing is persisted: like `focus` it lives as long as the tab does. **It travels with every turn**, the route whitelists it (only the exact string is the other setting), tells the client which setting the turn was taken in, and captures it locally. **The transcript records it** — `setting: in-class` in the front matter, and the file's own note then says it was held in class and ended when the session did, which is the only ending a dialogue here has — and **a transcript saved in class comes back in class** on resume. The PDF says it too. The conversation probe can replay a fixture in either setting.
+
+🔴 **WHAT DIFFERS BETWEEN THE TWO SETTINGS IS NOT BUILT, AND THAT IS DELIBERATE.** *Both modes are different* is a scope Prayas has stated and has not yet defined, and this project does not invent a scope he has not given. The setting reaches the route and stops one line short of the steering; `verification/setting-switch.test.mjs` pins that no `buildTurnContext` call site reads it, so the day a difference is built the test that changes is that one and the change is a decision rather than drift. In class today: the transcript says so. Self-serve today: exactly v1.4.0.
+
+**Rendered at 1400 and 760 and looked at**, per this project's rule. The first render found the new switch wrapping alone to a second line at 1400 while the focus switch stayed on the first — two same-job controls separated by a line break; the two are now one flex item and wrap together, sitting side by side under the save strip at both widths. ⚠️ **A render harness under headless Chrome's `--virtual-time-budget` never advances a CSS transition**: a pressed mark with a `.18s` fill read as transparent and rendered unfilled — for the long-shipped focus switch as much as the new one. Disable transitions in the harness before believing a fill is missing; with them off both marks read their colours.
+
 ## [1.4.0] — 9 September 2026
 
 **Four things the twenty dialogues asked for — and the instrument that measured them had been feeding the route its own reply twice since the day it was written.**

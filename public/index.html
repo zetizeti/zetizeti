@@ -607,6 +607,8 @@
     border:1px solid rgba(24,192,192,.42); background:rgba(24,192,192,.07); padding:7px 13px;
     margin-left:14px; transition:border-color .18s, background .18s}
   .focus-toggle[hidden]{display:none}
+  .switches{display:inline-flex; align-items:baseline; gap:14px; margin-left:14px; flex-wrap:nowrap}
+  .switches .focus-toggle{margin-left:0}
   .focus-toggle:hover{border-color:var(--turq); background:rgba(24,192,192,.14)}
   .focus-toggle .sw{width:9px; height:9px; flex:none; align-self:center; border:1px solid var(--turq);
     background:transparent; transition:background .18s, box-shadow .18s}
@@ -623,6 +625,7 @@
      label is reworded, recount it. */
   .focus-toggle .val{color:var(--turq); display:inline-block; text-align:left}
   #focusVal, #critFocusVal{min-width:calc(12 * (1ch + 0.09em))}   /* "concept only" — 12 chars, the wider of the two */
+  #settingVal{min-width:calc(10 * (1ch + 0.09em))}                 /* "self-serve" — 10 chars, the wider of its two */
   #critModeVal{min-width:calc(14 * (1ch + 0.09em))}               /* "what you paste" — 14 chars, the wider of the two */
   .focus-toggle[aria-pressed="true"]{border-color:var(--turq); background:rgba(24,192,192,.16)}
   .focus-toggle[aria-pressed="true"] .sw{background:var(--turq); box-shadow:0 0 10px rgba(24,192,192,.8)}
@@ -644,6 +647,20 @@
   /* Locked once a critique has started — the object cannot change under a conversation about it. */
   .mode-toggle[disabled]{opacity:.42; cursor:default; border-color:rgba(240,179,36,.22); background:none}
   .mode-toggle[disabled]:hover{border-color:rgba(240,179,36,.22); background:none}
+  /* THE SETTING SWITCH (9 Sep 2026 — Prayas: "they use on their own and with me around both - make a switch
+     (self-serve, in class) - both modes are different"). Same grammar as the two switches above, because
+     it is the same job at the same level (correction (c), 3 Jun 2026). The difference is conscious and
+     nameable: focus constrains WHAT MAY BE ASKED (turquoise), the critique mode chooses WHAT YOU BRING
+     (gold), and this one says WHERE YOU ARE AND WHO IS THERE — the warm register, vermilion, the light in
+     the room. A third switch in either of the other two colours beside them would read as a third half
+     of one control. Pressed = in class; unpressed = self-serve, which is what the page always did. */
+  .setting-toggle{color:var(--vermilion); border-color:rgba(232,67,31,.42); background:rgba(232,67,31,.07)}
+  .setting-toggle:hover{border-color:var(--vermilion); background:rgba(232,67,31,.14)}
+  .setting-toggle .sw{border-color:var(--vermilion)}
+  .setting-toggle .val{color:var(--vermilion)}
+  .setting-toggle[aria-pressed="true"]{border-color:var(--vermilion); background:rgba(232,67,31,.16)}
+  .setting-toggle[aria-pressed="true"] .sw{background:var(--vermilion); box-shadow:0 0 10px rgba(232,67,31,.75)}
+  .setting-toggle[aria-pressed="false"] .val{color:var(--muted)}
 
   @keyframes rise{from{opacity:0; transform:translateY(13px)} to{opacity:1; transform:none}}
   @media(max-width:640px){ .mark h1{font-size:32px} .turn.stone .body{font-size:20px} .edge-text{font-size:17px} .topbar{padding:12px 16px} .topbar nav{gap:14px} }
@@ -787,7 +804,14 @@
            students most likely to take the wrong file. The titles are kept as the longer sentence
            for anybody who does hover; the visible words are what the rule requires. -->
       <span class="dl-transcript" id="dlTranscript" hidden><span class="dl-lead">↓ save your transcript</span> <a id="dlMd" title="Markdown. This is the one to keep — it can be brought back here to carry on, and it is the file to hand in if somebody asked for your transcript.">.md</a><span class="dl-why">to carry on</span> <span class="dl-sep">·</span> <a id="dlPdf" title="A PDF for reading and keeping. It cannot be brought back to continue the conversation — save the .md as well if you might.">.pdf</a><span class="dl-why">to read — cannot be resumed</span></span>
-      <button class="focus-toggle" id="focusToggle" aria-pressed="false" title="Ask about the idea only — not how it would be made, produced, repaired, or what it would cost to produce."><span class="sw" aria-hidden="true"></span><span class="lbl">asking about</span> <span class="val" id="focusVal" data-widest="concept only">everything</span></button>
+      <!-- THE TWO SWITCHES ARE ONE FLEX ITEM (9 Sep 2026). Rendered at 1400 the row could not hold the save strip
+           and both switches, and the new one wrapped alone to a second line while the first stayed on the
+           first — two same-job controls separated by a line break, which is exactly what sharing a grammar
+           is for. Grouped, they wrap together or not at all. -->
+      <span class="switches"><button class="focus-toggle" id="focusToggle" aria-pressed="false" title="Ask about the idea only — not how it would be made, produced, repaired, or what it would cost to produce."><span class="sw" aria-hidden="true"></span><span class="lbl">asking about</span> <span class="val" id="focusVal" data-widest="concept only">everything</span></button>
+      <!-- THE SETTING SWITCH — on the enquiry surface only: it is the surface the studio uses, and the
+           critique and spec surfaces have not been asked for it (a listed difference, not an omission). -->
+      <button class="focus-toggle setting-toggle" id="settingToggle" aria-pressed="false" title="How you are using zetizeti right now — on your own, or in class with your teacher in the room. The two are different settings, and your transcript records which."><span class="sw" aria-hidden="true"></span><span class="lbl">using it</span> <span class="val" id="settingVal" data-widest="self-serve">self-serve</span></button></span>
       <div class="edge" id="edge" hidden>
         <div class="edge-label">the edge — what you're sharpening</div>
         <div class="edge-text" id="edgeText"></div>
@@ -1548,6 +1572,20 @@ function wireFocus(id, valId, get, set){
   paint();
 }
 wireFocus('focusToggle',     'focusVal',     ()=>focus,     (v)=>{ focus=v; });
+// ───────── the SETTING switch (9 Sep 2026) ─────────
+// Prayas: "they use on their own and with me around both - make a switch (self-serve, in class) - both
+// modes are different." Two settings, one switch, nothing persisted: like `focus` it lives as long as
+// the tab does, travels with every turn, is written into the transcript and comes back on resume.
+// 🔴 WHAT DIFFERS BETWEEN THE TWO IS PRAYAS'S TO SAY AND IS NOT INVENTED HERE. The switch is real —
+// the route is told, the transcript says which, the fixtures can be replayed in either — and the point
+// where a behavioural difference would be applied is one line in server.mjs, marked. Until he specifies
+// it, self-serve is exactly what the page always did and in-class differs only in what the transcript
+// says about itself.
+let setting='self-serve';
+function paintSetting(){ const b=document.getElementById('settingToggle'), v=document.getElementById('settingVal'); if(!b) return;
+  b.setAttribute('aria-pressed', setting==='in-class'?'true':'false'); if(v) v.textContent = setting==='in-class' ? 'in class' : 'self-serve'; }
+(function wireSetting(){ const b=document.getElementById('settingToggle'); if(!b) return;
+  b.addEventListener('click', ()=>{ setting = setting==='in-class' ? 'self-serve' : 'in-class'; paintSetting(); }); paintSetting(); })();
 wireFocus('critFocusToggle', 'critFocusVal', ()=>critFocus, (v)=>{ critFocus=v; });
 $('navCrit').addEventListener('click', ()=>go('/critique'));
 $('navSpec').addEventListener('click', ()=>go('/spec'));
@@ -2421,15 +2459,18 @@ function buildTranscriptMd(){
   const turns=history.filter(h=>h.role==='student').length;
   let body='';
   for(const h of history){ if(h.role==='interlocutor') body+='**Q.** '+String(h.content).replace(/\n+/g,' ')+'\n\n'; else body+=String(h.content)+'\n\n'; }
-  return '---\nsource: zetizeti\ntype: idea-transcript\ntopic: '+topic+'\ndate: '+new Date().toISOString()+'\nturns: '+turns+(focus==='concept'?'\nfocus: concept-only':'')+'\n---\n\n'
+  return '---\nsource: zetizeti\ntype: idea-transcript\ntopic: '+topic+'\ndate: '+new Date().toISOString()+'\nturns: '+turns+(focus==='concept'?'\nfocus: concept-only':'')+(setting==='in-class'?'\nsetting: in-class':'')+'\n---\n\n'
     +'# A dialogue — '+topic+'\n\n'
     // 🔴 THE FILE SAYS WHAT IT IS (7 Sep 2026). It read "An AI Club idea transcript… the student's own
     // responses are the substance; the questions are light context" — which said `student`, and called
     // half of the dialogue CONTEXT. Both were the aid framing written into the artifact itself: a
     // transcript is a record of something, and this is the thing. Nothing else holds a copy.
-    +'_This is a dialogue with zetizeti, and it is the whole of what happened — the questions and your\n'
-    +'answers together, neither one the context for the other. It exists nowhere else: nothing was stored,\n'
-    +'nothing was scored, and no copy was kept. What you do with it is yours to decide._\n\n'
+    // In class, the file says so, and says how it ended — the session ended it, which is the only ending a
+    // dialogue here has (Prayas, 9 Sep 2026: "I decide when to close"). Same shape either way: one italic
+    // paragraph, which parseTranscriptMd skips by shape and never by wording.
+    +(setting==='in-class'
+      ? '_This is a dialogue with zetizeti, held in class, and it is the whole of what happened — the questions and your\nanswers together, neither one the context for the other. It ended when the session did. It exists nowhere else:\nnothing was stored, nothing was scored, and no copy was kept. What you do with it is yours to decide._\n\n'
+      : '_This is a dialogue with zetizeti, and it is the whole of what happened — the questions and your\nanswers together, neither one the context for the other. It exists nowhere else: nothing was stored,\nnothing was scored, and no copy was kept. What you do with it is yours to decide._\n\n')
     +body;
 }
 function downloadFile(name, text, mime){ const b=new Blob([text],{type:mime+';charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1500); }
@@ -2446,7 +2487,9 @@ function downloadTranscriptPdf(){
   const w=pdfWriter(); if(!w){ alert('PDF library not loaded — try the .md instead.'); return; }
   const { doc, block }=w;
   block('A dialogue — '+transcriptTopic(), 'bold', 18, [20,20,40], 22, 6);
-  block("This is a dialogue with zetizeti and it is the whole of what happened. It exists nowhere else: nothing was stored, nothing was scored, and no copy was kept.", 'italic', 10, [120,120,130], 14, 12);
+  block(setting==='in-class'
+    ? "This is a dialogue with zetizeti, held in class, and it is the whole of what happened. It ended when the session did. It exists nowhere else: nothing was stored, nothing was scored, and no copy was kept."
+    : "This is a dialogue with zetizeti and it is the whole of what happened. It exists nowhere else: nothing was stored, nothing was scored, and no copy was kept.", 'italic', 10, [120,120,130], 14, 12);
   // 🔴 THE TWO VOICES ARE TYPOGRAPHIC PEERS (7 September 2026). Until today the question was set at 10.5pt
   // italic in grey-gold on tight leading and the reply at 12.5pt near-black on generous leading — a
   // hierarchy saying the questions were light context and the answers the substance. That is the aid
@@ -2556,6 +2599,7 @@ function parseTranscriptMd(text){
   while(turns.length && turns[0].role!=='student') turns.shift();
   if(!turns.length) return {error:'That transcript has nothing in it to continue from.'};
   return {turns, topic:(fm[1].match(/^topic:\s*([\s\S]*?)$/m)||[])[1]||turns[0].content,
+    setting: /^setting:\s*in-class\s*$/m.test(fm[1]) ? 'in-class' : 'self-serve',
     focus: /^focus:\s*concept-only\s*$/m.test(fm[1]) ? 'concept' : null};
 }
 // Rebuild the conversation in the tab, then hand it back to the student mid-flow. Everything the
@@ -2571,6 +2615,8 @@ function resumeFromTranscript(parsed){
   { const b=document.getElementById('focusToggle'), v=document.getElementById('focusVal');
     if(b) b.setAttribute('aria-pressed', focus?'true':'false');
     if(v) v.textContent = focus ? 'concept only' : 'everything'; }
+  // And the setting it was held in — a transcript saved in class comes back in class.
+  setting=parsed.setting||'self-serve'; paintSetting();
   addDivider('carried on from a saved transcript');
   let lastNode=null;
   restoring=true;
@@ -2715,7 +2761,7 @@ async function streamStone(message, kind, reuseNode){
   try{
     // Stateless: no quest_id. The browser sends the whole transcript + turnsSinceNudge; the server stores nothing.
     const res = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ message, history:history.slice(0,-1), goal, kind, honed, exchanges, lineage, turnsSinceNudge, focus, prep:prepText, tasks:prepTasksText, sheetName:prepName }) });
+      body: JSON.stringify({ message, history:history.slice(0,-1), goal, kind, honed, exchanges, lineage, turnsSinceNudge, focus, setting, prep:prepText, tasks:prepTasksText, sheetName:prepName }) });
     const reader=res.body.getReader(), dec=new TextDecoder(); let buf='';
     while(true){
       const {value,done}=await reader.read(); if(done) break;
