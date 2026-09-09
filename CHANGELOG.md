@@ -26,6 +26,18 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.5.2] — 9 September 2026
+
+**The two missing after-runs were taken, so the replay comparison is four fixtures rather than two — and the result is mixed in a way that is worth more than a clean one would have been.**
+
+Both were run one at a time, each with its own server started and stopped by port inside the same call, which is what the day's own §173 asks for. `--setting=self-serve` throughout, because self-serve behaviour is byte-identical to v1.4.0 and the two earlier after-runs predate the switch.
+
+**The rut fell on all three fixtures that HAD a rut** — `d` 10 → 4, `s` 10 → 7, `q` 8 → 6 — **and rose on the one that never had one**, `20260729-a` from 3 to 4, where not a single footing fired all run because there was nothing to invite a learner out of. That fourth fixture is the control, and what it establishes is that a mechanism built to break ruts shows nothing on a dialogue without a rut. Breaches fell on two, held on one, and rose from 0 to 3 on `s`, whose baseline was already clean.
+
+🔴 **None of that is a claim about question quality, and the counters cannot see whether the questions are good.** `20260729-a`'s own notes read *takes nothing the last answer added* and *could have been asked at any point* — questions that are open, varied, unbreached and inert. Every number in the comparison scores that run as fine. The notes name the turns, and they are the only part of the output pointing at the fault the counters are blind to. Full table in `docs/ops/flow-probe-log.md`.
+
+**Both conversation probes now name the address they tried when the server check fails.** The first attempt at these runs died on *no /api/version — is the server up?* while the server was up, on port 3000, because `app/.env` sets `PORT=3000` and `BASE` defaults to 3999. **An error that names one cause sends the reader to fix the wrong thing** — this project already learnt that on the criticism surface's PDF catch, which told a student their Google Doc export was encrypted when their browser was at fault. The message now carries the URL it tried and how to change it.
+
 ## [1.5.1] — 9 September 2026
 
 **Four tests were asserting behaviour three releases had already replaced, and every one of the four properties they exist to protect was intact.**

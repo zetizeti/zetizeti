@@ -254,7 +254,11 @@ async function studentReply(history, question) {
 async function assertLiveBuild() {
   const r = await fetch(`${BASE}/api/version`).catch(() => null);
   const live = r && r.ok ? await r.json() : null;
-  if (!live) throw new Error('no /api/version — is the server up?');
+  // 🔴 NAME THE ADDRESS THAT WAS TRIED. This read 'is the server up?' and sent the reader to check a
+  // server that was up — on another port, because .env sets PORT=3000 and BASE defaults to 3999. An
+  // error that guesses one cause sends people to fix the wrong thing; the project already learnt this
+  // on the criticism surface's PDF catch, where every failure was reported as a password.
+  if (!live) throw new Error(`no /api/version at ${BASE} — is a server listening there? (--base=<url>; app/.env sets PORT)`);
   // The build string cannot separate a fresh server from a stale one: the failure that prompted this had
   // the SAME commit and older code in memory. Only the start time can, compared with the source mtimes.
   const { statSync, readdirSync } = await import('node:fs');
