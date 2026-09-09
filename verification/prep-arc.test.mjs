@@ -240,7 +240,11 @@ test('every prep computation in the chat route is gated, so a conversation witho
     'prepping ? { posture:',
     'prepping ? null : feltPosture',
     'prepping ? null : readDwell',
-    '(prepping || declined || corrected) ? null : readAssociation',
+    // ⚠️ v1.4.0 WIDENED this gate rather than removing it — `askingBack` and `rutInvite` joined the
+    // same condition, so the association is suppressed in more states than before, not fewer. Pinned
+    // to the leading term so the next footing added here does not fail a test it strengthens.
+    '(prepping || declined || corrected',
+    ') ? null : readAssociation',
     'const precision = !prepping',
   ]) {
     assert.ok(chat.includes(gate), `expected the prep gate on: ${gate}`);

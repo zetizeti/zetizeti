@@ -81,7 +81,16 @@ test('the focus is whitelisted to the exact string at every entry point', () => 
 // still passing focus correctly. A test that pins a shape fails on every addition and says nothing about
 // the property it exists to protect. It now reads like the enquiry half beside it, which had the loose
 // form all along: focus must reach the guard, and what else travels with it is not this test's business.
+// ⚠️ AND IT BROKE THE SAME WAY A SECOND TIME, on 9 September 2026. Loosening the ARGUMENT LIST in
+// August left it pinning an INLINE OBJECT LITERAL, so v1.4.0 hoisting the options into `guardOptions`
+// — needed because the new last-attempt fallback reuses them — failed a test whose property held
+// perfectly: `focus` is the first key of that object and both call sites pass it. The assertion now
+// follows the binding rather than the punctuation. A shape is not a property; do not re-pin one.
 test('both validators are called with the focus', () => {
-  assert.match(SERVER, /validateOutput\(t,\s*\{[^}]*\bfocus\b/s, 'the enquiry guard must receive focus');
+  const enquiryCarriesFocus =
+    /validateOutput\(t,\s*\{[^}]*\bfocus\b/s.test(SERVER) ||
+    (/validateOutput\(t,\s*(\w+)\s*\)/.test(SERVER) &&
+     new RegExp(`const\\s+${SERVER.match(/validateOutput\(t,\s*(\w+)\s*\)/)[1]}\\s*=\\s*\\{[^;]*\\bfocus\\b`, 's').test(SERVER));
+  assert.ok(enquiryCarriesFocus, 'the enquiry guard must receive focus');
   assert.match(SERVER, /validateCriticismOutput\(t,\s*\{[^}]*\bfocus\b/s, 'the criticism guard must receive focus');
 });

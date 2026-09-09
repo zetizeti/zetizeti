@@ -26,6 +26,22 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.5.1] — 9 September 2026
+
+**Four tests were asserting behaviour three releases had already replaced, and every one of the four properties they exist to protect was intact.**
+
+The suite came back 506 of 510 on a tree that was tagged, published, released and live. Each failure was checked against the source before it was touched, because a test loosened until it passes is worth less than no test at all.
+
+**Two were pinned to the retired warmth dial.** `test/revision.test.mjs` asserted the posture string still said *encouragement aimed at the INQUIRY* and *never at them as a person*. v1.4.0 removed both deliberately: the acknowledgement survives, the verdict does not. The assertions now read the property that replaced them — *acknowledgement and nothing more*, *no verdict on it*, the learner's own words said back — and a comment records that #5, #6 and #7 are held by the guard's seven refused constructions rather than by this string, which is why they are no longer asserted here.
+
+🔴 **THE SHAPE-PINNING FAULT RECURRED, ONE LAYER IN, AND THE TEST THAT BROKE CARRIES A COMMENT WARNING AGAINST EXACTLY IT.** `verification/focus-threading.test.mjs` was loosened on 15 August after pinning an exact argument list broke on an addition that changed nothing. The loosening stopped at the argument list and left the assertion matching an inline object literal — so v1.4.0 hoisting the guard options into `guardOptions`, which the new last-attempt fallback needs in order to reuse them, failed a test whose property was perfect: `focus` is the first key of that object and both call sites pass it. **Loosening one layer of a shape leaves the next layer pinned.** The assertion now follows the binding rather than the punctuation, resolving the identifier and checking the object it names.
+
+**And one was pinned to a gate that had been made WIDER.** `verification/prep-arc.test.mjs` expected `(prepping || declined || corrected) ? null : readAssociation`; v1.4.0 added `askingBack` and `rutInvite` to the same condition, so the association is now suppressed in more states than before, not fewer. **A test that fails on a strengthening reports the opposite of what happened.** Split into its leading and trailing halves so the next footing added there cannot fail it.
+
+**Both loosened assertions were proved by removal, in both directions** — `focus` stripped from `guardOptions` and the association gate removed, each in memory against the real source — and each still refuses. 510 of 510.
+
+⚠️ **Nothing that runs changed.** `make-caprover-tar.sh` ships `server.mjs`, `lib/`, `public/`, `corpus/` and the package files; no test reaches the container. The redeploy exists so the live build's stamp matches the tag rather than sitting a version behind it with nothing on the page saying why.
+
 ## [1.5.0] — 9 September 2026
 
 **A switch between two settings — self-serve, and in class — and no guess at what differs between them.**
