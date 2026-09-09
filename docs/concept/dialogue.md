@@ -187,9 +187,9 @@ material: a question aimed straight at it rebounds, and in a twenty-turn session
 listening. The indicators ship as **tact** — what not to press — not as aim. `readCharges` remains
 selectable for measurement.
 
-### Refusal and correction — two footings
+### Refusal, correction and asking back — three footings
 
-Neither is a signal about the person; both describe what the last message *was*.
+None is a signal about the person; each describes what the last message *was*.
 
 **Decline** (`isDecline`) — the learner said they do not know. The question must not be built on those
 words, must not quote them, must not ask the same thing in different clothes. It changes footing to
@@ -202,6 +202,8 @@ particular*, and the browbeat returns through the back door — measured at 41%.
 **Correction** (`isCorrection`) — *"that's not what I meant"*, *"you asked that twice"*. The learner's
 correction is authoritative. The steering that would press on is suppressed; the next question takes up
 what they re-stated, plainly, under fifteen words. Nothing clever.
+
+**Asking back** (`isAskingBack`, v1.4.0) — the learner could not follow the question and said so: *what*, *what do you mean by X?*, *pls explain*, the tool's own words handed back as a question. Read structurally rather than from a phrase list: the reply is interrogative — a question mark, an interrogative in its first three words, or a request to explain — and adds not one content word of its own beyond the tool's last three questions and the few words a person uses to ask what was meant. It is read **before** the decline, because *idk what is diff in X and Y* declines and asks, and the ask is the half that can be acted on. Its instruction is the decline's opposite: do not change the subject. Ask the **same** thing again, under fifteen words, out of words they have used; define nothing, explain nothing. Nine of 438 real replies fire it; *positive or negative?* deliberately does not, because it adds a word.
 
 ### Warmth — the only element that moves both axes together
 
@@ -226,6 +228,8 @@ discerning student distrusts.
 
 The line it must never cross is **inquiry, not inquirer**: encouragement aimed at the thread is allowed;
 a grade of the person is not.
+
+**No verdicts (v1.4.0).** The clause before the question may say their words back and may not value them. Twenty real dialogues held eight preambles that did — *is doing real work*, *is opening something*, *is becoming clearer* — every one the system prompt's or the warmth posture's own example sentence said back. Both instructions are gone and seven appraisal constructions are refused at the guard, never acquitted by the learner having used the word. This retires the *light encouragement* setting of 24 July; what the +15 arc measured was the clause being present, and an acknowledgement made of their words is still one.
 
 ### Precision — conditional, never global
 
@@ -285,6 +289,10 @@ noun after it is not a way out.
 in a different construction, is not helped by it at all — see Known limits.
 
 **The rotation's phase (v1.3.1, 9 September 2026).** The approach that shapes a question — one of five in `APPROACHES` — rotates every turn, and until this release the rotation began at the same place in every conversation: index `studentTurns.length - 1`, which is 0 on any first turn. Twenty real dialogues from one room all opened *What would have to be true for …*, and neither ban could see it because both compare against previous questions and a first question has none. The starting point is now a hash of the learner's own goal — stateless and deterministic, so nothing is stored and a fixture replays exactly — and the twenty real edges land four to a move across all five instead of twenty on one.
+
+**The rut** (`readRut`, v1.4.0). The head ban refuses a repeated construction and the metronome moved down a level: twenty questions recombining four of one learner's nouns with a different interrogative each time. This reads one content word, exactly, across consecutive questions — the *longest rut* the probe has printed since 17 August — and at six on one word it fires the move `stalled` fires: hand the subject back, ask them to name another part, their word, no candidates. It is **not a frequency ban** (banning the project's central noun is worse than the rut — the 17 August argument under dwell stands) and **not the semantic re-ask gate** refused on 6 September. It fires at six, twelve, eighteen and never on every turn past six: the first cut re-fired each turn, and a learner whose project *is* the noun got seven invitations in a row, because the invitation kept the noun and the run never broke.
+
+**The guard's last attempt** (v1.4.0). Every correction says *keep the subject; change the form*, and in a rut the subject is what has run out of forms, so the fourth generation ships flagged. `generateGuarded` now takes a `fallback` — the rut invite's exhausted form, no anchor, no join, no aim — used on the last attempt only, after every ordinary attempt breached, ranked with the rest. The retry budget is unchanged; its last unit buys a change of footing instead of a fourth form.
 
 ### The repeat gate
 
@@ -484,6 +492,12 @@ transcript is theirs); the harness that runs them is public, in `scripts/flow-pr
 
 
 ---
+
+**A replay cannot answer an invitation, and the after-side of v1.4.0 is two fixtures, not four.** `--replay` feeds a real learner's replies to the real route; the replies were written to other questions, so they cannot react to a hand-back, and a rut read on a replay is a ceiling. The after-runs for two of the four fixtures were lost twice and not re-run. Nothing measured says the questions are better.
+
+**The rut invite reaches a learner whose project is one noun and cannot move them off it**, by design: it invites, never bans, and if they name the same thing again the tool goes on with it. Six questions on one word, one invitation, six more.
+
+**The criticism surface has no fallback on its last attempt.** A listed difference, not parity drift — its steering is built differently and no rut reading exists there yet.
 
 **Identical openings still produce identical first questions.** The rotation's phase is taken from the learner's own words and nothing else, because nothing else is available to a service that stores nothing. Two people who paste the same brief therefore start on the same move, and a class handed one brief will cluster on it. A within-room no-repeat rule would need the service to know about other conversations, which it does not and must not.
 

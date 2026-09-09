@@ -45,6 +45,7 @@
 //   node --env-file=.env scripts/enquiry-conversation-probe.mjs --rounds=10 --persona=agreeable
 //
 //   node scripts/enquiry-conversation-probe.mjs --transcript=path/to/dialogue.md
+//   node --env-file=.env scripts/enquiry-conversation-probe.mjs --replay=../docs/ops/fixtures/replay-session-20260909-d.json --rounds=48
 //     Reads a REAL saved dialogue instead of running one. No server, no key, no model call.
 //     This is the reading that makes dialogue quality checkable rather than asserted.
 
@@ -105,6 +106,21 @@ const FORCE_REPEAT_AT = Number(arg('force-repeat-at', '0'));
 const INTERPRETIVE = /interprets what they said|states a reading they did not give/;
 
 const TRANSCRIPT = arg('transcript');
+// 🔴 `--replay=<fixture.json>` (9 September 2026) — a REAL learner's replies, fed to the REAL route, which
+// generates NEW questions against them with today's build. `{ goal, turns }`, the shape every fixture in
+// docs/ops/fixtures/ already has; turns[0] is the opening edge and turns[n] answers question n.
+// What it measures honestly: how the tool behaves under replies that are thin, repetitive and polite in
+// the way real ones are — breaches delivered after the retry budget, ruts, invites, footings — none of
+// which a play-acted student can produce, because an instructed persona is generous by construction and
+// never runs the model out of ways to comply. What it CANNOT measure: question quality. A fixed reply
+// answered a different question in a different conversation, so it cannot react to this one (the
+// actor-reading null of 30 July, in the memory, was made by exactly that mismatch). Read breach counts
+// from a replay; never read a replay's questions as a dialogue.
+const REPLAY = arg('replay');
+const REPLAY_FIXTURE = REPLAY ? JSON.parse(readFileSync(REPLAY, 'utf8')) : null;
+if (REPLAY_FIXTURE && !(Array.isArray(REPLAY_FIXTURE.turns) && REPLAY_FIXTURE.turns.length > 1)) {
+  console.error(`${REPLAY} is not a replay fixture ({ goal, turns[] } with at least one reply)`); process.exit(1);
+}
 
 // The inverse of buildTranscriptMd, kept deliberately in the same SHAPE as parseTranscriptMd in
 // public/index.html: front matter, then paragraphs, `**Q.**` marking the stone and everything else the
@@ -129,7 +145,7 @@ function readTranscript(path) {
 }
 // Invented, and deliberately nothing like any student's project: a subject identifies a person as well
 // as a name does (the v0.14.2 finding).
-const EDGE = TRANSCRIPT ? '' : EDGE_FILE ? readFileSync(EDGE_FILE, 'utf8').trim() : (arg('edge')
+const EDGE = REPLAY_FIXTURE ? String(REPLAY_FIXTURE.turns[0]).trim() : TRANSCRIPT ? '' : EDGE_FILE ? readFileSync(EDGE_FILE, 'utf8').trim() : (arg('edge')
   || 'A repair kiosk for bicycles at the edge of a market. A rider leaves the bike, walks off, and comes '
    + 'back to find it done. I want a paper receipt, a queue that is visible from the road, an awning for '
    + 'the monsoon, and a stool where somebody can wait if they would rather not leave.');
@@ -274,7 +290,8 @@ async function assertLiveBuild() {
     console.log(`source   : a real saved dialogue — no server, no model call, nothing generated here`);
     console.log(`rounds   : ${savedTurns.filter((t) => t.role === 'stone').length} questions asked`);
   } else {
-    console.log(`persona  : ${PERSONA}${PERSONA === 'agreeable' ? '  (never complains; restates when out of material)' : '  (permitted to disengage)'}`);
+    if (REPLAY_FIXTURE) console.log(`replay   : ${REPLAY.split('/').slice(-1)[0]} — a REAL learner's replies to NEW questions; read the breach counts, never the questions as a dialogue`);
+    else console.log(`persona  : ${PERSONA}${PERSONA === 'agreeable' ? '  (never complains; restates when out of material)' : '  (permitted to disengage)'}`);
     console.log(`rounds   : ${ROUNDS}`);
   }
   console.log(`edge     : ${edgeText.slice(0, 96)}${edgeText.length > 96 ? '…' : ''}`);
@@ -330,13 +347,25 @@ async function assertLiveBuild() {
     history.push(...savedTurns);
   }
 
-  for (let round = 1; !savedTurns && round <= ROUNDS; round++) {
+  // A replay has exactly as many real replies as the fixture holds; it ends where the dialogue was cut off.
+  const MAX_ROUNDS = REPLAY_FIXTURE ? Math.min(ROUNDS, REPLAY_FIXTURE.turns.length - 1) : ROUNDS;
+  for (let round = 1; !savedTurns && round <= MAX_ROUNDS; round++) {
     const stoneTurns = history.filter((h) => h.role === 'stone').map((h) => h.content);
     const studentTurns = history.filter((h) => h.role !== 'stone').map((h) => h.content);
 
+    // 🔴 THE ROUTE APPENDS `message` TO THE STUDENT TURNS IT READS FROM `history`, AND THE BROWSER SENDS
+    // `history.slice(0, -1)` FOR THAT REASON (public/index.html). This probe sent the whole history, so
+    // from 17 August to 9 September every reply reached the route TWICE — once in history, once as the
+    // message — and `newMaterial` (the words in the message not in any EARLIER reply) was empty on every
+    // turn after the first. So `stalled` was true on every turn of every run this probe ever made: it
+    // switched precision off throughout, and from 6 September, when `stalled` reached the steering, every
+    // probe run measured a tool handing the subject back on every single turn. Found on 9 September when a
+    // footing count was added and read `stalled-invite×33` of 37. Production never had this; a browser
+    // dialogue was never double-counted. Every conversation-probe number before this date is a number about
+    // a route that was being fed its own reply twice.
     const ev = await sse('/api/chat', {
       message: round === 1 ? EDGE : studentTurns[studentTurns.length - 1],
-      history: history.map((h) => ({ role: h.role === 'stone' ? 'interlocutor' : 'student', content: h.content })),
+      history: history.slice(0, -1).map((h) => ({ role: h.role === 'stone' ? 'interlocutor' : 'student', content: h.content })),
       goal: EDGE, kind: round === 1 ? 'open' : 'turn', exchanges: round - 1, discipline: DISCIPLINE,
       turnsSinceNudge: 99,
     });
@@ -347,7 +376,7 @@ async function assertLiveBuild() {
 
     const prevReply = studentTurns[studentTurns.length - 1];
     const forced = FORCE_REPEAT_AT && round === FORCE_REPEAT_AT && prevReply;
-    const reply = forced ? prevReply : await studentReply(history.slice(0, -1), question);
+    const reply = forced ? prevReply : REPLAY_FIXTURE ? String(REPLAY_FIXTURE.turns[round] ?? '') : await studentReply(history.slice(0, -1), question);
     if (forced) console.log(`   [forced repeat: the student hands back their round-${round - 1} reply verbatim]`);
     history.push({ role: 'student', content: reply });
 
@@ -364,7 +393,7 @@ async function assertLiveBuild() {
       ? [...qw].filter((w) => words(stoneTurns[stoneTurns.length - 1]).includes(w)).length : 0;
 
     rows.push({ round, question, reply, repeated, anchor: dwell?.anchor || (dwell?.invite ? 'INVITE' : null),
-      tell, pre, overlapPrev, breach: !validation.ok, reasons: validation.reasons || [] });
+      tell, pre, overlapPrev, breach: !validation.ok, reasons: validation.reasons || [], fallback: !!validation.fallback, attempts: validation.attempts ?? null, footing: validation.footing || null });
 
     console.log(`\n── round ${round} ${'─'.repeat(50)}`);
     console.log(`Q  ${question}`);
@@ -532,6 +561,11 @@ async function assertLiveBuild() {
   console.log(`longest rut               ${longestRut} consecutive questions on "${rutWord}"`);
   console.log(`interpretive preambles    ${tells}   (both checks: a named tell, and a reading they did not give)`);
   console.log(`guard breaches delivered  ${breaches}`);
+  if (!savedTurns) {
+    console.log(`hand-backs by the guard    ${rows.filter((r) => r.fallback).length}   (the final attempt handed the subject back; a breach among them is one that still failed)`);
+    const footings = rows.reduce((m, r) => { if (r.footing) m[r.footing] = (m[r.footing] || 0) + 1; return m; }, {});
+    console.log(`footings taken            ${Object.keys(footings).length ? Object.entries(footings).map(([k, v]) => `${k}×${v}`).join('  ') : 'none'}`);
+  }
   console.log('='.repeat(78));
 
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -540,11 +574,11 @@ async function assertLiveBuild() {
   writeFileSync(out, JSON.stringify({
     source: savedTurns ? 'saved-dialogue' : 'probe',
     transcript: savedTurns ? TRANSCRIPT : undefined,
-    persona: savedTurns ? undefined : PERSONA, rounds: savedTurns ? rows.length : ROUNDS, edge: edgeText,
+    persona: savedTurns ? undefined : REPLAY_FIXTURE ? 'replay' : PERSONA, replay: REPLAY || undefined, rounds: savedTurns ? rows.length : rows.length, edge: edgeText,
     summary: { distinct, weak: weakAnchors.length, weakWords: [...new Set(weakAnchors)], turns: anchors.length, repeats, covered, named: goalWords.length, meanOverlap, longestRut, rutWord, tells, breaches },
     rows }, null, 2));
   appendFileSync(join(APP, '..', 'docs', 'ops', 'flow-probe-log.md'),
-    `\n- **enquiry-conversation-probe** ${stamp} · ${savedTurns ? `READ \`${TRANSCRIPT.split('/').slice(-1)[0]}\` (a real dialogue)` : `persona \`${PERSONA}\``} · ${savedTurns ? rows.length : ROUNDS} rounds — `
+    `\n- **enquiry-conversation-probe** ${stamp} · ${savedTurns ? `READ \`${TRANSCRIPT.split('/').slice(-1)[0]}\` (a real dialogue)` : REPLAY_FIXTURE ? `REPLAY \`${REPLAY.split('/').slice(-1)[0]}\` (real replies, new questions)` : `persona \`${PERSONA}\``} · ${savedTurns ? rows.length : ROUNDS} rounds — `
     + `${distinct} distinct anchors (${weakAnchors.length} weak), ${repeats} student repeats, coverage ${covered}/${goalWords.length}, `
     + `longest rut ${longestRut} on \`${rutWord}\`, ${tells} tells, ${breaches} breaches. \`${out.split('/').slice(-1)[0]}\`\n`);
   console.log(`\nwritten: ${out}`);

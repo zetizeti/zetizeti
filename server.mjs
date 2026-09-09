@@ -49,7 +49,7 @@ import { streamQuestion } from './lib/llm.mjs';
 import { generateGuarded } from './lib/guard.mjs';           // the guard's ENFORCEMENT layer (invariant #3)
 import { startHeartbeat } from './lib/heartbeat.mjs';       // keeps the guard's SILENT interval alive (see the file)
 import { computeSignals, content as contentWords } from './lib/signals.mjs';
-import { readDwell, isDecline, isCorrection, lastSubstantive, readRepeat, NONMATERIAL } from './lib/arc.mjs';
+import { readDwell, isDecline, isCorrection, lastSubstantive, readRepeat, NONMATERIAL, isAskingBack, readRut } from './lib/arc.mjs';
 import { readAssociation, associationBlock } from './lib/assoc.mjs';
 import { semanticFreshness, refineFresh } from './lib/novelty.mjs';   // SHADOW ONLY — measured, not wired (see novelty.mjs)           // the enquiry surface's dynamic arc (line of questioning)
 import { decideNudge, feltPosture, formShape } from './lib/nudge.mjs';
@@ -749,11 +749,17 @@ app.post('/api/chat', requireUser, async (req, res) => {
   const dwellRead = prepping ? null : readDwell({ studentTurns, stoneTurns, goal, repeated });
   // The learner has declined this question. Outranks everything: nothing is built on words that carry no
   // content, and the next question changes footing to material they themselves supplied earlier.
-  const declined = isDecline(message) ? { anchorText: lastSubstantive([...studentTurns]) } : null;
+  // ASKING BACK (9 Sep 2026) — they could not follow the last question and handed its words back as a
+  // question. Read BEFORE the decline, because "idk what is diff in X and Y" declines and asks, and the ask
+  // is the half that can be acted on. The response is the decline's opposite: same subject, plainer words.
+  const askingBack = isAskingBack(message, stoneTurns)
+    ? { words: [...new Set(studentTurns.slice(0, -1).flatMap((t) => contentWords(t)))].filter((w) => !NONMATERIAL.has(w)).slice(-12) }
+    : null;
+  const declined = !askingBack && isDecline(message) ? { anchorText: lastSubstantive([...studentTurns]) } : null;
   // The learner corrected a reading ("that's not what i meant", "you asked that twice") — Jung's
   // disturbed-reproduction indicator, worn protectively: their correction is authoritative, so the
   // steering that would press on is suppressed and the next question takes up what they re-stated.
-  const corrected = !declined && isCorrection(message);
+  const corrected = !declined && !askingBack && isCorrection(message);
   // 🔴 `stalled` NOW REACHES THE STEERING, AND ITS RESPONSE IS ITS OWN (6 Sep 2026). Since 17 August the
   // two grades have had one consumer each — `stalled` the precision gate, `repeated` the dwell read —
   // and `stalled` therefore could not change what the next question was ABOUT. A real session of
@@ -767,11 +773,15 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // doing well, which is the two-student rule's actual question and the licence for shipping it.
   // ⚠️ It does NOT fire on a refusal or a correction: "i don't know" adds no new word either, and each of
   // those already owns the turn.
-  const stalledInvite = stalled && !prepping && !declined && !corrected;
-  const featureInvite = !prepping && !!(dwellRead && dwellRead.invite);
+  const stalledInvite = stalled && !prepping && !declined && !corrected && !askingBack;
+  const featureInvite = !prepping && !!(dwellRead && dwellRead.invite) && !askingBack;
+  // THE RUT (9 Sep 2026) — the stone's own last RUT_TURNS questions all carry one word. Hands the subject
+  // back, exactly as `stalled` does; see readRut for why it is not a ban and not the refused re-ask gate.
+  const rut = (!prepping && !declined && !corrected && !askingBack && !stalledInvite && !featureInvite) ? readRut(stoneTurns) : null;
+  const rutInvite = rut ? { word: rut.word, run: rut.run, exhausted: false } : null;
   // Dwell is suppressed by either invite, and for one reason: both mean STOP MINING THIS MATERIAL, and an
   // anchor block would say the opposite in the same prompt.
-  const dwell = (featureInvite || stalledInvite) ? null : dwellRead;
+  const dwell = (featureInvite || stalledInvite || rutInvite || askingBack) ? null : dwellRead;
   // WIDENING BY ASSOCIATIVE VALUE (lib/assoc.mjs) — join two things the learner said at different times
   // and has never been asked about together. Measured 28 Jul as the best single addition of the day:
   // dry replies 30%→17%, uptake 83%→95%, and the only configuration whose student writes MORE as the
@@ -782,7 +792,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // on three successive runs — charged material is resistant material) behind the protective gates:
   // corrections never quoted, refusals quotable only when they name the blockage, hedge words never
   // material. Jung as tact, Cummings as manner, the join itself generous.
-  const assoc = (prepping || declined || corrected) ? null : readAssociation({ studentTurns, stoneTurns, selector: 'open' });
+  const assoc = (prepping || declined || corrected || askingBack || rutInvite) ? null : readAssociation({ studentTurns, stoneTurns, selector: 'open' });
   // OPENER BAN — the question may not open with the word either of the last two questions opened with
   // (proactive here; enforced in the guard). 22 of 24 questions in a real session opened "When…" while
   // every sameness metric read clean.
@@ -807,6 +817,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
     && recent.length >= 2
     && recent[Math.floor(recent.length / 2)] >= 10
     && !stalled
+    && !askingBack
     && !studentTurns.slice(-2).some((t) => isDecline(t));
   // Tell the client a posture fired even when there is nothing to SHOW. The refractory lives in the
   // client (the service is stateless — it sends `turnsSinceNudge` back each turn), and it used to reset
@@ -849,6 +860,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
       shape: formShape(exchanges, { flow: true }),
       declined,
       corrected,
+      askingBack,
       banOpeners,
       banHeads,
       message,
@@ -868,6 +880,8 @@ app.post('/api/chat', requireUser, async (req, res) => {
       precision,
       featureInvite,
       stalledInvite,
+      rutInvite,
+      askingBack,
       message,
     });
 
@@ -891,11 +905,8 @@ app.post('/api/chat', requireUser, async (req, res) => {
     // guard was inert until 24 Jul 2026. maxTokens 150 keeps one short question a beat, not a wait.
     // cache: true — reuse the stable prefix (system + prior history) at ~1/10th input price. reasoning
     // off — gemini-lite defaults to a thinking budget; zetizeti is a thin composer.
-    const guarded = await generateGuarded({
-      // avoid: the repeat gate (round 4) — a question sharing a five-word frame with an earlier one is
-      // withheld and repaired (quoted learner text stripped first). Detection at the only place a repeat
-      // can actually be withheld: the guard.
-      validate: (t) => validateOutput(t, {
+    // ONE option set for both validators below — the ordinary one and the fallback's — so they cannot drift.
+    const guardOptions = {
         focus,                                   // concept-only: a production question is withheld, not discouraged
         avoid: stoneTurns,
         banOpeners,
@@ -944,7 +955,36 @@ app.post('/api/chat', requireUser, async (req, res) => {
           a: [...new Set(contentWords(assoc.earlyText))].filter((w) => !NONMATERIAL.has(w)).slice(0, 8),
           b: [...new Set(contentWords(assoc.liveText))].filter((w) => !NONMATERIAL.has(w)).slice(0, 8),
         } : null,
-      }),
+      
+    };
+    // The hand-back turn for the guard's fallback: the same turn with the subject handed back. Built lazily —
+    // it is only ever composed when three ordinary attempts have already breached.
+    const handBackMessages = () => [
+      ...history.map((h) => ({ role: h.role === 'student' ? 'user' : 'assistant', content: h.content })),
+      { role: 'user', content: buildTurnContext({
+        retrieved, focus, shape: formShape(exchanges, { flow: true }), declined, corrected, banOpeners, banHeads, message,
+        rutInvite: { word: rut ? rut.word : null, run: rut ? rut.run : 0, exhausted: true },
+      }) },
+    ];
+    const guarded = await generateGuarded({
+      // avoid: the repeat gate (round 4) — a question sharing a five-word frame with an earlier one is
+      // withheld and repaired (quoted learner text stripped first). Detection at the only place a repeat
+      // can actually be withheld: the guard.
+      validate: (t) => validateOutput(t, guardOptions),
+      // THE FALLBACK (9 Sep 2026): on the last attempt, if every ordinary attempt breached, hand the subject
+      // back instead of correcting the form again — the rut invite, with no anchor, no join and no aim. The
+      // join's `mustHold` is dropped with the join; everything else the guard refuses it still refuses.
+      fallback: prepping ? null : {
+        generate: (correction) => streamQuestion({
+          system,
+          messages: (correction && correction.previous)
+            ? [...handBackMessages(), { role: 'assistant', content: correction.previous }, { role: 'user', content: correction.instruction }]
+            : handBackMessages(),
+          cache: true, maxTokens: 150, reasoning: { enabled: false },
+          onToken: () => {}, apiKey, onUsage,
+        }),
+        validate: (t) => validateOutput(t, { ...guardOptions, mustHold: null }),
+      },
       generate: (correction) => streamQuestion({
         system,
         // On a repair attempt the rejected question and the correction are appended as a normal turn pair,
@@ -966,7 +1006,9 @@ app.post('/api/chat', requireUser, async (req, res) => {
       return res.end();
     }
     send('token', { t: full });                  // the ACCEPTED question, delivered whole
-    send('validation', { ...guarded.check, attempts: guarded.attempts, regenerated: guarded.regenerated });
+    send('validation', { ...guarded.check, attempts: guarded.attempts, regenerated: guarded.regenerated, fallback: !!guarded.fallback,
+      // which footing this turn took — what the last message WAS and what the tool did about it, never who they are
+      footing: askingBack ? 'asking-back' : declined ? 'declined' : corrected ? 'corrected' : rutInvite ? 'rut-invite' : stalledInvite ? 'stalled-invite' : featureInvite ? 'invite' : null });
     // LOCAL, operator-only capture (no-op in production and unless ZETIZETI_CAPTURE_DIR is set) — the
     // situation → the question, so a chat can be replayed by the 2.0 "sounds-like-Prayas" harness. The
     // returned id lets the local UI attach an on-voice/off-voice label to this exact question. The guard's

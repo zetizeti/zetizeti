@@ -91,15 +91,29 @@ test('BOTH routes actually SEND every shared guard — an accepted option nobody
   // Read to the END of the options object by matching braces, not a fixed window: these call sites carry
   // long comments, and a window that happens to be too short reports a missing guard that is actually there
   // — a false alarm in a test about false clean bills is the last thing this file should produce.
+  const block = (from) => {
+    let depth = 0;
+    for (let k = src.indexOf('{', from); k < src.length; k++) {
+      if (src[k] === '{') depth++;
+      else if (src[k] === '}' && --depth === 0) return src.slice(from, k + 1);
+    }
+    throw new Error(`could not read a brace-matched block from ${from}`);
+  };
   const call = (name) => {
     const i = src.indexOf(name);
     assert.notEqual(i, -1, `${name} must be called in server.mjs`);
-    let depth = 0;
-    for (let k = src.indexOf('{', i); k < src.length; k++) {
-      if (src[k] === '{') depth++;
-      else if (src[k] === '}' && --depth === 0) return src.slice(i, k + 1);
+    let obj = block(i);
+    // v1.4.0 (9 Sep 2026): the enquiry route passes ONE named options object to both its validators so the
+    // two cannot drift — `validateOutput(t, guardOptions)` and, for the guard's fallback,
+    // `{ ...guardOptions, mustHold: null }`. A source-reading test has to follow that reference, or it
+    // reports a missing guard that is actually there — a false alarm in a test about false clean bills.
+    const spread = /\.\.\.(\w+)/.exec(obj);
+    if (spread) {
+      const def = src.indexOf(`const ${spread[1]} = {`);
+      assert.notEqual(def, -1, `${name} spreads ${spread[1]}, which must be defined as an object literal in server.mjs`);
+      obj += block(def);
     }
-    throw new Error(`could not read the options passed to ${name}`);
+    return obj;
   };
   for (const opt of ['maxWords', 'avoid', 'banOpeners', 'noClosed', 'ownWords']) {
     assert.match(call('validateOutput(t, {'), new RegExp(`\\b${opt}\\b`),
