@@ -85,6 +85,7 @@ const PUBLIC_SCRIPTS = [
   'server-probe.mjs',
   'signoff-run.txt',
   'signoff-web.mjs',
+  'cinematic-read.mjs',   // reads a dialogue as artifact and as experience; no student material in it
   'signoff.mjs',
   'stamp-test-badge.mjs',   // runs the suite and writes the README badge, so nobody types the number
   'stamp-version.mjs',

@@ -26,6 +26,24 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.6.0] — 9 September 2026
+
+**The counters measure whether the questioning misbehaves. None of them measured whether the dialogue was worth being in.**
+
+Prayas: *"frame new cinematic dialogue tests with exa and consensus — dialogue as artifact and experience and test the new tests. If more discerning we will make them required."*
+
+A replay that morning scored well on everything this project counts — rut 4, five breaches, no interpretive tells, eleven distinct anchors, coverage 8 of 13 — while the probe's own prose notes said of the same run *takes nothing the last answer added* and *this question could have been asked at any point*. Open, varied, unbreached and inert.
+
+**`scripts/cinematic-read.mjs` reads a run in two frames.** As an **artifact**, the transcript as a made thing read after the fact the way a scene is read on the page. As an **experience**, what it was to be the person answering: whether there was room, and whether it was taken. Six axes, sourced one by one to screenwriting craft and to the discourse literature, with **no total and no composite** — the frame's own source refuses it, and the probe already says in its own words that notes do not average.
+
+🔴 **The frame is not imported. It is twelve years old and it is Prayas's**, from MoVD's *Conversation* (19 September 2014): *"A contribution is not valuable by default. That is where the script comes in."* And the experience half is that text's closing question — *who spoke, the writer or the actor?* — with its answer that an actor's closeness to an experience someone else scripted cannot be dismissed. Here the tool writes and the learner acts.
+
+🔴 **Uptake earned a place; the other five axes did not.** Over 58 runs it correlates −0.05 with longest-rut and 0.07 with breaches, has the widest spread of any axis, and separates 45% of the pairs the old counters call equivalent. **On the controlled pairs — the same fixture replayed on two builds, so the learner's half is identical — it found a trade nothing else can see: v1.4.0 took fixture `d` from rut 10 to 4 and breaches 11 to 7 while uptake fell 42% to 37%, and the periodic rut-invite took `s` from rut 14 to 7 while the inert rate rose 13% to 29%. The rut-invite trades uptake for rut**, breaking a rut by handing the subject back — and a question that hands the subject back takes less of what the learner just said. The cost of the mechanism, visible for the first time.
+
+🔴 **The wide end of grammatical scope was measured and FAILED, and is kept as a negative result.** Yarmel 2026 is right that an inquiry question fails when its scope is too wide as well as too narrow, and every guard here catches only the narrow end; this operationalisation of the wide end fired on 0–4% of turns, sd 0.7, and cannot see width.
+
+**Required, with no threshold.** The figures are recorded on any release that changes the questioning. What rate is too low is a question about what this tool is for, and inventing that number is not this file's to do.
+
 ## [1.5.4] — 9 September 2026
 
 **v1.5.3 was not deployed on a reason that was false, and this deploys it.**

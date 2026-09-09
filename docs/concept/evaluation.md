@@ -211,3 +211,52 @@ node scripts/flow-score.mjs <run>.json --misses
 A fixture is `{ "goal": "...", "turns": ["reply", "reply", ...] }`. Variants are declared at the top of
 `flow-probe.mjs`; every rejected mechanism remains runnable there, so a negative result can be
 re-examined rather than taken on trust.
+
+---
+
+## The cinematic read — a dialogue as a made thing, and as a thing that was lived (9 September 2026)
+
+*Working vocabulary throughout. None of the words in this section go near the site's own copy, which describes the tool and never names the reader's condition.*
+
+### The gap this closes, and it was found by the counters contradicting themselves
+
+On 9 September a replay scored well on every counter the project had — longest rut 4, five breaches, no interpretive tells, eleven distinct anchors, goal coverage 8 of 13 — while the probe's own prose notes said of the same run: *takes nothing the last answer added*, *this question could have been asked at any point*, *nothing new entered here at all*. Open, varied, unbreached and inert. **Every number was blind to it, because every number measures whether the questioning misbehaves and none measures whether the dialogue was worth being in.**
+
+### Two frames, and they are different questions
+
+**As an artifact** — the transcript as a made thing, read after the fact the way a scene is read on the page. **As an experience** — what it was to be the person answering: whether there was room, and whether it was taken.
+
+The frame is the project's own, from the Museum of Vestigial Desire's *Conversation* (19 September 2014): *"A contribution is not valuable by default. That is where the script comes in. If conversations were to be scripted dialogue and not mere speech with an unspecified intensity, then they could actually matter more."* And, for the second frame, that text's closing question — *"who spoke? The writer or the actor?"* — with its answer that if an actor feels close to an experience someone else scripted, that closeness can be neither dismissed nor questioned. Here the tool writes and the learner acts.
+
+### What is measured, and where each axis comes from
+
+`scripts/cinematic-read.mjs` reads any probe run and reports six axes. **There is no total and there will not be one** — the source above cuts against summing them, and the probe already refuses it in its own words: notes do not average.
+
+| axis | what it reads | where it comes from |
+|---|---|---|
+| **uptake / inert** | how much of what the learner just added the next question picks up | Nystrand, Wu, Gamoran, Zeiser & Long 2003, *Discourse Processes*, [10.1207/s15326950dp3502_3](https://doi.org/10.1207/s15326950dp3502_3) — authentic questions and uptake as dialogic bids, over 33,000 coded questions. Demszky et al. 2021, ACL, [10.18653/v1/2021.acl-long.130](https://doi.org/10.18653/v1/2021.acl-long.130) formalise uptake computationally and find repetition-based baselines weaker than they appear |
+| **on the nose** | the question names the thinking it wants instead of asking for the thing | screenwriting craft: Robert Towne on Nicholson — *"he would not improvise on the nose… most scenes are rarely about what the subject matter is"*; McKee, *on the nose dialogue is dialogue without a subtext*; Sol Stein's four questions of dialogue |
+| **early-completing** | the line completes its meaning before it ends | McKee on the periodic sentence — withhold the key word so the listener cannot know the meaning until the last word |
+| **own material / agenda** | how much of the answer is the learner's own, and whether it left the question's terms entirely | Stivers & Hayashi 2010, *Language in Society* 39(1):1–25, [10.1017/s0047404509990637](https://doi.org/10.1017/s0047404509990637) — *transformative answers*: term transformations resist a question's design, agenda transformations resist its agenda and resist more strongly |
+| **scope, wide end** | 🔴 **measured and failed — see below** | Yarmel 2026, *Educational Theory*, [10.1111/edth.70102](https://doi.org/10.1111/edth.70102) — grammatical scope, and questions failing at **both** ends |
+| **deposited** | a reading was deposited before the question | ⚠️ not new — this counts what `PREAMBLE_TELLS` already refuses at delivery, so it is an existing enforcement re-read |
+
+⚠️ **Every axis is a lexical or structural proxy for a judgement a person makes by reading, and none is the judgement.** They are built to be more discerning than counting breaches, not to be right.
+
+### What earned its place, measured over 58 runs
+
+**Uptake earned it and nothing else clearly did.** Spearman against the existing counters: inert correlates **−0.05** with longest-rut and **0.07** with breaches — it is measuring something no existing counter touches — and it has the widest spread of any axis here, 5–63%, sd 17.8. Across pairs of runs the old counters call equivalent (same rut, breaches within one), **45% are separated by thirty points or more** on the new reading.
+
+🔴 **And on the controlled pairs — the same fixture replayed on two builds, so the learner's half is identical — it found a trade the old counters cannot see.** v1.4.0 took fixture `d` from rut 10 to 4 and breaches 11 to 7 **while uptake fell from 42% to 37%**; the periodic rut-invite took fixture `s` from rut 14 to 7 **while the inert rate rose from 13% to 29%**. **The rut-invite trades uptake for rut.** It breaks a rut by handing the subject back, and a question that hands the subject back is by construction one that takes less of what the learner just said. Every old counter sees the benefit; none sees the cost. That is not an argument against the mechanism — it is the cost of it, made visible for the first time.
+
+🔵 **On the nose** (0–20%, sd 5.1) and **early-completing** (0–20%, sd 5.5) are near-orthogonal to the old counters and worth reading; neither is validated against anything yet. **Own material** sits in a narrow band (47–82%, sd 7.1) and **agenda** correlates 0.62 with breaches, so both are readings rather than instruments.
+
+🔴 **The wide end of scope was measured and FAILED, and is kept as a negative result so it is not proposed again as new.** Yarmel's point — that an inquiry question fails when its grammatical scope is too wide as well as too narrow, where every guard here catches only the narrow end — is the right point. This operationalisation of it is not: *no purchase on the learner's own material* fired on 0–4% of turns across 58 runs, sd 0.7, saying the same thing about every dialogue. **That is not a finding that the questions are never too wide.** It is a lexical proxy that cannot see width, and rebuilding it needs a real measure of the space of answers a question admits.
+
+⚠️ **One comparison looks like validation and is not, so it is stated rather than used.** The older probe runs read mean uptake 9% against 41% for the real dialogues, which resembles the axis independently detecting the period when the probe was feeding the route its own reply twice. It cannot be read that way: those runs differ on two things at once, a play-acted student as well as the broken probe, and nothing separates them. The pre-fix 9 September runs that would have made it clean were never written to disk, because the probe crashed before its write step. The controlled same-fixture pairs are the evidence; that split is not.
+
+### What is required, and what is not
+
+**`cinematic-read.mjs` is run and its uptake figures recorded on any release that changes the questioning.** That is what the measurement earned: it is orthogonal to everything already measured, and it has already caught a cost that was otherwise invisible.
+
+🔴 **No threshold is set, and none may be invented.** What uptake rate is too low is a question about what this tool is for, and that is not a number to be derived from a spread of runs. Until it is set, the figure is recorded and read, and it fails nothing.
