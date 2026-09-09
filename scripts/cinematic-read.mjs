@@ -84,7 +84,9 @@
 //   node scripts/cinematic-read.mjs --all          every enquiry-conversation run under docs/ops/flow-probe-runs
 //   node scripts/cinematic-read.mjs --compare      the same, as a table beside the old counters
 
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync, appendFileSync, existsSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, basename } from 'node:path';
 import { NONMATERIAL } from '../lib/arc.mjs';
@@ -177,6 +179,94 @@ const readOne = (run) => {
 const pct = (k, n) => (n ? Math.round((100 * k) / n) : 0);
 const mean = (xs) => (xs.length ? Math.round((100 * xs.reduce((a, b) => a + b, 0)) / xs.length) : 0);
 
+// ── THE GATE (9 September 2026). Prayas: "make these new tests default for all new changes to zetizeti
+// before shipping". A line in a document saying to run this would be an instruction to the reader, which
+// is the shape this project already calls out twice — an instruction is not a guard, and a guard that
+// only reports enforces nothing. So `publish-public.sh` calls `--check` and ABORTS.
+//
+// 🔴 WHAT IS GATED IS THAT A READING WAS TAKEN, NEVER THAT IT PASSED A NUMBER. No threshold exists and
+//    none may be invented here: what uptake rate is too low is a question about what this tool is for,
+//    and that is a scope, and his. The gate refuses a release whose questioning has changed since the
+//    last recorded read. It has no opinion about the figures.
+//
+// 🔴 WHAT COUNTS AS "THE QUESTIONING" IS A DELIBERATE, NARROW LIST, and server.mjs is NOT on it. Every
+//    unrelated route change would otherwise force a ten-minute probe run before any release, and this
+//    file's own neighbour already records where that ends: "a guard that noisy gets bypassed, which is
+//    worse than no guard." The turn assembly does live in server.mjs, so that is a real gap and it is
+//    stated rather than closed by widening the net until nobody can ship.
+// ── THE READING HAS ITS OWN VERSION, AND IT IS NOT THE APP'S (9 September 2026). Prayas: "version the new
+// tests.. I want to grow them and finetune them gradually."
+//
+// 🔴 WHY A SEPARATE NUMBER AT ALL: a figure is only comparable to another figure taken under the same
+//    definition. Tune an axis and every earlier reading in the ledger silently becomes a different
+//    measurement wearing the same column heading — which is this project's staleness fault arriving in the
+//    one place built to detect staleness. So every recorded reading stamps the READ_VERSION that produced
+//    it, and any comparison spanning two of them says so rather than averaging across the seam.
+//
+// 🔴 AND IT IS ENFORCED, not remembered. `readerHash()` hashes the measurement code itself; the table below
+//    pins the hash each version was cut at, and `verification/cinematic-read-required.test.mjs` FAILS when
+//    the code has moved without the version moving with it. Changing an axis therefore costs one deliberate
+//    line, which is the point — growth should be cheap and silent drift should not be possible.
+//
+// HISTORY — what each version changed, so an old figure stays interpretable.
+//   1.0.0  9 Sep 2026  First cut. Six axes: uptake/inert, on-the-nose, early-completing, scope (wide end),
+//                      own-material/agenda, deposited. Uptake keyed to novelty against the whole prior
+//                      dialogue, skipping turns where the learner added nothing. The wide end of scope
+//                      MEASURED AND FAILED at this version (0-4%, sd 0.7) and is retained as a live zero
+//                      rather than deleted, so its failure stays visible.
+const READ_VERSION = '1.0.0';
+const READ_HASHES = { '1.0.0': '0b9bf7e621d00b11' };   // `--seal` prints the pin; the test enforces it
+
+const QUESTIONING = ['lib/dialogue.mjs', 'lib/arc.mjs', 'lib/nudge.mjs', 'lib/guard.mjs',
+                     'lib/plan.mjs', 'lib/reading.mjs', 'lib/prep.mjs', 'corpus/method'];
+const LEDGER = join(APP, '..', 'docs', 'ops', 'cinematic-reads.md');
+
+// The measurement code, and nothing else: if this changes, the numbers change meaning.
+const readerHash = () => {
+  const src = readFileSync(fileURLToPath(import.meta.url), 'utf8');
+  const a = src.indexOf('const NAMES_THE_ACT'), b = src.indexOf('const pct =');
+  return createHash('sha256').update(src.slice(a, b)).digest('hex').slice(0, 16);
+};
+
+const questioningHash = () => {
+  const h = createHash('sha256');
+  for (const rel of QUESTIONING) {
+    const abs = join(APP, rel);
+    let names = [];
+    try { names = statSync(abs).isDirectory() ? readdirSync(abs).sort().map((f) => join(abs, f)) : [abs]; }
+    catch { continue; }
+    for (const f of names) { try { h.update(rel + '\0' + readFileSync(f)); } catch {} }
+  }
+  return h.digest('hex').slice(0, 16);
+};
+
+const recordedHashes = () => {
+  try { return new Set(readFileSync(LEDGER, 'utf8').match(/questioning:\s*([0-9a-f]{16})/g)?.map((s) => s.slice(-16)) || []); }
+  catch { return new Set(); }
+};
+
+if (process.argv.includes('--seal')) {
+  console.log(`READ_VERSION ${READ_VERSION}  hash ${readerHash()}`);
+  console.log(`Pin it: READ_HASHES = { ..., '${READ_VERSION}': '${readerHash()}' }`);
+  process.exit(0);
+}
+
+if (process.argv.includes('--version')) { console.log(`cinematic-read ${READ_VERSION} (${readerHash()})`); process.exit(0); }
+
+if (process.argv.includes('--check')) {
+  const h = questioningHash();
+  if (recordedHashes().has(h)) { console.log(`cinematic read on record for questioning ${h}`); process.exit(0); }
+  console.error(`\n❌ NO CINEMATIC READ ON RECORD for this questioning (${h}).`);
+  console.error(`   One of ${QUESTIONING.join(', ')} has changed since the last recorded read.`);
+  console.error(`   Take one, then record it:\n`);
+  console.error(`     cd app && NODE_ENV=development ZETIZETI_ALLOW_GUEST=1 node --env-file=.env server.mjs &`);
+  console.error(`     node --env-file=.env scripts/enquiry-conversation-probe.mjs --base=http://localhost:3000 \\`);
+  console.error(`       --replay=../docs/ops/fixtures/replay-session-20260909-q.json --rounds=38`);
+  console.error(`     node scripts/cinematic-read.mjs --record ../docs/ops/flow-probe-runs/<the new run>.json\n`);
+  console.error(`   The gate asks only that a reading was TAKEN. It sets no threshold and judges no figure.\n`);
+  process.exit(1);
+}
+
 const files = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const wantAll = process.argv.includes('--all') || process.argv.includes('--compare');
 const compare = process.argv.includes('--compare');
@@ -192,6 +282,22 @@ for (const f of list) {
   const r = readOne(run);
   if (!r.n) continue;
   results.push({ file: basename(f), label: (run.replay ? 'replay:' + basename(run.replay) : run.source || '?'), run, r });
+}
+
+if (process.argv.includes('--record')) {
+  if (!results.length) { console.error('nothing to record — pass one or more run JSONs'); process.exit(2); }
+  const h = questioningHash();
+  let describe = '(untagged)';
+  try { describe = execFileSync('git', ['describe', '--tags', '--always'], { cwd: APP, encoding: 'utf8' }).trim(); } catch {}
+  const when = new Date().toISOString().replace('T', ' ').slice(0, 16) + 'Z';
+  if (!existsSync(LEDGER)) writeFileSync(LEDGER, `# cinematic-reads.md — the readings taken before each ship\n\n*Written by \`scripts/cinematic-read.mjs --record\`; \`publish-public.sh\` refuses a release whose questioning has changed since the last entry. It gates that a reading was TAKEN, never that it passed a number — no threshold exists and none may be invented.*\n`);
+  let block = `\n## ${describe} — ${when}\n\nreading: v${READ_VERSION} (${readerHash()}) · questioning: ${h}\n\n| run | n | inert | mean uptake | on-nose | early | own% | agenda | deposited |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n`;
+  for (const { file, r } of results) {
+    block += `| \`${file.replace('enquiry-conversation-', '').replace('.json', '')}\` | ${r.n} | ${pct(r.inert, r.uptakes.length)}% | ${mean(r.uptakes)}% | ${pct(r.onNose, r.n)}% | ${pct(r.early, r.n)}% | ${mean(r.owns)}% | ${pct(r.agenda, r.n)}% | ${pct(r.deposited, r.n)}% |\n`;
+  }
+  appendFileSync(LEDGER, block);
+  console.log(`recorded ${results.length} run(s) · reading v${READ_VERSION} (${readerHash()}) · questioning ${h} · ${describe} → docs/ops/cinematic-reads.md`);
+  process.exit(0);
 }
 
 if (compare) {
@@ -215,6 +321,8 @@ if (compare) {
 console.log('own%    = share of the answer that is the learner\'s own material, not the question\'s or the brief\'s (Heritage)');
   console.log('agenda  = the answer left the question\'s terms entirely — the strongest sign of room');
   console.log('deposit = a reading was deposited before the question (Peditto, Seger; this tool\'s own guard)');
+  console.log(`\nreading v${READ_VERSION} (${readerHash()}) — every row above was computed by THIS version. Figures in`);
+  console.log('docs/ops/cinematic-reads.md recorded under an earlier reading are not comparable to these.');
   console.log('\n🔴 There is no total. Six axes, read apart. "A contribution is not valuable by default."');
 } else {
   for (const { file, label, r } of results) {

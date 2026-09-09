@@ -26,6 +26,31 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.7.0] — 9 September 2026
+
+**The cinematic read is now a hard gate on both paths that ship, and the reading itself carries a version so it can be grown without quietly invalidating what it already measured.**
+
+Prayas: *"so make these new tests default for all new changes to zetizeti before shipping"*, then *"also wire it into all deploy scripts."*
+
+**`publish-public.sh` and `make-caprover-tar.sh` each call `cinematic-read.mjs --check` and abort.** The tar builder is the deploy chokepoint — `caprover deploy` ships a tarball and only that script builds one — so nothing reaches myplaceholder without passing it, however the deploy is invoked. Documenting the requirement in the runbook would have made it an instruction to whoever happened to read it, and this repository already holds, twice over, that an instruction is not a guard and that a guard which only reports enforces nothing.
+
+**Both gates were proved by removal, in both directions**: with the recorded reading blanked the publish aborts and the tar build refuses before it touches anything; with it restored both pass. `verification/cinematic-read-required.test.mjs` asserts the **consumer** on both paths — it reads the two scripts and fails if either stops calling the gate or calls it without acting on the exit code. Four guards here have shipped inert; that is the fault it watches for.
+
+🔴 **It gates that a reading was TAKEN, never that it passed a number.** A test fails if a threshold is ever added to the check. What uptake rate is too low is a question about what this tool is for, and that is a scope, and Prayas's.
+
+⚠️ **There is no override, deliberately, and the watched set is narrow so that none is needed.** Only the questioning is watched — `lib/dialogue`, `arc`, `nudge`, `guard`, `plan`, `reading`, `prep` and `corpus/method` — and **not `server.mjs`**, so a route fix, a config change or an outage repair is never blocked. An urgent change to the guard logic itself does cost a probe run, and that is the trade. An easy escape hatch becomes the path everybody takes, which is how the identity scan beside it nearly failed.
+
+
+### The reading has its own version, and it is not the app's
+
+Prayas: *"version the new tests.. I want to grow them and finetune them gradually."*
+
+**A figure is comparable only to a figure taken under the same definition.** Tune an axis without saying so and every earlier row in `docs/ops/cinematic-reads.md` silently becomes a different measurement under the same column heading — which is this project's staleness fault landing inside the instrument built to detect staleness. So `READ_VERSION` is declared in `cinematic-read.mjs`, every recorded reading stamps the version and the code hash that produced it, and `--compare` states which version computed the rows it prints.
+
+🔴 **Enforced, not remembered.** `readerHash()` hashes the measurement code, `READ_HASHES` pins the hash each version was cut at, and a test **fails when the code has moved and the version has not** — proved by adding one word to the on-the-nose lexicon and watching the suite go red with the instruction to bump, date a history line, and re-pin with `--seal`. A second test fails if any ledger entry lacks a version, which it caught on the first real entry, recorded minutes earlier under no version at all. **Growth costs one deliberate line; drift is refused.**
+
+⚠️ **The history block is part of the mechanism, not decoration.** Each version carries a dated line saying what changed and why, because that is the only thing that keeps an old figure interpretable. v1.0.0 records that the wide end of grammatical scope was measured and failed at that version, and it is kept as a live zero rather than deleted so the failure stays visible.
+
 ## [1.6.0] — 9 September 2026
 
 **The counters measure whether the questioning misbehaves. None of them measured whether the dialogue was worth being in.**
