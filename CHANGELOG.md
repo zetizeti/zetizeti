@@ -26,6 +26,10 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.8.1] — 16 September 2026
+
+**A small back link leads the enquiry's top line again.** Prayas: *"why cant you add a small back button at the top of the enquiry"*. v1.8.0 had hidden *‹ new enquiry* as a duplicate of the topbar to fit the line; with the setting switch gone there is room, and the topbar is not where the eye is when leaving a dialogue. It reads *‹ back* now, as on the critique and spec surfaces, and sits beside *save* on the left with the concept-only switch on the right.
+
 ## [1.8.0] — 16 September 2026
 
 **An *explain question* chip under every question, on all three surfaces — the one exception to the never-answer guard.**

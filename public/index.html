@@ -616,20 +616,21 @@
   /* THE RAIL (16 Sep 2026) — one line of machinery under the topbar, not a row of boxes. The save chip and
      the switches keep their colours (gold = action, turquoise/vermilion = state) and lose their borders and
      grounds; a hairline under the rail is the only edge. Wraps as whole items if the width runs out. */
-  .conv-rail{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:8px 24px;
+  .conv-rail{display:flex; flex-wrap:wrap; justify-content:flex-start; align-items:baseline; gap:8px 24px;
     padding:2px 0 12px; margin-bottom:6px; border-bottom:1px solid rgba(246,232,198,.12)}
   .conv-rail .backlink{margin-bottom:0}
   .conv-rail .dl-transcript{margin-left:0}
-  .conv-rail .switches{margin-left:0; gap:22px}
+  .conv-rail .switches{margin-left:auto}   /* back and save read together on the left; the switch sits right */
+  .conv-rail .switches{gap:22px}
   /* "in one lean line" (Prayas, same pass). One line at desktop widths, never wrapped; only a phone-width
      screen lets the switches drop, and they drop as a pair. */
   @media(min-width:900px){ .conv-rail{flex-wrap:nowrap; white-space:nowrap} }
-  /* The enquiry rail's back link repeats "new enquiry" from the topbar directly above it; dropping the duplicate
-     is what lets the rail hold one line down to ~1000px. The element stays for its listener. */
-  #convBack{display:none}
+  /* A small back link leads the rail (v1.8.1 — Prayas: "why cant you add a small back button at the top of the
+     enquiry"). It had been hidden in v1.8.0 as a duplicate of the topbar; with the setting switch gone there
+     is room for it on the one line, and the topbar item is not where the eye is when leaving a dialogue. */
   /* ONE TYPE SETTING ACROSS THE RAIL (second pass, same day: "still messy"). Upper-case tracked labels beside
      lower-case links read as two systems and pushed the switches onto a second line at 1920; lower case at
-     one size fits the row and reads as one line of machinery. Wrapping, if it happens, starts at the left. */
+     one size fits the row and reads as one line of machinery. Below 900px the switch wraps to a second line, right. */
   .conv-rail .backlink, .conv-rail .dl-transcript, .conv-rail .dl-transcript .dl-lead, .conv-rail .dl-transcript .dl-why,
   .conv-rail .focus-toggle, .conv-rail .focus-toggle .lbl{font-size:11px; letter-spacing:.04em; text-transform:none}
   /* THE CONCEPT-ONLY CONTROL. Moved into the top row on 12 Aug 2026 because Prayas went looking for it
@@ -823,7 +824,7 @@
            quiet line now: no boxes, one hairline under it, state carried by the filled mark and the coloured
            value. Every control is still on the page, and the pdf caveat is still in words. -->
       <div class="conv-rail">
-      <span class="backlink" id="convBack">‹ new enquiry</span>
+      <span class="backlink" id="convBack" title="Back to your enquiries">‹ back</span>
       <!-- ⚠️ THE TWO FORMATS ARE NOT INTERCHANGEABLE AND LOOKED IT. Only the .md can be brought back
            to continue, because the .pdf carries no front matter — so a student choosing between two
            identical-looking links was choosing, unknowingly, whether her conversation could ever be
