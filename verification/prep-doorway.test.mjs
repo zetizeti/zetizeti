@@ -121,8 +121,11 @@ test('🔴 the part-boundary line claims neither a task nor a departure', () => 
 // part one, and once one sitting existed — no boundaries — absent for the entire walk.
 test('🔴 a prep reveals the save from its first turn, not at a boundary', () => {
   const b = bodyOf('startPrep');
-  assert.match(b, /dlTranscript/, 'startPrep does not reveal the transcript download — a one-sitting walk cannot be saved at all');
-  assert.match(b, /hidden\s*=\s*false/, 'the chip is referenced but not revealed');
+  // Since v1.9.2 the reveal lives in ONE helper, so both halves are asserted: startPrep calls it, and it reveals.
+  assert.match(b, /showSaveStrip\(\)/, 'startPrep does not reveal the transcript download — a one-sitting walk cannot be saved at all');
+  const h = bodyOf('showSaveStrip');
+  assert.match(h, /dlTranscript/, 'the helper no longer touches the transcript download');
+  assert.match(h, /hidden\s*=\s*false/, 'the chip is referenced but not revealed');
 });
 
 // 30 August 2026 — the line closing the arc must describe the DOCUMENT, not the person. "prepared —" told

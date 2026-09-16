@@ -91,3 +91,9 @@ test('the link is hidden by default, shown only by the account check, and only b
   assert.match(HTML, /paintDashboardSend\(\);/);
   assert.match(HTML, /body:JSON\.stringify\(\{ filename: transcriptName\('md'\), text: buildTranscriptMd\(\) \}\)/);
 });
+
+// v1.9.2 — the account check ran once, at sign-in; a failure there hid the link for the life of the page.
+test('revealing the save strip re-asks for the link when it is still hidden, from ONE place', () => {
+  assert.match(HTML, /function showSaveStrip\(\)\{[^}]*dl\.hidden=false;[^}]*if\(w && w\.hidden\) paintDashboardSend\(\);/);
+  assert.doesNotMatch(HTML, /\$\('dlTranscript'\); if\(dl\) dl\.hidden=false;\s*\}/, 'no second copy reveals the strip by hand');
+});

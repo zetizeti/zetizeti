@@ -2327,7 +2327,7 @@ function startPrep(){
   // Somebody closing the tab lost everything, with no control anywhere on screen having failed.
   // The enquiry path has never had this problem: `showEdge` reveals the chip on the first turn, and
   // prep has no edge, so it inherited the reveal from nothing.
-  { const dl=$('dlTranscript'); if(dl) dl.hidden=false; }
+  showSaveStrip();
   hint.innerHTML='preparing you in a new area \u00b7 the question is yours to answer';
   const strip=$('prepStrip');
   if(strip){ strip.hidden=false; $('prepStripLabel').textContent = `preparing you in ${prepName||'a new area'}`; }
@@ -2378,7 +2378,7 @@ function afterPrepTurn(){
   }
   if(prepPausing){
     prepPausing=false;
-    const dl=$('dlTranscript'); if(dl) dl.hidden=false;
+    showSaveStrip();
     addDivider('end of this part — carry straight on, or save your transcript and bring it back to pick up here');
   }
 }
@@ -2680,7 +2680,7 @@ function resumeFromTranscript(parsed){
   phase='dialogue'; input.placeholder=DIALOG_PH;
   hint.innerHTML='grounded in <b>design</b> · the question is yours to answer';
   showEdge(); updateEdge();
-  { const dl=$('dlTranscript'); if(dl) dl.hidden=false; }
+  showSaveStrip();
   // If it ends on a question, the student answers it; if it ends on their own words, the stone owes
   // them one, so ask for it straight away rather than leaving the thread hanging.
   // Land on the LAST TURN in one jump, anchored to the element rather than to the page bottom.
@@ -2826,7 +2826,12 @@ function scrollTurnIntoView(elm){ try{ elm.scrollIntoView({block:'nearest', beha
 // The turns before a question, as the explanation's context. A snapshot, taken when the question lands.
 const explainContext = (arr)=> arr.slice(-6).map((m)=>({ role: (m.role==='student'||m.role==='you') ? 'student' : 'stone', content: String(m.content||'') }));
 
-function showEdge(){ edge.hidden=false; const dl=$('dlTranscript'); if(dl) dl.hidden=false; }
+function showEdge(){ edge.hidden=false; showSaveStrip(); }
+// ONE place reveals the save strip (v1.9.2). It was four copies, and the dashboard link needs a second look at
+// exactly this moment: the account check runs once at sign-in, so if that one call failed — a restart, a slow
+// dashboard — the link stayed hidden until the page was reloaded (Prayas, 16 Sep 2026: "I cant see save to
+// dashboard"). Asking again when a dialogue begins costs one call, and the server caches a yes.
+function showSaveStrip(){ const dl=$('dlTranscript'); if(dl) dl.hidden=false; const w=$('dlSend'); if(w && w.hidden) paintDashboardSend(); }
 function updateEdge(){
   edgeText.textContent = goal;
   let ticks=''; const shown=Math.max(1,honed+1);
