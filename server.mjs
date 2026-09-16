@@ -46,7 +46,7 @@ import {
   noteTurnDepth, turnDepthCurve, turnDepthSummary, turnDepthVersions,
 } from './lib/db.mjs';
 import { streamQuestion } from './lib/llm.mjs';
-import { explainInputs, buildExplainPrompt, explainQuestion } from './lib/explain.mjs';
+import { explainInputs, buildExplainPrompt, explainQuestion, explainOwnWords } from './lib/explain.mjs';
 import { dashboardConfigured, dashboardAccount, sendToDashboard, sendProblem } from './lib/dashboard.mjs';   // "send to dashboard" (16 Sep 2026)   // "explain question" — the one guard exception (16 Sep 2026)
 import { generateGuarded } from './lib/guard.mjs';           // the guard's ENFORCEMENT layer (invariant #3)
 import { startHeartbeat } from './lib/heartbeat.mjs';       // keeps the guard's SILENT interval alive (see the file)
@@ -949,6 +949,8 @@ app.post('/api/chat', requireUser, async (req, res) => {
         noHypeVerdict: prepping && prepWalk.phase === 'station',
         // ONE question, which both modes' repair text has always demanded and neither ever enforced.
         noCompound: true,
+        // No design jargon unless the learner used the word (v1.10.0).
+        noJargon: true,
         // ownWords — the warmth clause may only say back words the learner used. Their whole transcript
         // is the licence, so a clause reaching back to turn 2 still passes; only material that is
         // nowhere in their own words counts as the tool's own reading.
@@ -1262,7 +1264,7 @@ async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocat
     // is the method, and the measured mean here is 30.7 words against enquiry's 18.3.
     validate: (t) => validateCriticismOutput(t, { focus, brief: !!brief, artefactTerms,
       maxWords: 45, avoid: critStone, banOpeners: critBanOpeners, banHeads: critBanHeads, noClosed: true, ownWords: critOwnWords,
-      noCompound: true }),
+      noCompound: true, noJargon: true }),
     generate: (correction) => streamQuestion({
       system,
       messages: (correction && correction.previous)
@@ -1459,7 +1461,7 @@ async function askSpecQuestion({ send, apiKey, meter, spec, assignment, priorMes
     // 32 words: shorter than criticism's 45 because there is no verbatim passage to carry, and longer
     // than enquiry's because a question here usually quotes a phrase of hers to point with.
     validate: (t) => validateSpecOutput(t, { maxWords: 32, avoid: stoneTurns, banOpeners: bans, banHeads,
-      ownWords: own, noCompound: true }),
+      ownWords: own, noCompound: true, noJargon: true }),
     generate: (correction) => streamQuestion({
       system,
       messages: (correction && correction.previous)
@@ -1604,6 +1606,7 @@ app.post('/api/explain', requireUser, async (req, res) => {
     const system = buildExplainPrompt(input);
     const base = [{ role: 'user', content: '(explain the question)' }];
     const out = await explainQuestion({
+      own: explainOwnWords(input),
       generate: (correction) => streamQuestion({
         system,
         messages: correction

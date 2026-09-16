@@ -59,6 +59,9 @@ const SHARED = [
   { name: 'two question marks',
     q: 'Where does the rider wait? What does the awning do?',
     opts: { noCompound: true }, re: /more than one question/ },
+  { name: 'design jargon the learner did not use',
+    q: 'What affordances does the kiosk offer a rider who is waiting?',
+    opts: { noJargon: true, ownWords: new Set(['kiosk', 'rider', 'waiting']) }, re: /design jargon/ },
   { name: 'the interpretive preamble',
     q: 'The queue building while riders wait suggests a shift in how the kiosk values time. Where does the waiting start?',
     opts: { ownWords: new Set(['queue', 'building', 'riders', 'wait', 'kiosk', 'waiting', 'time', 'start']) },
@@ -115,7 +118,7 @@ test('BOTH routes actually SEND every shared guard — an accepted option nobody
     }
     return obj;
   };
-  for (const opt of ['maxWords', 'avoid', 'banOpeners', 'noClosed', 'ownWords']) {
+  for (const opt of ['maxWords', 'avoid', 'banOpeners', 'noClosed', 'ownWords', 'noJargon']) {
     assert.match(call('validateOutput(t, {'), new RegExp(`\\b${opt}\\b`),
       `the enquiry route must pass ${opt}`);
     assert.match(call('validateCriticismOutput(t, {'), new RegExp(`\\b${opt}\\b`),

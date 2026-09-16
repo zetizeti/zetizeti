@@ -26,6 +26,14 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.10.0] — 16 September 2026
+
+**No design jargon in a question or an explanation.** Prayas: *"make sure neither the questions, nor the explanations use design jargon"*. `lib/jargon.mjs` holds one editable list of design terms — affordance, stakeholder, persona, user journey, pain point, iterate, artefact, usability and about seventy more — with everyday words that designers also use (prototype, sketch, brief, user, tension) deliberately left off. All three question checks refuse a listed term through the shared `noJargon` option, all three prompts tell the model the rule, and explanations get one regeneration in everyday words if they add a term.
+
+🔴 **A word the person used is theirs.** Saying their own words back is the method, so a student who writes *stakeholders* can be asked about their stakeholders; a span quoted from the text under question passes; and an explanation may use a listed word that is already in the question, in order to explain it.
+
+⚠️ **What the check found in real use, measured before shipping: nothing.** Across 507 questions in the twenty 9 September class dialogues, none used a listed term the student had not used first. The words those questions use that students never did are formal rather than technical — *reside*, *remains*, *fulfilled*, *distinction*, *reveal* — and they are not on the list, because they are not design jargon. The check is a guarantee going forward, not a repair of something observed. A 20-round replay of fixture `q` was recorded for the cinematic read; neither of its two delivered breaches came from the new check.
+
 ## [1.9.2] — 16 September 2026
 
 **The send-to-dashboard link asks again when a dialogue begins.** Prayas, signed in and with a dashboard account: *"I cant see save to dashboard."* The server answered `available:true` for him; his tab had loaded before the link was switched on, and the page asked only once, at sign-in. So any failure of that one call — a restart, a slow dashboard — hid the link for the life of the page, and a deploy during a session would hide it for everyone with the tab open. The save strip is now revealed in **one** place, `showSaveStrip()`, which also re-asks when the link is still hidden; it had been four copies of the same line. `prep-doorway.test.mjs` now follows the reveal into the helper rather than looking for it inline.

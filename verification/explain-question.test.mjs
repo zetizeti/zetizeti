@@ -166,3 +166,30 @@ test('the canned demos call no model, so they carry no chip', () => {
   assert.ok(!fnBody('runDemo').includes('attachExplain'));
   assert.ok(!fnBody('runCritDemo').includes('attachExplain'));
 });
+
+// v1.10.0 — no design jargon in an explanation, unless the question or the person used the word.
+const JARGONY = `ABOUT: This question is about the affordances of your bike lock. You said people forget their locks.
+HELPS: If you think about it, you can see what the lock is really for. That makes the idea clearer.
+CHANGES: If you say on the bike, the lock gets heavier. If you say at the stand, the stand needs to change.`;
+
+test('an explanation that adds jargon is asked for once more, in everyday words', async () => {
+  const calls = [];
+  const out = await explainQuestion({ own: new Set(['bike', 'lock']), generate: async (c) => { calls.push(c); return c ? EASY : JARGONY; } });
+  assert.equal(calls.length, 2);
+  assert.match(calls[1].instruction, /without these design words: affordance/);
+  assert.deepEqual(out.jargon, []);
+  assert.match(out.parts[0].text, /where the bike lock should go/);
+});
+
+test('a jargon word already in the question may be explained', async () => {
+  let n = 0;
+  const out = await explainQuestion({ own: new Set(['what', 'affordances', 'does', 'the', 'lock', 'have']), generate: async () => { n++; return JARGONY; } });
+  assert.equal(n, 1);
+  assert.deepEqual(out.jargon, []);
+});
+
+test('the explanation prompt forbids jargon and the route passes the licensing words', () => {
+  const p = buildExplainPrompt(explainInputs({ question: 'Where does it go?' }));
+  assert.match(p, /No design jargon/);
+  assert.match(route, /own: explainOwnWords\(input\)/);
+});
