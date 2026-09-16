@@ -46,7 +46,8 @@ import {
   noteTurnDepth, turnDepthCurve, turnDepthSummary, turnDepthVersions,
 } from './lib/db.mjs';
 import { streamQuestion } from './lib/llm.mjs';
-import { explainInputs, buildExplainPrompt, explainQuestion } from './lib/explain.mjs';   // "explain question" — the one guard exception (16 Sep 2026)
+import { explainInputs, buildExplainPrompt, explainQuestion } from './lib/explain.mjs';
+import { dashboardConfigured, dashboardAccount, sendToDashboard, sendProblem } from './lib/dashboard.mjs';   // "send to dashboard" (16 Sep 2026)   // "explain question" — the one guard exception (16 Sep 2026)
 import { generateGuarded } from './lib/guard.mjs';           // the guard's ENFORCEMENT layer (invariant #3)
 import { startHeartbeat } from './lib/heartbeat.mjs';       // keeps the guard's SILENT interval alive (see the file)
 import { computeSignals, content as contentWords } from './lib/signals.mjs';
@@ -289,6 +290,7 @@ app.get('/api/config', (req, res) => res.json({
   poolUserTurns: studentsEnabled ? POOL_USER_TURNS : 0,   // the per-user turn cap is a STUDENTS-tier control
   cohorts: cohortSummary({ personalEnabled, studentsEnabled }),   // which tiers are wired + their sizes (no per-user data)
   studio: STUDIO,
+  dashboardConfigured,              // send-to-dashboard wired (URL + token set) — a boolean, never the URL or token
 }));
 
 // Credit affordance for the AI Club footer — how many questions the student's own ₹5,000 key affords, ₹ via the
@@ -323,6 +325,21 @@ app.get('/api/usage', requireUser, async (req, res) => {
 // left today, whether the day's shared $ ceiling / lifetime ₹ budget is still open, and this user's
 // ₹ budget view. Cheap; called on load + after caps. (No day-wide headcount cap — the cohort is
 // gated by the ₹ budget and the per-user turn allowance, not by a distinct-users-per-day limit.)
+// SEND TO DASHBOARD (v1.9.0, 16 Sep 2026) — see lib/dashboard.mjs. The button is shown only when this answers
+// available:true, which means the AI Club dashboard is configured here AND this person has signed in there.
+app.get('/api/dashboard', requireUser, async (req, res) => {
+  res.json(await dashboardAccount(req.user.email));
+});
+// The student's own idea transcript, forwarded once to their Think stage and dropped. `req.body` is never
+// logged (invariant #8), and nothing is kept here: the ephemeral pivot is untouched.
+app.post('/api/dashboard/send', requireUser, async (req, res) => {
+  const text = req.body?.text;
+  const filename = typeof req.body?.filename === 'string' ? req.body.filename.slice(0, 200) : '';
+  const problem = sendProblem(text);
+  if (problem) { res.json({ ok: false, error: problem }); return; }
+  res.json(await sendToDashboard(req.user.email, { filename, text }));
+});
+
 app.get('/api/pool', requireUser, (req, res) => {
   const tier = tierOf(req.user.email);
   // 🔴 IDENTITY, NOT WALLET (the split the studio strip already makes, v0.12.0). Whether somebody may

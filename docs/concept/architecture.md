@@ -213,6 +213,10 @@ A student's **project concept** may be brought alongside as context. It is never
 
 🔴 **`refusal` is composed in CODE, and the pattern above is why.** Pushed toward the negative the model invents a refusal — *why does the window refuse to record the bounces?* asserts one she never wrote and asks her to justify it, which is the presupposition fault and worse than the inversion it replaced. Pushed away from inventing, it stops asking. Every increment of prompt pressure bought one fault by paying for the other. So the stone does not write this one: `refusalQuestion` in `lib/spec.mjs` takes her most-used noun and one of three frames, all asked from outside the object so none of them asserts anything about how it works. **Measured 3 of 3 on the run after.** ⚠️ The cost, stated rather than discovered: the question no longer responds to what she has just said. Accepted on this line and on no other.
 
+### 5.3e Send to dashboard (v1.9.0, 16 September 2026)
+
+**`POST /api/dashboard/send` forwards the student's own idea transcript to the AI Club studio dashboard, which files it on their Think stage.** On request only, once per press, nothing kept. `GET /api/dashboard` decides whether the link shows: configured here, and the person has signed in to the dashboard. Every failure hides the link or answers with a sentence. Only a file carrying `type: idea-transcript` is forwarded. The client is `lib/dashboard.mjs`, bounded at eight seconds like the credit engine's calls; the dashboard applies its own stage gate.
+
 ### 5.3d Explain question — the one exception to the never-answer guard (v1.8.0, 16 September 2026)
 
 **`POST /api/explain` explains one question in plain words, on request, on all three surfaces.** Three parts — what the question is about, why thinking about the answer helps the idea, what different answers could change — at most 250 words and at a ten-year-old's reading level. It was asked for directly, as an explicit exception to every no-answer guard.

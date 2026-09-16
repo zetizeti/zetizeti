@@ -167,7 +167,6 @@
     color:var(--bone-dim); background:rgba(232,67,31,.10)}
   .notyet b{color:var(--vermilion); font-weight:400}
   /* second tagline line — the quieter clause that names the second voice */
-  .ethos-sub{display:block; margin-top:clamp(4px,.7vh,8px); font-family:var(--text); font-style:italic; font-size:clamp(13px,1.8vh,20px); color:var(--bone-dim)}
   .aboutlink{color:var(--gold); cursor:pointer; white-space:nowrap}
   .aboutlink:hover{color:var(--gold-bright)}
   /* small footer link on the landing — absolute, so it never adds height (the home stays one no-scroll screen) */
@@ -345,7 +344,7 @@
   /* ---- enquiries (quests) ---- */
   .vh{font-family:var(--display); font-weight:400; font-size:30px; color:var(--bone); margin-bottom:6px}
   .vsub{color:var(--bone-dim); font-size:16px; margin-bottom:26px; max-width:60ch}
-  .newq{display:flex; gap:12px; align-items:center; margin-bottom:30px}
+  .newq{display:flex; gap:12px; align-items:stretch; margin-bottom:30px}   /* stretch: the begin button takes the field's height (16 Sep 2026) */
   .newq input{flex:1; max-width:520px; background:rgba(13,38,94,.55); border:1px solid rgba(217,165,42,.40); color:var(--bone);
     font-family:var(--text); font-size:17px; padding:12px 16px; outline:none}
   .newq input::placeholder{color:var(--faint); font-style:italic}
@@ -620,11 +619,17 @@
     padding:2px 0 12px; margin-bottom:6px; border-bottom:1px solid rgba(246,232,198,.12)}
   .conv-rail .backlink{margin-bottom:0}
   .conv-rail .dl-transcript{margin-left:0}
+  .dl-send{display:inline-flex; align-items:baseline; gap:10px; font-family:var(--mono); font-size:11px; letter-spacing:.04em}
+  .dl-send[hidden], .dl-transcript[hidden] + .dl-send{display:none}   /* only beside a visible save strip */
+  .dl-send a{color:var(--turq-bright); cursor:pointer; text-decoration:none; border-bottom:1px solid rgba(48,216,192,.5); padding-bottom:1px}
+  .dl-send a:hover{color:var(--bone)}
+  .dl-send a[aria-busy="true"]{opacity:.5; pointer-events:none}
+  .dl-send .dl-why{color:var(--faint); margin-left:0}
   .conv-rail .switches{margin-left:auto}   /* back and save read together on the left; the switch sits right */
   .conv-rail .switches{gap:22px}
   /* "in one lean line" (Prayas, same pass). One line at desktop widths, never wrapped; only a phone-width
      screen lets the switches drop, and they drop as a pair. */
-  @media(min-width:900px){ .conv-rail{flex-wrap:nowrap; white-space:nowrap} }
+  @media(min-width:900px){ .conv-rail{flex-wrap:nowrap; white-space:nowrap} .conv-rail.has-note{flex-wrap:wrap; white-space:normal} }
   /* A small back link leads the rail (v1.8.1 — Prayas: "why cant you add a small back button at the top of the
      enquiry"). It had been hidden in v1.8.0 as a duplicate of the topbar; with the setting switch gone there
      is room for it on the one line, and the topbar item is not where the eye is when leaving a dialogue. */
@@ -735,10 +740,11 @@
           <h1>zetizeti</h1>
         </div>
         <span class="ethos">It asks the questions. You do the thinking.</span>
-        <span class="ethos-sub">Nothing is being delivered here. The questions are not carrying anything to you.</span>
-        <p class="lede">One voice helps you <b>develop</b> an idea. Name the edge you are working on and the questioner — <em>the stone</em>, since a whetstone is what it is for — asks back, against arguments in design that were never settled: whether a photograph is evidence or construction; whether the designer is an author. The other <b>stress-tests</b> an idea, pointing to where a text quietly decided for you.</p>
-        <p class="lede"><b>An instruction to a model is not a rule.</b> A paragraph in the prompt told the model not to invent a premise, and it invented them for six versions. So the check sits outside the model — a short list of marks anybody can read, which means it misses things and says which. <b>A paraphrase is already an interpretation</b>, so retrieval matches your literal words and refuses embeddings, at a cost in recall.</p>
-        <p class="nameline">The name doubles <em>zeti</em>, from the Greek <em>zetetic</em> — "proceeding by inquiry" — with an echo of the Sanskrit <em>neti neti</em>, "not this, not this". <a id="aboutLink" class="aboutlink">What the two voices are →</a></p>
+        <!-- CUT BY ABOUT 60% (Prayas, 16 Sep 2026: "lighter … shorter - easier to understand"). The longer
+             argument lives on the about page; this screen says what the tool does and nothing more. -->
+        <p class="lede">Name what you are working on and it asks about it, one question at a time. Or paste some writing and it shows where the writing tells you what to think without saying so.</p>
+        <p class="lede">Code checks every question for answers and advice before you see it. It works from your exact words.</p>
+        <p class="nameline">The name comes from the Greek for “to inquire”. <a id="aboutLink" class="aboutlink">What are the two voices? →</a></p>
         <div class="signin">
           <a class="btn-google" href="/auth/google" id="googleBtn">
             <svg width="18" height="18" viewBox="0 0 48 48" fill="#1a1206" aria-hidden="true">
@@ -752,7 +758,7 @@
           <a class="btn-login" href="/auth/google" id="loginBtn">Log in</a>
         </div>
         <p class="signin-note" id="signinNote"></p>
-        <p class="privacy-line"><a class="privacyOpen">Nothing is ever saved.</a></p>
+        <p class="privacy-line"><a class="privacyOpen">Nothing is saved here.</a></p>
       </header>
     </div>
     <footer class="login-foot"><a id="aboutFoot" class="aboutlink">about</a> <span class="build-ver" title="build version"></span></footer>
@@ -811,7 +817,7 @@
            one is walked straight through. Nobody is asked a question they have no way to answer on a doorway
            whose whole job is one uncluttered decision. See `sittingsForSheet` in server.mjs. -->
 
-      <p class="privacy-line"><a class="privacyOpen">Nothing is ever saved.</a></p>
+      <p class="privacy-line"><a class="privacyOpen">Nothing is saved here.</a></p>
       </div><!-- /enquiryUI -->
     </div>
   </section>
@@ -834,6 +840,9 @@
            students most likely to take the wrong file. The titles are kept as the longer sentence
            for anybody who does hover; the visible words are what the rule requires. -->
       <span class="dl-transcript" id="dlTranscript" hidden><span class="dl-lead">↓ save</span> <a id="dlMd" title="Markdown. This is the one to keep — it can be brought back here to carry on, and it is the file to hand in if somebody asked for your transcript.">.md</a><span class="dl-why">to carry on</span> <span class="dl-sep">·</span> <a id="dlPdf" title="A PDF for reading and keeping. It cannot be brought back to continue the conversation — save the .md as well if you might.">.pdf</a><span class="dl-why">cannot be resumed</span></span>
+      <!-- SEND TO DASHBOARD (v1.9.0). Shown only when /api/dashboard says this person has an AI Club dashboard
+           account, and only while the save strip itself is showing (the sibling rule below). -->
+      <span class="dl-send" id="dlSend" hidden><a id="dlSendLink" title="File this transcript on the Think stage of your AI Club dashboard">→ send to dashboard</a><span class="dl-why" id="dlSendNote"></span></span>
       <!-- THE TWO SWITCHES ARE ONE FLEX ITEM (9 Sep 2026). Rendered at 1400 the row could not hold the save strip
            and both switches, and the new one wrapped alone to a second line while the first stayed on the
            first — two same-job controls separated by a line break, which is exactly what sharing a grammar
@@ -1151,13 +1160,13 @@
 
   <!-- (edge visualisation panel removed 11 Jul 2026 — conversation is full-width) -->
 
-  <!-- ===== PRIVACY POPUP — opened from the "Nothing is ever saved." line ===== -->
+  <!-- ===== PRIVACY POPUP — opened from the "Nothing is saved here." line ===== -->
   <div class="modal" id="privacyModal" role="dialog" aria-modal="true" aria-label="Privacy">
     <div class="modal-panel">
       <button class="modal-close" id="privacyClose" aria-label="Close">×</button>
       <div class="privacy">
-        <span class="pk">nothing is ever saved</span>
-        zetizeti keeps nothing of what you say. Your conversation is ephemeral — it lives only in this browser tab and is gone the moment you leave. <b>Your words, and the questions you're asked back, are never written to our database or any log</b>, so no one — not us, not your institution — can read them back later, because there is no "later" copy. Each question is composed by an AI model, so your words pass through it to be answered, as with any AI tool — but zetizeti itself never stores them.
+        <span class="pk">nothing is saved here</span>
+        zetizeti keeps nothing of what you say. Your conversation is ephemeral — it lives only in this browser tab and is gone the moment you leave. <b>Your words, and the questions you're asked back, are never written to our database or any log</b>, so no one — not us, not your institution — can read them back later, because there is no "later" copy. Each question is composed by an AI model, so your words pass through it to be answered, as with any AI tool — but zetizeti itself never stores them. If you press <b>send to dashboard</b>, a copy of that transcript goes to your AI Club dashboard and is kept there like any file you add to it.
       </div>
     </div>
   </div>
@@ -1370,7 +1379,7 @@ let turnsSinceNudge=99;
   // carried by the reader of it. The other three readers carry it; this one did not.
   // The cohort framing goes with it: the landing page no longer describes the tool as being for
   // a course.
-  $('signinNote').textContent = 'Sign in with Google to begin. Access is arranged by the person running this instance. No posting, no contacts.';
+  $('signinNote').textContent = 'Sign in with Google. The site\u2019s owner decides who can use it.';
   me = r.user;
   try{ localStorage.setItem('zetizeti_in', me ? '1' : '0'); }catch(e){}
   if(bl) bl.hidden=true;
@@ -1430,7 +1439,7 @@ $('navAbout').addEventListener('click', ()=>go('/about'));
 $('aboutLink').addEventListener('click', ()=>go('/about'));
 $('aboutFoot').addEventListener('click', ()=>go('/about'));
 $('aboutBack').addEventListener('click', ()=>go('/'));
-// privacy popup — the "Nothing is ever saved." line (login + start) opens it; overlay/×/Esc close it.
+// privacy popup — the "Nothing is saved here." line (login + start) opens it; overlay/×/Esc close it.
 (function wirePrivacyModal(){
   const modal=$('privacyModal'); if(!modal) return;
   const open=()=>modal.classList.add('open'), close=()=>modal.classList.remove('open');
@@ -2250,6 +2259,7 @@ $('adminBack').addEventListener('click', ()=>go('/'));
 function enterApp(){
   $('who').innerHTML = me ? `signed in as <b>${esc(me.name||me.email||'you')}</b>` : '';
   $('navAdmin').hidden = !(me && me.isAdmin);
+  paintDashboardSend();   // shows 'send to dashboard' only for people with an AI Club dashboard account
   // resume a remembered deep link (a /critique link survives the Google round-trip via
   // sessionStorage), else honour the path the page actually loaded on, else the enquiries home.
   let dest = location.pathname;
@@ -2522,6 +2532,29 @@ function downloadTranscriptPdf(){
   }
   doc.save(transcriptName('pdf'));
 }
+// SEND TO DASHBOARD (v1.9.0, 16 Sep 2026) — the same file the .md link saves, filed on the student's Think
+// stage. The button appears only if the server says they have a dashboard account; nothing is kept here.
+async function paintDashboardSend(){
+  const w=$('dlSend'); if(!w) return;
+  try{ const d=await api('/api/dashboard'); w.hidden=!(d && d.available); }catch(e){ w.hidden=true; }
+}
+(function wireDashboardSend(){ const a=$('dlSendLink'), note=$('dlSendNote'); if(!a) return;
+  a.onclick=async()=>{
+    if(a.getAttribute('aria-busy')==='true') return;
+    const rail=a.closest('.conv-rail');
+    a.setAttribute('aria-busy','true'); a.textContent='→ sending…'; note.textContent=''; if(rail) rail.classList.remove('has-note');
+    try{
+      const r=await fetch('/api/dashboard/send',{ method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ filename: transcriptName('md'), text: buildTranscriptMd() }) });
+      const d=await r.json().catch(()=>({ ok:false, error:'The dashboard did not answer — try again.' }));
+      // Success changes the link itself, so the rail stays one line; a refusal needs its sentence, so only then
+      // does a note appear and the rail may wrap.
+      if(d.ok){ a.textContent='✓ sent to dashboard'; a.title=`On your Think stage — ${d.count} there now. Press again to send this transcript again.`; }
+      else { a.textContent='→ send to dashboard'; note.textContent=d.error||'could not send'; if(rail) rail.classList.add('has-note'); }
+    }catch(e){ a.textContent='→ send to dashboard'; note.textContent='could not send — try again, or save the .md'; if(rail) rail.classList.add('has-note'); }
+    a.removeAttribute('aria-busy');
+  };
+})();
 (function wireTranscriptDl(){ const md=$('dlMd'), pdf=$('dlPdf'); if(md) md.onclick=()=>downloadFile(transcriptName('md'), buildTranscriptMd(), 'text/markdown'); if(pdf) pdf.onclick=downloadTranscriptPdf; })();
 
 // ---- the SAME download on the CRITICISM surface (12 Aug 2026) ------------------------------------

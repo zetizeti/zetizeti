@@ -26,6 +26,18 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.9.0] — 16 September 2026
+
+**A *send to dashboard* link beside the transcript download, a landing page cut by about 60%, and the begin button the same height as its field.**
+
+**Send to dashboard.** Prayas: *"alongwith a save md/pdf there can be a small send to dashboard button clicking which it will go to their dashboard account - it will be shown only if they have an ai club dashboard account"*. Pressing it files the enquiry's own `.md` transcript on the student's Think stage in the AI Club studio dashboard, exactly as if they had downloaded it and added it there. `GET /api/dashboard` says whether to show the link — configured here, and this person has signed in to the dashboard — and fails quiet: any error hides the link rather than showing a broken one. `POST /api/dashboard/send` forwards an **idea transcript only**, once, and keeps nothing; the body is never logged. The dashboard applies its own stage gate, so a student who has not picked a challenge is told to, in words, on the page. `lib/dashboard.mjs`; both calls bounded at eight seconds. Inert unless `ZETIZETI_DASHBOARD_URL` and `ZETIZETI_DASHBOARD_TOKEN` are set. Critique and spec transcripts get no link: the dashboard has no stage for either.
+
+⚠️ **The header line stays one line.** A successful send changes the link to *✓ sent to dashboard* rather than adding a note beside it; only a refusal adds its sentence, and only then may the line wrap.
+
+**The landing page says less.** Prayas: *"lighter … shorter - easier to understand"*. Two short paragraphs replace the italic sub-line and two long ones: what the tool does, and that a check in code refuses answers and advice and works from your exact words. The longer argument stays on the about page. A de-AI read of the new copy caught one real contradiction: *Nothing is ever saved.* beside a link that sends a copy somewhere. The line now reads *Nothing is saved here.*, and the privacy note says where a sent copy goes.
+
+**The begin button matches its field's height** on the new-enquiry page.
+
 ## [1.8.1] — 16 September 2026
 
 **A small back link leads the enquiry's top line again.** Prayas: *"why cant you add a small back button at the top of the enquiry"*. v1.8.0 had hidden *‹ new enquiry* as a duplicate of the topbar to fit the line; with the setting switch gone there is room, and the topbar is not where the eye is when leaving a dialogue. It reads *‹ back* now, as on the critique and spec surfaces, and sits beside *save* on the left with the concept-only switch on the right.
