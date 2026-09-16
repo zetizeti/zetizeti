@@ -26,6 +26,10 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.9.1] — 16 September 2026
+
+**The landing paragraphs say what the tool is for.** Prayas, on the v1.9.0 copy: *"not good. it helps you develop your concepts as an outcome of your own thought. — rewrite."* The first paragraph now leads with that — it helps you develop your own concepts, asks one question at a time, leaves the answers to you, and what comes out is yours — and the second names the other voice in a sentence: paste in a text and it points to where the text quietly pushes a view on you. The line about the code check went to keep the page short; the about page still carries it.
+
 ## [1.9.0] — 16 September 2026
 
 **A *send to dashboard* link beside the transcript download, a landing page cut by about 60%, and the begin button the same height as its field.**
