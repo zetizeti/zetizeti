@@ -12,7 +12,7 @@
   <a href="https://zetizeti.com"><img src="https://img.shields.io/badge/live-zetizeti.com-0f7d72?style=flat-square" alt="live at zetizeti.com"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/zetizeti/zetizeti?style=flat-square&color=173a8c" alt="AGPL-3.0"></a>
   <a href="https://github.com/zetizeti/zetizeti/releases"><img src="https://img.shields.io/github/v/release/zetizeti/zetizeti?style=flat-square&color=f0b324" alt="release"></a>
-  <img src="https://img.shields.io/badge/tests-516%20passing-0f7d72?style=flat-square" alt="516 tests passing">
+  <img src="https://img.shields.io/badge/tests-523%20passing-0f7d72?style=flat-square" alt="523 tests passing">
 </p>
 
 <p align="center">
@@ -87,6 +87,8 @@ The two deterministic guards are the product. `validateOutput` rejects any model
 advises, or concludes; `validateCriticismOutput` extends it to reject any verdict, grade, or
 "this-is-AI" claim about a pasted text. They are **code, not model self-assessment** — changing them
 changes what the product *is*.
+
+**One exception, on request.** Pressing the *explain question* chip under a question gives a plain explanation a ten-year-old can follow: what the question is about, why thinking about your answer helps your idea, and what your answer could change. It runs to at most 250 words. It does not pass through either guard, because explaining is what the guards exist to refuse. The model reading the conversation never sees it, and it is not in the downloaded transcript. The questions themselves are still guarded.
 
 In the critique voice, the *locating* runs with **no model at all**: `lib/qualify.mjs` tags each
 segment by readable grammar rules and an editable on-disk lexicon (every flag carries a `why` naming the

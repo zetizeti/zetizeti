@@ -450,6 +450,27 @@
   .curtain-toggle[aria-expanded="true"] .chev{transform:rotate(90deg)}
   .curtain{display:none; margin-top:16px; padding:20px 24px; max-width:64ch; background:rgba(10,70,63,.34); border-left:2px solid var(--teal)}
   .curtain.open{display:block; animation:rise .4s forwards}
+  /* EXPLAIN QUESTION (16 Sep 2026) — the chip speaks .dl-transcript's grammar (mono, gold rule, tinted
+     ground, hard edges); the explanation is a flat matte GOLD field with blue-ink text, the curtain's
+     sibling: the curtain shows the machinery on verdigris, this puts the question in plain words on the
+     warm field (brand.md: dark blue-ink on the warm fields). Besley, because it is reading, not the stone.
+     🔴 `.explain` sets display, so it carries its own [hidden] rule — hidden-guard.test.mjs. */
+  /* Second pass, same day: the boxed chip above the plain curtain toggle was two grammars for one job. The
+     chip now speaks the curtain toggle's grammar and sits on the SAME LINE as it — one row of quiet actions
+     under the question, the explanation opening below. */
+  .explain-chip{display:inline-flex; align-items:center; gap:10px; margin:16px 30px 0 0; padding:6px 0; font-family:var(--mono); font-size:11px; letter-spacing:.14em; color:var(--gold); background:none; border:none; cursor:pointer; transition:color .15s}
+  .explain-chip:hover, .explain-chip[aria-expanded="true"]{color:var(--gold-bright)}
+  .explain-chip .xq-mark{width:9px; height:9px; background:var(--vermilion); border-radius:50% 50% 50% 0; transform:rotate(-45deg); flex:none}
+  .explain-chip.busy .xq-mark{animation:xqdrip 1.1s ease-in-out infinite alternate}
+  @keyframes xqdrip{from{transform:rotate(-45deg) translate(0,0)} to{transform:rotate(-45deg) translate(-2px,2px)}}
+  .explain{display:block; margin:10px 0 4px; max-width:60ch}
+  .explain[hidden]{display:none}
+  .explain.loaded{background:var(--gold); color:#14224a; padding:22px 26px 24px; animation:rise .4s forwards}
+  .explain .thinking{font-family:var(--mono); font-size:11px}
+  .explain .xq-part + .xq-part{margin-top:16px}
+  .explain h5{font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:#14224a; opacity:.72; margin:0 0 6px}
+  .explain p{font-family:var(--text); font-size:16.5px; line-height:1.62; margin:0}
+  .explain .xq-note{font-family:var(--mono); font-size:12px; font-style:italic; color:var(--muted)}
   .curtain h4{font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:#7fc0b6; margin-bottom:14px; font-weight:500}
   .grit{padding:11px 0; border-top:1px solid rgba(244,231,200,.12); font-family:var(--text); font-size:16px; color:#dceae5; font-style:italic; line-height:1.6}
   .grit:first-of-type{border-top:none}
@@ -579,7 +600,7 @@
   .backlink{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--muted); cursor:pointer; display:inline-block; margin-bottom:6px}
   /* the transcript download — since nothing is saved server-side, this is the ONLY way a
      student's work survives the tab. Lifted from a faint footnote into a gold machinery chip. */
-  .dl-transcript{display:inline-flex; align-items:baseline; gap:10px; font-family:var(--mono); font-size:12px; letter-spacing:.05em; color:var(--gold-bright); border:1px solid rgba(240,179,36,.5); background:rgba(240,179,36,.08); padding:7px 14px; margin-left:16px}
+  .dl-transcript{display:inline-flex; align-items:baseline; gap:10px; font-family:var(--mono); font-size:12px; letter-spacing:.05em; color:var(--gold-bright); padding:4px 0; margin-left:16px}
   .dl-transcript[hidden]{display:none}
   .dl-transcript .dl-lead{color:var(--gold-bright); text-transform:uppercase; letter-spacing:.11em; font-size:11px}
   .dl-transcript .dl-sep{color:var(--faint)}
@@ -592,6 +613,25 @@
   .dl-transcript a{color:var(--goldtext); cursor:pointer; text-decoration:none; border-bottom:1px solid rgba(240,179,36,.55); padding-bottom:1px}
   .dl-transcript a:hover{color:var(--gold-bright); border-bottom-color:var(--gold-bright)}
   .backlink:hover{color:var(--gold-bright)}
+  /* THE RAIL (16 Sep 2026) — one line of machinery under the topbar, not a row of boxes. The save chip and
+     the switches keep their colours (gold = action, turquoise/vermilion = state) and lose their borders and
+     grounds; a hairline under the rail is the only edge. Wraps as whole items if the width runs out. */
+  .conv-rail{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:8px 24px;
+    padding:2px 0 12px; margin-bottom:6px; border-bottom:1px solid rgba(246,232,198,.12)}
+  .conv-rail .backlink{margin-bottom:0}
+  .conv-rail .dl-transcript{margin-left:0}
+  .conv-rail .switches{margin-left:0; gap:22px}
+  /* "in one lean line" (Prayas, same pass). One line at desktop widths, never wrapped; only a phone-width
+     screen lets the switches drop, and they drop as a pair. */
+  @media(min-width:900px){ .conv-rail{flex-wrap:nowrap; white-space:nowrap} }
+  /* The enquiry rail's back link repeats "new enquiry" from the topbar directly above it; dropping the duplicate
+     is what lets the rail hold one line down to ~1000px. The element stays for its listener. */
+  #convBack{display:none}
+  /* ONE TYPE SETTING ACROSS THE RAIL (second pass, same day: "still messy"). Upper-case tracked labels beside
+     lower-case links read as two systems and pushed the switches onto a second line at 1920; lower case at
+     one size fits the row and reads as one line of machinery. Wrapping, if it happens, starts at the left. */
+  .conv-rail .backlink, .conv-rail .dl-transcript, .conv-rail .dl-transcript .dl-lead, .conv-rail .dl-transcript .dl-why,
+  .conv-rail .focus-toggle, .conv-rail .focus-toggle .lbl{font-size:11px; letter-spacing:.04em; text-transform:none}
   /* THE CONCEPT-ONLY CONTROL. Moved into the top row on 12 Aug 2026 because Prayas went looking for it
      and could not find it: it had been the last item in the composer's STATUS line, 10.5px, faint grey,
      below the composer and among passive text, so it read as a caption rather than as something you can
@@ -604,12 +644,12 @@
      reader to infer it from a filled box. */
   .focus-toggle{display:inline-flex; align-items:baseline; gap:9px; font-family:var(--mono); font-size:11px;
     letter-spacing:.09em; text-transform:uppercase; color:var(--turq); cursor:pointer;
-    border:1px solid rgba(24,192,192,.42); background:rgba(24,192,192,.07); padding:7px 13px;
+    border:none; background:none; padding:4px 0;
     margin-left:14px; transition:border-color .18s, background .18s}
   .focus-toggle[hidden]{display:none}
   .switches{display:inline-flex; align-items:baseline; gap:14px; margin-left:14px; flex-wrap:nowrap}
   .switches .focus-toggle{margin-left:0}
-  .focus-toggle:hover{border-color:var(--turq); background:rgba(24,192,192,.14)}
+  .focus-toggle:hover .lbl{color:var(--bone-dim)}
   .focus-toggle .sw{width:9px; height:9px; flex:none; align-self:center; border:1px solid var(--turq);
     background:transparent; transition:background .18s, box-shadow .18s}
   .focus-toggle .lbl{color:var(--faint); letter-spacing:.11em}
@@ -625,9 +665,8 @@
      label is reworded, recount it. */
   .focus-toggle .val{color:var(--turq); display:inline-block; text-align:left}
   #focusVal, #critFocusVal{min-width:calc(12 * (1ch + 0.09em))}   /* "concept only" — 12 chars, the wider of the two */
-  #settingVal{min-width:calc(10 * (1ch + 0.09em))}                 /* "self-serve" — 10 chars, the wider of its two */
   #critModeVal{min-width:calc(14 * (1ch + 0.09em))}               /* "what you paste" — 14 chars, the wider of the two */
-  .focus-toggle[aria-pressed="true"]{border-color:var(--turq); background:rgba(24,192,192,.16)}
+
   .focus-toggle[aria-pressed="true"] .sw{background:var(--turq); box-shadow:0 0 10px rgba(24,192,192,.8)}
   .focus-toggle[aria-pressed="false"] .val{color:var(--muted)}
   /* THE MODE TOGGLE shares .focus-toggle's grammar exactly — switch dot, mono label, hard edges — because
@@ -637,30 +676,15 @@
      colour side by side would read as one control with two halves. */
   .crit-controls{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin:14px 0 2px}
   .crit-controls .focus-toggle{margin-left:0}
-  .mode-toggle{color:var(--goldtext); border-color:rgba(240,179,36,.42); background:rgba(240,179,36,.07)}
-  .mode-toggle:hover{border-color:var(--gold-bright); background:rgba(240,179,36,.14)}
+  .mode-toggle{color:var(--goldtext)}
   .mode-toggle .sw{border-color:var(--gold-bright)}
   .mode-toggle .val{color:var(--gold-bright)}
-  .mode-toggle[aria-pressed="true"]{border-color:var(--gold-bright); background:rgba(240,179,36,.16)}
+
   .mode-toggle[aria-pressed="true"] .sw{background:var(--gold-bright); box-shadow:0 0 10px rgba(240,179,36,.75)}
   .mode-toggle[aria-pressed="false"] .val{color:var(--goldtext)}
   /* Locked once a critique has started — the object cannot change under a conversation about it. */
   .mode-toggle[disabled]{opacity:.42; cursor:default; border-color:rgba(240,179,36,.22); background:none}
   .mode-toggle[disabled]:hover{border-color:rgba(240,179,36,.22); background:none}
-  /* THE SETTING SWITCH (9 Sep 2026 — Prayas: "they use on their own and with me around both - make a switch
-     (self-serve, in class) - both modes are different"). Same grammar as the two switches above, because
-     it is the same job at the same level (correction (c), 3 Jun 2026). The difference is conscious and
-     nameable: focus constrains WHAT MAY BE ASKED (turquoise), the critique mode chooses WHAT YOU BRING
-     (gold), and this one says WHERE YOU ARE AND WHO IS THERE — the warm register, vermilion, the light in
-     the room. A third switch in either of the other two colours beside them would read as a third half
-     of one control. Pressed = in class; unpressed = self-serve, which is what the page always did. */
-  .setting-toggle{color:var(--vermilion); border-color:rgba(232,67,31,.42); background:rgba(232,67,31,.07)}
-  .setting-toggle:hover{border-color:var(--vermilion); background:rgba(232,67,31,.14)}
-  .setting-toggle .sw{border-color:var(--vermilion)}
-  .setting-toggle .val{color:var(--vermilion)}
-  .setting-toggle[aria-pressed="true"]{border-color:var(--vermilion); background:rgba(232,67,31,.16)}
-  .setting-toggle[aria-pressed="true"] .sw{background:var(--vermilion); box-shadow:0 0 10px rgba(232,67,31,.75)}
-  .setting-toggle[aria-pressed="false"] .val{color:var(--muted)}
 
   @keyframes rise{from{opacity:0; transform:translateY(13px)} to{opacity:1; transform:none}}
   @media(max-width:640px){ .mark h1{font-size:32px} .turn.stone .body{font-size:20px} .edge-text{font-size:17px} .topbar{padding:12px 16px} .topbar nav{gap:14px} }
@@ -794,6 +818,11 @@
   <!-- ===== CONVERSATION ===== -->
   <section class="view" id="view-conversation">
     <div class="wrap">
+      <!-- THE RAIL (16 Sep 2026). Prayas: "too many chips at the top … messy and ugly". Back, save and the two
+           switches were three boxed chips in three colours that wrapped onto two misaligned lines. They are one
+           quiet line now: no boxes, one hairline under it, state carried by the filled mark and the coloured
+           value. Every control is still on the page, and the pdf caveat is still in words. -->
+      <div class="conv-rail">
       <span class="backlink" id="convBack">‹ new enquiry</span>
       <!-- ⚠️ THE TWO FORMATS ARE NOT INTERCHANGEABLE AND LOOKED IT. Only the .md can be brought back
            to continue, because the .pdf carries no front matter — so a student choosing between two
@@ -803,15 +832,14 @@
            tooltips, which need a hover and therefore say nothing on a phone — to precisely the
            students most likely to take the wrong file. The titles are kept as the longer sentence
            for anybody who does hover; the visible words are what the rule requires. -->
-      <span class="dl-transcript" id="dlTranscript" hidden><span class="dl-lead">↓ save your transcript</span> <a id="dlMd" title="Markdown. This is the one to keep — it can be brought back here to carry on, and it is the file to hand in if somebody asked for your transcript.">.md</a><span class="dl-why">to carry on</span> <span class="dl-sep">·</span> <a id="dlPdf" title="A PDF for reading and keeping. It cannot be brought back to continue the conversation — save the .md as well if you might.">.pdf</a><span class="dl-why">to read — cannot be resumed</span></span>
+      <span class="dl-transcript" id="dlTranscript" hidden><span class="dl-lead">↓ save</span> <a id="dlMd" title="Markdown. This is the one to keep — it can be brought back here to carry on, and it is the file to hand in if somebody asked for your transcript.">.md</a><span class="dl-why">to carry on</span> <span class="dl-sep">·</span> <a id="dlPdf" title="A PDF for reading and keeping. It cannot be brought back to continue the conversation — save the .md as well if you might.">.pdf</a><span class="dl-why">cannot be resumed</span></span>
       <!-- THE TWO SWITCHES ARE ONE FLEX ITEM (9 Sep 2026). Rendered at 1400 the row could not hold the save strip
            and both switches, and the new one wrapped alone to a second line while the first stayed on the
            first — two same-job controls separated by a line break, which is exactly what sharing a grammar
            is for. Grouped, they wrap together or not at all. -->
       <span class="switches"><button class="focus-toggle" id="focusToggle" aria-pressed="false" title="Ask about the idea only — not how it would be made, produced, repaired, or what it would cost to produce."><span class="sw" aria-hidden="true"></span><span class="lbl">asking about</span> <span class="val" id="focusVal" data-widest="concept only">everything</span></button>
-      <!-- THE SETTING SWITCH — on the enquiry surface only: it is the surface the studio uses, and the
-           critique and spec surfaces have not been asked for it (a listed difference, not an omission). -->
-      <button class="focus-toggle setting-toggle" id="settingToggle" aria-pressed="false" title="How you are using zetizeti right now — on your own, or in class with your teacher in the room. The two are different settings, and your transcript records which."><span class="sw" aria-hidden="true"></span><span class="lbl">using it</span> <span class="val" id="settingVal" data-widest="self-serve">self-serve</span></button></span>
+      </span>
+      </div>
       <div class="edge" id="edge" hidden>
         <div class="edge-label">the edge — what you're sharpening</div>
         <div class="edge-text" id="edgeText"></div>
@@ -995,8 +1023,10 @@
        You paste into the bottom composer (first turn = the AI text); the stone questions stream above. -->
   <section class="view" id="view-criticism-chat">
     <div class="wrap">
+      <div class="conv-rail">
       <span class="backlink" id="critChatBack">‹ back</span>
-      <span class="dl-transcript" id="dlCritTranscript" hidden><span class="dl-lead">↓ save your critique</span> <a id="critDlMd">.md</a> <span class="dl-sep">·</span> <a id="critDlPdf">.pdf</a></span>
+      <span class="dl-transcript" id="dlCritTranscript" hidden><span class="dl-lead">↓ save</span> <a id="critDlMd">.md</a> <span class="dl-sep">·</span> <a id="critDlPdf">.pdf</a></span>
+      </div>
       <!-- The two switches are a SETTINGS ROW of their own. Inline beside ‹back and the save chip they
            overflowed the column and wrapped, and the wrap point moved as the labels changed — so the row
            re-laid itself out on every toggle. A deliberate second row cannot wrap and cannot surprise. -->
@@ -1067,8 +1097,10 @@
 
   <section class="view" id="view-spec-chat">
     <div class="wrap">
+      <div class="conv-rail">
       <span class="backlink" id="specChatBack">‹ back</span>
-      <span class="dl-transcript" id="dlSpecTranscript" hidden><span class="dl-lead">↓ save this</span> <a id="specDlMd">.md</a><span class="dl-why">to carry on</span></span>
+      <span class="dl-transcript" id="dlSpecTranscript" hidden><span class="dl-lead">↓ save</span> <a id="specDlMd">.md</a><span class="dl-why">to carry on</span></span>
+      </div>
       <div class="edge" id="specDoc" hidden>
         <div class="edge-label">your specification — the thing under question, and you may change it</div>
         <div class="edge-text crit-specimen" id="specDocText"></div>
@@ -1291,6 +1323,11 @@ let turnsSinceNudge=99;
 // ---------- boot ----------
 (async function boot(){
   if(location.protocol==='file:'){ // offline self-demo, no backend/auth
+    // 🔴 WAIT FOR THE REST OF THE SCRIPT (16 Sep 2026). This branch has no `await`, so it ran while the
+    // script was still being evaluated, and `resetConversation` reads `prepText`, a `let` declared further
+    // down — a temporal-dead-zone throw. The offline demo had failed to boot since the prep arc (v0.20.0,
+    // 28 Aug) with only a console line to say so. One microtask lets every declaration below initialise.
+    await null;
     showView('conversation'); $('topbar').hidden=true; $('convBack').style.display='none';
     resetConversation(); openingQuestion(); runDemo(); return;
   }
@@ -1572,20 +1609,6 @@ function wireFocus(id, valId, get, set){
   paint();
 }
 wireFocus('focusToggle',     'focusVal',     ()=>focus,     (v)=>{ focus=v; });
-// ───────── the SETTING switch (9 Sep 2026) ─────────
-// Prayas: "they use on their own and with me around both - make a switch (self-serve, in class) - both
-// modes are different." Two settings, one switch, nothing persisted: like `focus` it lives as long as
-// the tab does, travels with every turn, is written into the transcript and comes back on resume.
-// 🔴 WHAT DIFFERS BETWEEN THE TWO IS PRAYAS'S TO SAY AND IS NOT INVENTED HERE. The switch is real —
-// the route is told, the transcript says which, the fixtures can be replayed in either — and the point
-// where a behavioural difference would be applied is one line in server.mjs, marked. Until he specifies
-// it, self-serve is exactly what the page always did and in-class differs only in what the transcript
-// says about itself.
-let setting='self-serve';
-function paintSetting(){ const b=document.getElementById('settingToggle'), v=document.getElementById('settingVal'); if(!b) return;
-  b.setAttribute('aria-pressed', setting==='in-class'?'true':'false'); if(v) v.textContent = setting==='in-class' ? 'in class' : 'self-serve'; }
-(function wireSetting(){ const b=document.getElementById('settingToggle'); if(!b) return;
-  b.addEventListener('click', ()=>{ setting = setting==='in-class' ? 'self-serve' : 'in-class'; paintSetting(); }); paintSetting(); })();
 wireFocus('critFocusToggle', 'critFocusVal', ()=>critFocus, (v)=>{ critFocus=v; });
 $('navCrit').addEventListener('click', ()=>go('/critique'));
 $('navSpec').addEventListener('click', ()=>go('/spec'));
@@ -1813,6 +1836,7 @@ async function specStream(url, payload, node, studentSaid){
   if(full && !errored && guard && !guard.ok)
     node.appendChild(el(`<div class="guard">guard: <b>flagged</b> — ${esc((guard.reasons||[]).join('; '))}</div>`));
   if(full && !errored){
+    attachExplain(node, full, { surface:'spec', material: currentSpec(), context: explainContext(studentSaid ? [...specHistory, { role:'student', content:studentSaid }] : specHistory) });
     if(studentSaid) specHistory.push({ role:'student', content:studentSaid });
     // The joint rides on the stone turn, which is how the rotation survives a stateless server.
     specHistory.push({ role:'stone', content:full, joint });
@@ -2162,7 +2186,10 @@ async function critStream(url, payload, node, onReading, retry){
   if(full && !errored && guard && !guard.ok)
     node.appendChild(el(`<div class="guard">guard: <b>flagged</b> — ${esc((guard.reasons||[]).join('; '))}</div>`));
   // the tab holds the transcript: append the stone's question so the next /turn carries it as context.
-  if(full && !errored) critHistory.push({role:'stone', content:full});
+  if(full && !errored){
+    attachExplain(node, full, { surface:'criticism', goal: critBrief||'', material: typeof critArtefact==='string' ? critArtefact : '', context: explainContext(critHistory) });
+    critHistory.push({role:'stone', content:full});
+  }
   if(reading && onReading && !errored) onReading(reading);
 }
 
@@ -2459,18 +2486,13 @@ function buildTranscriptMd(){
   const turns=history.filter(h=>h.role==='student').length;
   let body='';
   for(const h of history){ if(h.role==='interlocutor') body+='**Q.** '+String(h.content).replace(/\n+/g,' ')+'\n\n'; else body+=String(h.content)+'\n\n'; }
-  return '---\nsource: zetizeti\ntype: idea-transcript\ntopic: '+topic+'\ndate: '+new Date().toISOString()+'\nturns: '+turns+(focus==='concept'?'\nfocus: concept-only':'')+(setting==='in-class'?'\nsetting: in-class':'')+'\n---\n\n'
+  return '---\nsource: zetizeti\ntype: idea-transcript\ntopic: '+topic+'\ndate: '+new Date().toISOString()+'\nturns: '+turns+(focus==='concept'?'\nfocus: concept-only':'')+'\n---\n\n'
     +'# A dialogue — '+topic+'\n\n'
     // 🔴 THE FILE SAYS WHAT IT IS (7 Sep 2026). It read "An AI Club idea transcript… the student's own
     // responses are the substance; the questions are light context" — which said `student`, and called
     // half of the dialogue CONTEXT. Both were the aid framing written into the artifact itself: a
     // transcript is a record of something, and this is the thing. Nothing else holds a copy.
-    // In class, the file says so, and says how it ended — the session ended it, which is the only ending a
-    // dialogue here has (Prayas, 9 Sep 2026: "I decide when to close"). Same shape either way: one italic
-    // paragraph, which parseTranscriptMd skips by shape and never by wording.
-    +(setting==='in-class'
-      ? '_This is a dialogue with zetizeti, held in class, and it is the whole of what happened — the questions and your\nanswers together, neither one the context for the other. It ended when the session did. It exists nowhere else:\nnothing was stored, nothing was scored, and no copy was kept. What you do with it is yours to decide._\n\n'
-      : '_This is a dialogue with zetizeti, and it is the whole of what happened — the questions and your\nanswers together, neither one the context for the other. It exists nowhere else: nothing was stored,\nnothing was scored, and no copy was kept. What you do with it is yours to decide._\n\n')
+    +'_This is a dialogue with zetizeti, and it is the whole of what happened — the questions and your\nanswers together, neither one the context for the other. It exists nowhere else: nothing was stored,\nnothing was scored, and no copy was kept. What you do with it is yours to decide._\n\n'
     +body;
 }
 function downloadFile(name, text, mime){ const b=new Blob([text],{type:mime+';charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1500); }
@@ -2487,9 +2509,7 @@ function downloadTranscriptPdf(){
   const w=pdfWriter(); if(!w){ alert('PDF library not loaded — try the .md instead.'); return; }
   const { doc, block }=w;
   block('A dialogue — '+transcriptTopic(), 'bold', 18, [20,20,40], 22, 6);
-  block(setting==='in-class'
-    ? "This is a dialogue with zetizeti, held in class, and it is the whole of what happened. It ended when the session did. It exists nowhere else: nothing was stored, nothing was scored, and no copy was kept."
-    : "This is a dialogue with zetizeti and it is the whole of what happened. It exists nowhere else: nothing was stored, nothing was scored, and no copy was kept.", 'italic', 10, [120,120,130], 14, 12);
+  block("This is a dialogue with zetizeti and it is the whole of what happened. It exists nowhere else: nothing was stored, nothing was scored, and no copy was kept.", 'italic', 10, [120,120,130], 14, 12);
   // 🔴 THE TWO VOICES ARE TYPOGRAPHIC PEERS (7 September 2026). Until today the question was set at 10.5pt
   // italic in grey-gold on tight leading and the reply at 12.5pt near-black on generous leading — a
   // hierarchy saying the questions were light context and the answers the substance. That is the aid
@@ -2599,7 +2619,6 @@ function parseTranscriptMd(text){
   while(turns.length && turns[0].role!=='student') turns.shift();
   if(!turns.length) return {error:'That transcript has nothing in it to continue from.'};
   return {turns, topic:(fm[1].match(/^topic:\s*([\s\S]*?)$/m)||[])[1]||turns[0].content,
-    setting: /^setting:\s*in-class\s*$/m.test(fm[1]) ? 'in-class' : 'self-serve',
     focus: /^focus:\s*concept-only\s*$/m.test(fm[1]) ? 'concept' : null};
 }
 // Rebuild the conversation in the tab, then hand it back to the student mid-flow. Everything the
@@ -2615,15 +2634,13 @@ function resumeFromTranscript(parsed){
   { const b=document.getElementById('focusToggle'), v=document.getElementById('focusVal');
     if(b) b.setAttribute('aria-pressed', focus?'true':'false');
     if(v) v.textContent = focus ? 'concept only' : 'everything'; }
-  // And the setting it was held in — a transcript saved in class comes back in class.
-  setting=parsed.setting||'self-serve'; paintSetting();
   addDivider('carried on from a saved transcript');
   let lastNode=null;
   restoring=true;
   for(const t of parsed.turns){
     history.push({role:t.role, content:t.content});
     if(t.role==='student'){ addYou(t.content); lastNode=stream.lastElementChild; }
-    else lastNode=addStone(t.content, null, null, {opening:true});
+    else { lastNode=addStone(t.content, null, null, {opening:true}); attachExplain(lastNode, t.content, { surface:'enquiry', goal, context: explainContext(history.slice(0,-1)) }); }
   }
   exchanges=Math.max(0, history.filter(h=>h.role==='student').length-1);
   phase='dialogue'; input.placeholder=DIALOG_PH;
@@ -2715,6 +2732,66 @@ function attachCurtain(node, retrieved, guard){
   toggle.addEventListener('click', ()=>{ const open=panel.classList.toggle('open'); toggle.setAttribute('aria-expanded',open); });
   node.appendChild(toggle); node.appendChild(panel);
 }
+// ── EXPLAIN QUESTION (16 September 2026) ─────────────────────────────────────────────────────────────
+// Prayas: a chip under each question that, on a click, explains the question's context, why thinking about
+// the answer helps the idea, and what the answer could change — 250 words, for a ten-year-old. 🔴 The one
+// exception to the never-answer guard, by his instruction; see `lib/explain.mjs`.
+// 🔴 ONE HELPER FOR ALL THREE SURFACES — enquiry, critique, spec — so the chip cannot exist on one and be
+// forgotten on another (the guard-parity fault, and the `hidden`-guard fault, both came from copies).
+// 🔴 THE EXPLANATION NEVER ENTERS A HISTORY ARRAY. It lives in this node only: the stone never reads it,
+// the next question is composed as it would have been, and the download does not carry it.
+// Fetched once per question and kept, so opening it again costs nothing.
+function attachExplain(node, question, ctx){
+  if(!node || !question || node.querySelector(':scope > .explain-chip')) return;
+  const chip = el(`<button class="explain-chip" type="button" aria-expanded="false"><span class="xq-mark" aria-hidden="true"></span><span class="xq-label">explain question</span></button>`);
+  const panel = el(`<div class="explain" hidden></div>`);
+  const label = chip.querySelector('.xq-label');
+  let state = 'idle';                                   // idle · loading · ready
+  chip.addEventListener('click', async ()=>{
+    if(state==='loading') return;
+    if(state==='ready'){ panel.hidden=!panel.hidden; chip.setAttribute('aria-expanded', String(!panel.hidden)); return; }
+    state='loading'; chip.classList.add('busy'); label.textContent='explaining…';
+    panel.hidden=false; chip.setAttribute('aria-expanded','true');
+    panel.innerHTML=`<span class="thinking"><span class="bead"></span> putting it in plain words</span>`;
+    const ok = await streamExplain({ question, ...ctx }, panel);
+    chip.classList.remove('busy');
+    state = ok ? 'ready' : 'idle';
+    label.textContent = ok ? 'explain question' : 'explain question · try again';
+    scrollTurnIntoView(panel);
+  });
+  const body = node.querySelector('.body');
+  body.after(chip); chip.after(panel);
+}
+async function streamExplain(payload, panel){
+  let parts=null, errored=false;
+  try{
+    const res=await fetch('/api/explain',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    if(!res.ok || !res.body){ const j=await res.json().catch(()=>({})); throw new Error(j.error||`HTTP ${res.status}`); }
+    const reader=res.body.getReader(), dec=new TextDecoder(); let buf='';
+    while(true){
+      const {value,done}=await reader.read(); if(done) break;
+      buf+=dec.decode(value,{stream:true});
+      const events=buf.split('\n\n'); buf=events.pop();
+      for(const ev of events){
+        const m=ev.match(/^event: (.+)\ndata: (.+)$/s); if(!m) continue;
+        const type=m[1], data=JSON.parse(m[2]);
+        if(type==='explanation') parts=data.parts;
+        else if(type==='pool'){ poolTurnsLeft=data.turnsLeft; if(data.budget) poolBudget=data.budget; renderPoolCount(); renderPoolBudget(); }
+        else if(type==='error'){ errored=true; panel.innerHTML=`<p class="xq-note">${esc(data.message)}</p>`; }
+      }
+    }
+  }catch(err){ errored=true; panel.innerHTML=`<p class="xq-note">the explanation did not arrive — ${esc(String(err.message||err))}</p>`; }
+  if(errored) return false;
+  if(!parts || !parts.length){ panel.innerHTML=`<p class="xq-note">the explanation did not come through — try again.</p>`; return false; }
+  panel.innerHTML = parts.map((p)=>`<section class="xq-part"><h5>${esc(p.label)}</h5><p>${esc(p.text)}</p></section>`).join('');
+  panel.classList.add('loaded');
+  return true;
+}
+// Bring the opened panel into view without the page-height overshoot this file already knows about.
+function scrollTurnIntoView(elm){ try{ elm.scrollIntoView({block:'nearest', behavior:'smooth'}); }catch(e){} }
+// The turns before a question, as the explanation's context. A snapshot, taken when the question lands.
+const explainContext = (arr)=> arr.slice(-6).map((m)=>({ role: (m.role==='student'||m.role==='you') ? 'student' : 'stone', content: String(m.content||'') }));
+
 function showEdge(){ edge.hidden=false; const dl=$('dlTranscript'); if(dl) dl.hidden=false; }
 function updateEdge(){
   edgeText.textContent = goal;
@@ -2761,7 +2838,7 @@ async function streamStone(message, kind, reuseNode){
   try{
     // Stateless: no quest_id. The browser sends the whole transcript + turnsSinceNudge; the server stores nothing.
     const res = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ message, history:history.slice(0,-1), goal, kind, honed, exchanges, lineage, turnsSinceNudge, focus, setting, prep:prepText, tasks:prepTasksText, sheetName:prepName }) });
+      body: JSON.stringify({ message, history:history.slice(0,-1), goal, kind, honed, exchanges, lineage, turnsSinceNudge, focus, prep:prepText, tasks:prepTasksText, sheetName:prepName }) });
     const reader=res.body.getReader(), dec=new TextDecoder(); let buf='';
     while(true){
       const {value,done}=await reader.read(); if(done) break;
@@ -2792,6 +2869,7 @@ async function streamStone(message, kind, reuseNode){
       }
     }
   }catch(err){ errored=true; body.innerHTML=`<span style="color:var(--muted);font-style:italic">connection lost — ${esc(String(err))}</span>`; }
+  if(full && !errored) attachExplain(node, full, { surface:'enquiry', goal, context: explainContext(history) });
   if(full) history.push({role:'interlocutor', content:full});
   // refractory bookkeeping: reset when a nudge surfaced this turn, else it grows by one.
   turnsSinceNudge = nudgedThisTurn ? 0 : turnsSinceNudge+1;

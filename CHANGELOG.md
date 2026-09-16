@@ -26,6 +26,26 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.8.0] — 16 September 2026
+
+**An *explain question* chip under every question, on all three surfaces — the one exception to the never-answer guard.**
+
+Prayas: *"there should a chip 'explain question' under each question i if clicked — the context, the benefit to the idea of thinking of the answer and the repercussions of the response will be explained in 250 words. this will be an exception to all 'no answer' guards / explanation should be in elementary — 10-year old level."*
+
+**`POST /api/explain` and `lib/explain.mjs`.** On request only. Three parts in his order — *what this question is about*, *why thinking about your answer helps your idea*, *what your answer could change* — at most 250 words, hard-capped in code by whole sentences, and a ten-year-old's reading level: Flesch–Kincaid is measured on the draft and a draft reading above grade 6 is regenerated once, the easier of the two delivered. A draft missing a part is asked for once more and then refused rather than shown half-made.
+
+🔴 **The exception is scoped, and the scope is asserted rather than described.** No question guard runs on the route; no `turn_depth` row is written, because an explanation is not a turn and the survival curve's depth must keep meaning the same thing; spend is metered through the same resolver the other surfaces use, so an explanation is refused exactly where a question would be. **The explanation never enters a history array**, so the stone never reads it and the next question is composed as it would have been, and it is not in the download. `lib/explain.mjs` is deliberately outside the cinematic read's questioning set, because the questioning is untouched. `verification/explain-question.test.mjs` reads the route and the page for all of this, and was proved by running it against the page before the change: the two wiring tests fail there.
+
+⚠️ **One reading of the brief is mine and is written down to be reversed in one line:** the three things he named do not include the answer, so the prompt asks the model to explain the question and leave the answering to the learner. Nothing in code enforces it.
+
+**One helper, four call sites** — live enquiry turns, resumed transcripts, critique turns and spec turns. The canned demos call no model and carry no chip. Measured live on invented material, one surface each: 173–182 words, grade 1.5–2.2. The prompt asks for 200–250 and the model lands under it; the floor is asked for and not enforced, because padding a child's explanation to reach a number would make it worse.
+
+**The top of each conversation is one quiet line, not a row of boxes.** Prayas, seeing it locally: *"too many chips at the top. using it self serve, asking about everything — messy and ugly."* The save strip and the two switches were three bordered chips in three colours, wrapping onto two misaligned lines. They now sit in a single rail under a hairline, with no borders and no tinted grounds: save on the left, the switches on the right, state carried by the filled mark and the coloured value. The same rail heads the critique and spec conversations. Every control is still on the page, and so are the words saying which file carries on and that the PDF cannot be resumed. The first cut dropped *to carry on*, and the 2 September test refused it. A second pass, after *"still messy"* and *"in one lean line"*, set the rail in one lower-case size, held it to one line from 900px up, and dropped the enquiry rail's back link, which repeated the topbar's *new enquiry*. Under each question the explain chip lost its box and shares a line with *behind the curtain*.
+
+🔴 **The self-serve / in-class switch is removed** (Prayas: *"remove the in class/self-serve toggle and ship"*). All of it went, not just the button: the chat body field, the route's whitelist, the `setting` on the validation event and in local capture, the transcript front-matter line and its in-class note, the PDF's in-class line, resume, the probe's `--setting` flag and `verification/setting-switch.test.mjs`. A switch with no control would have written *self-serve* into every transcript, including the ones made in class, which would be false. Nothing about the questioning changes, because the steering never read the setting. Transcripts saved with `setting: in-class` still resume; the line is ignored.
+
+🔴 **The offline `file://` demo had failed to boot since v0.20.0** — `boot()` ran before the rest of the script, and `resetConversation` reads `prepText`, a `let` declared further down. A temporal-dead-zone throw, reported only as a console line. Found while rendering this release; fixed with one `await null`.
+
 ## [1.7.0] — 9 September 2026
 
 **The cinematic read is now a hard gate on both paths that ship, and the reading itself carries a version so it can be grown without quietly invalidating what it already measured.**

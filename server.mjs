@@ -46,6 +46,7 @@ import {
   noteTurnDepth, turnDepthCurve, turnDepthSummary, turnDepthVersions,
 } from './lib/db.mjs';
 import { streamQuestion } from './lib/llm.mjs';
+import { explainInputs, buildExplainPrompt, explainQuestion } from './lib/explain.mjs';   // "explain question" — the one guard exception (16 Sep 2026)
 import { generateGuarded } from './lib/guard.mjs';           // the guard's ENFORCEMENT layer (invariant #3)
 import { startHeartbeat } from './lib/heartbeat.mjs';       // keeps the guard's SILENT interval alive (see the file)
 import { computeSignals, content as contentWords } from './lib/signals.mjs';
@@ -488,13 +489,6 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // CONCEPT-ONLY FOCUS (12 Aug 2026). Whitelisted rather than passed through: only the exact string
   // 'concept' turns it on, so an unknown value is no focus rather than an unspecified one.
   const focus = req.body?.focus === 'concept' ? 'concept' : null;
-  // THE SETTING (9 Sep 2026) — self-serve or in class, from the page's switch. Whitelisted like `focus`:
-  // only the exact string 'in-class' is the other setting; anything else is self-serve, which is what
-  // this route always did. It is reported back on the validation event and captured locally, and the
-  // transcript carries it. 🔴 IT IS NOT YET READ BY THE STEERING — Prayas said the two settings are
-  // different and has not said how, and this file does not guess a scope he has not defined. The line
-  // where a difference would be applied is the buildTurnContext call below; nothing is passed to it yet.
-  const setting = req.body?.setting === 'in-class' ? 'in-class' : 'self-serve';
 
   const goalTerms = (goal.toLowerCase().match(/[a-z0-9]+/g) || []).filter((t) => t.length > 2);
 
@@ -1015,13 +1009,12 @@ app.post('/api/chat', requireUser, async (req, res) => {
     send('token', { t: full });                  // the ACCEPTED question, delivered whole
     send('validation', { ...guarded.check, attempts: guarded.attempts, regenerated: guarded.regenerated, fallback: !!guarded.fallback,
       // which footing this turn took — what the last message WAS and what the tool did about it, never who they are
-      footing: askingBack ? 'asking-back' : declined ? 'declined' : corrected ? 'corrected' : rutInvite ? 'rut-invite' : stalledInvite ? 'stalled-invite' : featureInvite ? 'invite' : null,
-      setting });
+      footing: askingBack ? 'asking-back' : declined ? 'declined' : corrected ? 'corrected' : rutInvite ? 'rut-invite' : stalledInvite ? 'stalled-invite' : featureInvite ? 'invite' : null });
     // LOCAL, operator-only capture (no-op in production and unless ZETIZETI_CAPTURE_DIR is set) — the
     // situation → the question, so a chat can be replayed by the 2.0 "sounds-like-Prayas" harness. The
     // returned id lets the local UI attach an on-voice/off-voice label to this exact question. The guard's
     // work is captured too (a repaired question is a different kind of specimen from a first-pass one).
-    const capId = capture({ mode: prepping ? 'prep' : 'enquiry', setting, prepStation: prepping ? (prepWalk.station ? prepWalk.station.key : prepWalk.phase) : null, prepPart: prepping ? prepWalk.part : null, chatKey: studentTurns[0] || goal, goal, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, dwell: featureInvite ? 'INVITE' : stalledInvite ? 'INVITE-STALLED' : dwell ? `${dwell.anchor}×${dwell.returns}` : null, joined: assoc ? assoc.distance : null, declined: !!declined, corrected, repeated, stalled, newMaterial: newMaterial.slice(0, 3), shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
+    const capId = capture({ mode: prepping ? 'prep' : 'enquiry', prepStation: prepping ? (prepWalk.station ? prepWalk.station.key : prepWalk.phase) : null, prepPart: prepping ? prepWalk.part : null, chatKey: studentTurns[0] || goal, goal, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, dwell: featureInvite ? 'INVITE' : stalledInvite ? 'INVITE-STALLED' : dwell ? `${dwell.anchor}×${dwell.returns}` : null, joined: assoc ? assoc.distance : null, declined: !!declined, corrected, repeated, stalled, newMaterial: newMaterial.slice(0, 3), shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
       // Logged side by side so the comparison the todo doc asks for can be made on real transcripts
       // before anything is wired again. Local capture only — never in production (capture.mjs).
       sem: fs && fs.semFresh ? +fs.semFresh[fs.semFresh.length - 1].toFixed(3) : null,
@@ -1565,6 +1558,47 @@ app.post('/api/spec/build', requireUser, async (req, res) => {
     const report = validateBuildReport(out);
     if (!report.items.length) { send('error', { code: 'EMPTY_GENERATION', message: EMPTY_MSG }); }
     else send('build', report);
+    if (key.meter) { addPoolSpend(utcDay(), req.user.id, cost, key.poolFlag); if (key.usingPool) send('pool', poolEvent(req.user.id)); }
+    send('done', {});
+  } catch (err) { sendGenerationError(send, err, key.usingPool ? null : req.user.email); }
+  res.end();
+});
+
+// POST /api/explain — EXPLAIN A QUESTION (16 September 2026). Prayas: "there should a chip 'explain
+// question' under each question … this will be an exception to all 'no answer' guards … 10-year old level."
+//
+// 🔴 THE ONE ROUTE THE NEVER-ANSWER GUARD DOES NOT GOVERN, BY HIS INSTRUCTION. See `lib/explain.mjs` for
+// what the exception reaches and what it does not. On request only, on all three surfaces, one shared route
+// so the three chips cannot drift apart.
+//
+// 🔴 NO `noteTurnDepth`. An explanation is not a turn, and the survival curve's depth N must keep meaning
+// the same thing across versions. Spend IS metered — it costs money like any call — through the same
+// resolver the other surfaces use, so an explanation is refused exactly where a question would be.
+// Stateless; `req.body` is never logged (invariant #8).
+app.post('/api/explain', requireUser, async (req, res) => {
+  const input = explainInputs(req.body || {});              // NEVER logged; bounded inside
+  if (!input.question) { res.status(400).json({ error: 'No question to explain.' }); return; }
+  sseHeaders(res);
+  const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  const key = await resolveKeyForCriticism(req, res, send); if (!key) return;
+  try {
+    send('status', { t: 'explaining…' });
+    let cost = 0;
+    const system = buildExplainPrompt(input);
+    const base = [{ role: 'user', content: '(explain the question)' }];
+    const out = await explainQuestion({
+      generate: (correction) => streamQuestion({
+        system,
+        messages: correction
+          ? [...base, { role: 'assistant', content: correction.previous }, { role: 'user', content: correction.instruction }]
+          : base,
+        onToken: () => {},
+        onUsage: key.meter ? (u) => { cost += usageCost(u); } : null,
+        maxTokens: 700, temperature: 0.3, reasoning: { enabled: false }, apiKey: key.apiKey,
+      }),
+    });
+    if (!out) send('error', { code: 'EMPTY_GENERATION', message: 'The explanation did not come through — try again.' });
+    else send('explanation', { parts: out.parts, words: out.words });
     if (key.meter) { addPoolSpend(utcDay(), req.user.id, cost, key.poolFlag); if (key.usingPool) send('pool', poolEvent(req.user.id)); }
     send('done', {});
   } catch (err) { sendGenerationError(send, err, key.usingPool ? null : req.user.email); }

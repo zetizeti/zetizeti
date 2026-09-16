@@ -500,7 +500,7 @@ transcript is theirs); the harness that runs them is public, in `scripts/flow-pr
 
 **The criticism surface has no fallback on its last attempt.** A listed difference, not parity drift — its steering is built differently and no rut reading exists there yet.
 
-**The setting switch reaches the route and not the steering.** Self-serve or in class travels with every turn and into the transcript (v1.5.0); no mechanism here reads it yet, because what the two settings differ in has not been specified. The place it would be read is the enquiry turn's context assembly.
+**The setting switch was removed in v1.8.0 (16 September 2026)**, by instruction, before any difference between the two settings had been defined. It had reached the route and the transcript and never the steering, so nothing about how questions are made changed with it. Old transcripts carrying `setting: in-class` still resume; the line is ignored.
 
 **Identical openings still produce identical first questions.** The rotation's phase is taken from the learner's own words and nothing else, because nothing else is available to a service that stores nothing. Two people who paste the same brief therefore start on the same move, and a class handed one brief will cluster on it. A within-room no-repeat rule would need the service to know about other conversations, which it does not and must not.
 

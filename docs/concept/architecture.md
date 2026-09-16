@@ -213,6 +213,16 @@ A student's **project concept** may be brought alongside as context. It is never
 
 🔴 **`refusal` is composed in CODE, and the pattern above is why.** Pushed toward the negative the model invents a refusal — *why does the window refuse to record the bounces?* asserts one she never wrote and asks her to justify it, which is the presupposition fault and worse than the inversion it replaced. Pushed away from inventing, it stops asking. Every increment of prompt pressure bought one fault by paying for the other. So the stone does not write this one: `refusalQuestion` in `lib/spec.mjs` takes her most-used noun and one of three frames, all asked from outside the object so none of them asserts anything about how it works. **Measured 3 of 3 on the run after.** ⚠️ The cost, stated rather than discovered: the question no longer responds to what she has just said. Accepted on this line and on no other.
 
+### 5.3d Explain question — the one exception to the never-answer guard (v1.8.0, 16 September 2026)
+
+**`POST /api/explain` explains one question in plain words, on request, on all three surfaces.** Three parts — what the question is about, why thinking about the answer helps the idea, what different answers could change — at most 250 words and at a ten-year-old's reading level. It was asked for directly, as an explicit exception to every no-answer guard.
+
+🔴 **What the exception reaches, and what it does not.** The route runs none of `validateOutput`, `validateCriticismOutput`, `validateSpecOutput` or `generateGuarded`: they exist to refuse explaining, and would refuse every explanation. What keeps the exception from spreading is where its output goes. The explanation is rendered inside the question's own node and **never added to a history array**, so the model composing the next question never reads it and the questioning is byte-identical with or without the chip pressed. It writes no `turn_depth` row. It is metered like any call. `verification/explain-question.test.mjs` asserts each of these against the route and the page.
+
+**Two properties are checked in code because they are the scope as stated, not a guard:** the 250-word ceiling, trimmed by whole sentences with no part emptied, and the reading level, a Flesch–Kincaid measure with one regeneration above grade 6. ⚠️ The syllable count is a heuristic; it separates a primary-school paragraph from an academic one and should not be argued with at the level of a single grade.
+
+⚠️ The prompt asks the model not to answer the question itself, which is a reading of the brief rather than the brief; nothing enforces it.
+
 ### 5.3c Would this build? — the builder's report (v0.27.0, 3 September 2026)
 
 **`POST /api/spec/build` hands her specification to the model as a BUILDER who cannot ask her anything, and returns the decisions that builder would have to take because the specification does not settle them.** On request only; no turn produces it and nothing computes it in the background.
