@@ -198,9 +198,10 @@ test('the route reads both new readings and passes both blocks and the fallback'
   assert.match(s, /isAskingBack\(message, stoneTurns\)/);
   assert.match(s, /readRut\(stoneTurns\)/);
   assert.match(s, /const declined = !askingBack && isDecline\(message\)/, 'asking back is read BEFORE the decline');
-  assert.match(s, /rutInvite,\n\s+askingBack,\n\s+message,/, 'both reach buildTurnContext on the enquiry turn');
+  assert.match(s, /rutInvite,\n\s+askingBack,\n\s+(?:returnNote,\n\s+)?message,/, 'both reach buildTurnContext on the enquiry turn');
   assert.match(s, /askingBack,\n\s+banOpeners,\n\s+banHeads,\n\s+message,\n\s+\}\)\n\s+: buildTurnContext/, 'and asking back reaches the prep turn');
   assert.match(s, /fallback: prepping \? null : \{/, 'the guard is given a hand-back on the enquiry surface');
-  assert.match(s, /validateOutput\(t, \{ \.\.\.guardOptions, mustHold: null \}\)/, 'the fallback drops the join and nothing else');
+  // v1.11.0: the return's demand goes with the join's — both are tied to the subject the hand-back gives up.
+  assert.match(s, /validateOutput\(t, \{ \.\.\.guardOptions, mustHold: null, returnNote: null \}\)/, 'the fallback drops the join and the return, and nothing else');
   assert.match(s, /fallback: !!guarded\.fallback/, 'and the client is told which shipped');
 });

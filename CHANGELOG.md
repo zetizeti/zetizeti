@@ -26,6 +26,33 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.11.0] — 17 September 2026
+
+**A question that goes back to the last one now says what the answer left out.** Prayas: *"when a question is repeated (seemingly) because the student's answer was neither complete or detailed enough - specify what was left out, what detail is still needed."* The tool stays on one subject for up to three questions when an answer comes back to it, and on the critique surface the reading plan stays on one part of the text for up to three. From the student's side both look like being asked the same thing again, with no reason given.
+
+`readReturn` (`lib/arc.mjs`) now reads, before the question is written, whether the coming question returns to the last one's subject. It also reads what kind of detail the last question asked for (when, who, why, how many, which, where, how) and which of the last question's own words the reply did not reach. The student's own earlier words never count as missing, since a question only says them back. Where the reply supplied the kind of detail asked for, nothing fires: *"after the second lamp post"* has answered *at what point*, whatever words it used. Over the twenty-one real class dialogues the reading fires on 38 of 488 turns.
+
+On such a turn the question must open with one short sentence, of at most 22 words, saying what the answer has not yet said, and then ask for that part. The guard refuses, on both surfaces:
+
+- a returning question with no lead-in;
+- a lead-in that names nothing the last question asked;
+- a lead-in that grades the answer (*incomplete*, *vague*, *not yet clear*, *good answer*);
+- a lead-in that fills the gap in instead of saying it is missing;
+- a question that then asks about something else.
+
+The 34-word cap reads the question alone on these turns.
+
+🔴 **Four instructions had to give way for the lead-in to appear at all.** Every question shape said *no preamble*, the closing line of the turn said *one short question only — a single sentence*, the guard's second repair said *one clause*, and the critique prompt said *open on the question itself*. On the first live run the model wrote no lead-in in four attempts out of four. On a return turn each of those now gives way, and the repair asks for the lead-in instead.
+
+⚠️ **Measured on the real route, not proved.**
+
+- On invented turns where a return was certain, 11 of 12 shipped a lead-in naming the right gap.
+- On a replay of a real class dialogue, both returns shipped one. The same fixture on the v1.10.0 build gave the same number of flagged questions.
+- The lead-in is a sentence of the tool's own set down before the student answers, and the reading of the dialogue counts it that way.
+- Where a rule elsewhere blocks every way of naming the gap, the guard hands the subject back as before and the turn is shown flagged. The invention rule, for one, does not hear *turns into* as a described change.
+
+**The explanation behind *explain question* is kept out of every transcript, and a test now says why.** Prayas asked for this to be ensured. It already held: the saved `.md` and `.pdf` of all three surfaces, and the file sent to the dashboard, are built from the conversation's history arrays, and an explanation is never pushed into one. The old test read only the two functions that fetch and show an explanation. The new tests check three things: every saved or sent transcript is built from a history array and never read off the page; nothing pushed into a history array anywhere on the page is an explanation; and the real critique builder, run, carries only questions and replies. Both failure shapes were planted and caught.
+
 ## [1.10.0] — 16 September 2026
 
 **No design jargon in a question or an explanation.** Prayas: *"make sure neither the questions, nor the explanations use design jargon"*. `lib/jargon.mjs` holds one editable list of design terms — affordance, stakeholder, persona, user journey, pain point, iterate, artefact, usability and about seventy more — with everyday words that designers also use (prototype, sketch, brief, user, tension) deliberately left off. All three question checks refuse a listed term through the shared `noJargon` option, all three prompts tell the model the rule, and explanations get one regeneration in everyday words if they add a term.

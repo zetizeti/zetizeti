@@ -145,6 +145,41 @@ across those seven questions was the central noun of the whole project, and bann
 worse than the rut. A frequency rule cannot tell the subject of an idea from a groove worn into it. The
 goal can, because the learner wrote it.
 
+### The return — saying what the answer left out (v1.11.0)
+
+`lib/arc.mjs → readReturn`. Dwell holds a subject for up to three questions, and from the learner's side a second question on the same subject reads as the first one asked again, with no reason given. So when the coming question returns to the last one's subject, it has to say why.
+
+Code decides three things before the question is written:
+
+- **that it is a return:** the dwell anchor is a word of the last question. On the critique surface, the reading plan holds the station it held last turn;
+- **what kind of detail the last question asked for:** when, who, why, how many, which, where, how, what would have to be true, what happens next, or yes/no. This is read off the main clause, so *"When X, where does Y go?"* asks *where*;
+- **what the reply did not reach:** the last question's own words, minus connective words, minus anything the learner had already said. A question says the learner's words back, and a reply that does not repeat them has left nothing out.
+
+Where a lexical check is honest, the kind is checked directly. A *when* question answered *"after the second lamp post"* has been answered, and nothing fires. A *what* or *which* question counts as answered when the reply names something new.
+
+The question then opens with one short sentence, at most `RETURN_LEAD_MAX` (22) words, saying what the answer has not yet said, and asks for that part. `sharedFormChecks` refuses the forms that fail this, on both surfaces:
+
+- no lead-in;
+- a lead-in naming nothing from the last question;
+- a lead-in that grades the answer;
+- a lead-in that states something instead of saying what is absent;
+- a question that asks about something else.
+
+**Why the grading refusal matters.** *Incomplete*, *vague* and *not yet clear* are verdicts on somebody's material, and the 9 September reversal holds that those are the learner's to make. *You have not yet said when* is a fact about two texts.
+
+**Why the absence refusal matters.** The first lead-in that worked read *"The roof protects the tools from the rain."* It named the right words and stated, as settled, the answer the learner had not given. That is the never-answer rule broken one sentence early.
+
+🔴 **Four standing instructions contradicted the lead-in, and until they gave way the model wrote none in four attempts out of four:**
+
+- every `FLOW_SHAPE` says *no preamble*;
+- the closing line of the turn asks for *one short question only — a single sentence*;
+- the guard's second repair asks for *one clause*;
+- the critique prompt says *open on the question itself*.
+
+On a return turn the shape and the posture line are dropped, the closing line asks for the lead-in, and `repairInstruction(…, { lead: true })` asks for it too. The guard's hand-back attempt never carries the lead-in, because it changes the subject. **The more specific instruction wins, and the more specific one was not the new one.**
+
+A return turn carries no association join, since the two would give one question two directions.
+
 ### Traversal — walk the parts of the idea, don't orbit one
 
 Among the learner's live concrete things, the anchor prefers the **least-asked-about**, with coverage
@@ -412,6 +447,10 @@ one while harming the other is not a fix. The fixtures themselves are private (a
 transcript is theirs); the harness that runs them is public, in `scripts/flow-probe.mjs`.
 
 ## Known limits
+
+- ⚠️ **The return's reading of "left out" is lexical, and so is the check that the question then asks for it.** A reply can answer *where* in words the list does not contain. The kind check covers when, who, why, how many and yes/no, and a *what* or *which* answered by naming something. *Where*, *how* and *what would have to be true* rely on the word list alone.
+  - Where every way of naming the gap is blocked by another rule, the guard hands the subject back and the turn ships flagged. Measured case: the invention rule does not hear *turns into* as a described change, so *"you have not said when that shift happens"* is refused as an invented premise.
+  - On invented turns 11 of 12 shipped a lead-in. On one real replay both returns did. That is measurement, not proof, and a return's lead-in is a sentence of the tool's own, which the dialogue reading counts as deposited.
 
 - 🔴 **Being asked for something you have already said, in different words, is not detected and there is
   now a measurement saying it cannot be — not this way.** A student reported it on 6 September 2026 in

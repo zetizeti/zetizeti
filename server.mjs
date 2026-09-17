@@ -13,7 +13,7 @@ import {
   loadMethodCore, buildSystemPrompt, buildTurnContext, validateOutput,
   loadCriticismCore, buildCriticismSystemPrompt, validateCriticismOutput,
   CRITICISM_POINTERS, questionOpener, openerBans, headBans, describeLocated,
-  PREP_CLOSING_AIM, PREP_CLOSING_AIM_SET, PREP_RESUMING_AIM,
+  PREP_CLOSING_AIM, PREP_CLOSING_AIM_SET, PREP_RESUMING_AIM, RETURN_LEAD_WORDS,
   buildSpecSystemPrompt, validateSpecOutput, buildBuilderPrompt, validateBuildReport,
 } from './lib/dialogue.mjs';
 import { nextJoint, readJoints, specTerms, refusalQuestion, JOINT_KEYS } from './lib/spec.mjs';   // the speccing surface — DETERMINISTIC, no LLM
@@ -51,7 +51,7 @@ import { dashboardConfigured, dashboardAccount, sendToDashboard, sendProblem } f
 import { generateGuarded } from './lib/guard.mjs';           // the guard's ENFORCEMENT layer (invariant #3)
 import { startHeartbeat } from './lib/heartbeat.mjs';       // keeps the guard's SILENT interval alive (see the file)
 import { computeSignals, content as contentWords } from './lib/signals.mjs';
-import { readDwell, isDecline, isCorrection, lastSubstantive, readRepeat, NONMATERIAL, isAskingBack, readRut } from './lib/arc.mjs';
+import { readDwell, isDecline, isCorrection, lastSubstantive, readRepeat, NONMATERIAL, isAskingBack, readRut, readReturn } from './lib/arc.mjs';
 import { readAssociation, associationBlock } from './lib/assoc.mjs';
 import { semanticFreshness, refineFresh } from './lib/novelty.mjs';   // SHADOW ONLY — measured, not wired (see novelty.mjs)           // the enquiry surface's dynamic arc (line of questioning)
 import { decideNudge, feltPosture, formShape } from './lib/nudge.mjs';
@@ -810,7 +810,21 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // on three successive runs — charged material is resistant material) behind the protective gates:
   // corrections never quoted, refusals quotable only when they name the blockage, hedge words never
   // material. Jung as tact, Cummings as manner, the join itself generous.
-  const assoc = (prepping || declined || corrected || askingBack || rutInvite) ? null : readAssociation({ studentTurns, stoneTurns, selector: 'open' });
+  // THE RETURN (v1.11.0, 17 Sep 2026). The dwell anchor is a word the LAST question already asked about, so
+  // the coming question will read as that question again. `readReturn` says what the reply left out, and the
+  // question has to say so before it asks (Prayas: "specify what was left out, what detail is still needed").
+  // Only on a dwell turn: every invite, the decline, the correction and asking-back have already set dwell to
+  // null, because each of those is its own answer to the last reply.
+  const returnRead = (!prepping && !declined && !corrected && dwell && dwell.anchor)
+    ? readReturn({ anchor: dwell.anchor, lastQuestion: stoneTurns[stoneTurns.length - 1] || '', studentTurns, goal })
+    : null;
+  const returnNote = returnRead
+    ? { subject: `"${returnRead.anchor}"`, need: returnRead.need, missing: returnRead.missing, words: returnRead.words, ask: returnRead.ask }
+    : null;
+  // ⚠️ No association join on a return turn. A join asks the question to hold two far-apart things; a return
+  // asks it to go after one missing detail. Both at once is two directions for one question, and the join's
+  // own guard (`mustHold`) would then have to be satisfied alongside the return's.
+  const assoc = (prepping || declined || corrected || askingBack || rutInvite || returnNote) ? null : readAssociation({ studentTurns, stoneTurns, selector: 'open' });
   // OPENER BAN — the question may not open with the word either of the last two questions opened with
   // (proactive here; enforced in the guard). 22 of 24 questions in a real session opened "When…" while
   // every sameness metric read clean.
@@ -900,6 +914,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
       stalledInvite,
       rutInvite,
       askingBack,
+      returnNote,
       message,
     });
 
@@ -960,7 +975,12 @@ app.post('/api/chat', requireUser, async (req, res) => {
         // this the invention check would refuse every question that quotes a glossary entry — which is to
         // say, the whole first station.
         ownWords: new Set([...studentTurns, message].flatMap((t) => contentWords(t))
-          .concat(prepping ? contentWords(prepText) : [])),
+          .concat(prepping ? contentWords(prepText) : [])
+          // On a return the clause says back the LAST QUESTION's words — what was asked and not answered. They
+          // are the tool's own question, already on the learner's screen, not a reading slipped in.
+          .concat(returnNote ? [...contentWords(stoneTurns[stoneTurns.length - 1] || ''), ...RETURN_LEAD_WORDS] : [])),
+        // The return must say what the last answer left out, and must not grade it (sharedFormChecks).
+        returnNote,
         // 🔴 THE JOIN'S REQUIREMENT MUST BE MATERIAL, NOT HEDGES (17 Aug 2026). `assoc.mjs` filters
         // NONMATERIAL in four places — its own comment says a hedge may never become a carried word —
         // and this route then built the guard's demand from unfiltered `contentWords`, throwing that
@@ -987,6 +1007,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
       }) },
     ];
     const guarded = await generateGuarded({
+      lead: !!returnNote,                        // the repair must ask for the return's lead-in, not forbid it
       // avoid: the repeat gate (round 4) — a question sharing a five-word frame with an earlier one is
       // withheld and repaired (quoted learner text stripped first). Detection at the only place a repeat
       // can actually be withheld: the guard.
@@ -1003,7 +1024,8 @@ app.post('/api/chat', requireUser, async (req, res) => {
           cache: true, maxTokens: 150, reasoning: { enabled: false },
           onToken: () => {}, apiKey, onUsage,
         }),
-        validate: (t) => validateOutput(t, { ...guardOptions, mustHold: null }),
+        // The hand-back changes the subject, so the return's demand goes with it, as the join's does.
+        validate: (t) => validateOutput(t, { ...guardOptions, mustHold: null, returnNote: null }),
       },
       generate: (correction) => streamQuestion({
         system,
@@ -1028,12 +1050,12 @@ app.post('/api/chat', requireUser, async (req, res) => {
     send('token', { t: full });                  // the ACCEPTED question, delivered whole
     send('validation', { ...guarded.check, attempts: guarded.attempts, regenerated: guarded.regenerated, fallback: !!guarded.fallback,
       // which footing this turn took — what the last message WAS and what the tool did about it, never who they are
-      footing: askingBack ? 'asking-back' : declined ? 'declined' : corrected ? 'corrected' : rutInvite ? 'rut-invite' : stalledInvite ? 'stalled-invite' : featureInvite ? 'invite' : null });
+      footing: askingBack ? 'asking-back' : declined ? 'declined' : corrected ? 'corrected' : rutInvite ? 'rut-invite' : stalledInvite ? 'stalled-invite' : featureInvite ? 'invite' : returnNote ? 'return' : null });
     // LOCAL, operator-only capture (no-op in production and unless ZETIZETI_CAPTURE_DIR is set) — the
     // situation → the question, so a chat can be replayed by the 2.0 "sounds-like-Prayas" harness. The
     // returned id lets the local UI attach an on-voice/off-voice label to this exact question. The guard's
     // work is captured too (a repaired question is a different kind of specimen from a first-pass one).
-    const capId = capture({ mode: prepping ? 'prep' : 'enquiry', prepStation: prepping ? (prepWalk.station ? prepWalk.station.key : prepWalk.phase) : null, prepPart: prepping ? prepWalk.part : null, chatKey: studentTurns[0] || goal, goal, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, dwell: featureInvite ? 'INVITE' : stalledInvite ? 'INVITE-STALLED' : dwell ? `${dwell.anchor}×${dwell.returns}` : null, joined: assoc ? assoc.distance : null, declined: !!declined, corrected, repeated, stalled, newMaterial: newMaterial.slice(0, 3), shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
+    const capId = capture({ mode: prepping ? 'prep' : 'enquiry', prepStation: prepping ? (prepWalk.station ? prepWalk.station.key : prepWalk.phase) : null, prepPart: prepping ? prepWalk.part : null, chatKey: studentTurns[0] || goal, goal, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, dwell: featureInvite ? 'INVITE' : stalledInvite ? 'INVITE-STALLED' : dwell ? `${dwell.anchor}×${dwell.returns}` : null, joined: assoc ? assoc.distance : null, declined: !!declined, corrected, repeated, stalled, returned: returnRead ? { kind: returnRead.kind, missing: returnRead.missing } : null, newMaterial: newMaterial.slice(0, 3), shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
       // Logged side by side so the comparison the todo doc asks for can be made on real transcripts
       // before anything is wired again. Local capture only — never in production (capture.mjs).
       sem: fs && fs.semFresh ? +fs.semFresh[fs.semFresh.length - 1].toFixed(3) : null,
@@ -1194,6 +1216,18 @@ async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocat
   // reached a region and is capped by DWELL where they have not. lib/reading.mjs feeds the routing and
   // NOTHING ELSE — it is not rendered, not persisted, and does not reach the prompt.
   const plan = planFor({ segments, blurIds, studentTurns, stoneTurns, selfEcho });
+  // THE RETURN, on this surface (v1.11.0). The plan holding the station it held for the last question means
+  // the coming question points back at the same part of the text, which reads as being asked again. Same
+  // reader, same guard as the enquiry route; the subject is the passage rather than a word. A click is the
+  // student choosing the object, so a forced spot is never a return.
+  const lastPath = plan.path.length ? plan.path[plan.path.length - 1] : -1;
+  const critReturn = (!forcedLocated && studentTurn && stoneTurns.length && lastPath === plan.index)
+    ? readReturn({ lastQuestion: stoneTurns[stoneTurns.length - 1], studentTurns: [...studentTurns, studentTurn],
+      goal, sameSubject: true, alsoGiven: artefact })
+    : null;
+  const critReturnNote = critReturn
+    ? { subject: 'the same part of the text', need: critReturn.need, missing: critReturn.missing, words: critReturn.words, ask: critReturn.ask }
+    : null;
   // forcedLocated = the sensed blur on /open, or a spot the student explicitly CLICKED. A click is the
   // student choosing the object, and it outranks the plan every time — the plan proposes, they dispose.
   let pointer, located;
@@ -1232,6 +1266,7 @@ async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocat
     banHeads: critBanHeads,
     // the first clause of each recent question — enough for the model to see the shape it has been using
     avoidFrames: critStoneEarly.slice(-4).map((q) => String(q).replace(/\s+/g, ' ').trim().slice(0, 60)),
+    returnNote: critReturnNote,
   });
   const messages = [
     ...priorMessages.map((m) => ({ role: m.role === 'stone' ? 'assistant' : 'user', content: m.content })),
@@ -1257,14 +1292,16 @@ async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocat
     ...critStudent.flatMap((t) => contentWords(t)),
     ...contentWords(artefact),
     ...(studentTurn ? contentWords(studentTurn) : []),
+    ...(critReturnNote ? [...contentWords(stoneTurns[stoneTurns.length - 1]), ...RETURN_LEAD_WORDS] : []),
   ]);
   const guarded = await generateGuarded({
     mode: 'criticism',
+    lead: !!critReturnNote,
     // maxWords 45, not the enquiry cap: this surface quotes the text verbatim inside the question, which
     // is the method, and the measured mean here is 30.7 words against enquiry's 18.3.
     validate: (t) => validateCriticismOutput(t, { focus, brief: !!brief, artefactTerms,
       maxWords: 45, avoid: critStone, banOpeners: critBanOpeners, banHeads: critBanHeads, noClosed: true, ownWords: critOwnWords,
-      noCompound: true, noJargon: true }),
+      noCompound: true, noJargon: true, returnNote: critReturnNote }),
     generate: (correction) => streamQuestion({
       system,
       messages: (correction && correction.previous)

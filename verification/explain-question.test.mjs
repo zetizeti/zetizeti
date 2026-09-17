@@ -162,6 +162,54 @@ test('the explanation is shown and never pushed into a transcript', () => {
   assert.match(fnBody('streamExplain'), /fetch\('\/api\/explain'/);
 });
 
+// v1.11.0 (17 Sep 2026) — Prayas: "ensure that the response of 'explain question' is not there in transcript".
+// It was not, and this pins WHY rather than trusting one function's body: every file a learner can save or
+// send is built from the three history arrays and nothing else, and nothing pushed into those arrays anywhere
+// on the page is an explanation. The check above read only attachExplain and streamExplain, so an explanation
+// pushed from anywhere else, or a builder that scraped the rendered page, would have passed it.
+const blockFrom = (marker) => {
+  const a = page.indexOf(marker);
+  assert.ok(a >= 0, `${marker} exists`);
+  return page.slice(a, page.indexOf('\n})();', a));
+};
+test('every saved or sent transcript is built from a history array, never read off the page', () => {
+  const builders = {
+    'enquiry .md': [fnBody('buildTranscriptMd'), /for\(const h of history\)/],
+    'enquiry .pdf': [fnBody('downloadTranscriptPdf'), /for\(const h of history\)/],
+    'critique .md': [fnBody('buildCritTranscriptMd'), /for\(const h of \(turns\|\|\[\]\)\)/],
+    'critique .pdf': [fnBody('downloadCritTranscriptPdf'), /for\(const h of critHistory\)/],
+    'spec .md': [blockFrom('(function wireSpecDl(){'), /for\(const h of specHistory\)/],
+  };
+  for (const [name, [src, walk]] of Object.entries(builders)) {
+    assert.match(src, walk, `${name} walks its history array`);
+    assert.ok(!/explain|xq-|querySelector|innerText|innerHTML|\.textContent/.test(src), `${name} must not read the page`);
+  }
+  // the dashboard send forwards exactly the .md file, so it inherits the same guarantee
+  assert.match(blockFrom('(function wireDashboardSend(){'), /text: buildTranscriptMd\(\)/);
+  assert.match(blockFrom('(function wireCritTranscriptDl(){'), /buildCritTranscriptMd\(critArtefact, critHistory, critFocus\)/);
+});
+test('nothing pushed into a history array anywhere on the page is an explanation', () => {
+  const pushes = [...page.matchAll(/\b(history|critHistory|specHistory)\.push\(([^;]*)\);/g)];
+  assert.ok(pushes.length >= 6, `expected the page's history pushes, found ${pushes.length}`);
+  for (const [, arr, arg] of pushes) {
+    assert.ok(!/explain|parts|panel|xq/i.test(arg), `${arr}.push(${arg}) must carry a question or a reply only`);
+  }
+});
+test('and the real critique builder, run, carries the questions and replies and nothing else', () => {
+  const src = fnBody('buildCritTranscriptMd');
+  const topicLabel = (t) => String(t).slice(0, 40);
+  const critTranscriptTopic = (a) => topicLabel(a);
+  const build = new Function('critTranscriptTopic', `${src}\n}\nreturn buildCritTranscriptMd;`)(critTranscriptTopic);
+  const md = build('A kiosk should stay open late.', [
+    { role: 'stone', content: 'Who is the kiosk open late for?' },
+    { role: 'you', content: 'riders coming home' },
+  ], null);
+  assert.match(md, /\*\*Q\.\*\* Who is the kiosk open late for\?/);
+  assert.match(md, /riders coming home/);
+  assert.ok(!/^(?:ABOUT|HELPS|CHANGES):/m.test(md) && !/explain/i.test(md));
+  assert.equal((md.match(/\*\*Q\.\*\*/g) || []).length, 1, 'one question in, one question out');
+});
+
 test('the canned demos call no model, so they carry no chip', () => {
   assert.ok(!fnBody('runDemo').includes('attachExplain'));
   assert.ok(!fnBody('runCritDemo').includes('attachExplain'));
