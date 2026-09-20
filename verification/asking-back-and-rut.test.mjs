@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { isAskingBack, readRut, RUT_TURNS, isDecline, NONMATERIAL } from '../lib/arc.mjs';
+import { isAskingBack, readRut, RUT_TURNS, RUT_WINDOW, isDecline, NONMATERIAL } from '../lib/arc.mjs';
 import { buildTurnContext, validateOutput } from '../lib/dialogue.mjs';
 import { generateGuarded } from '../lib/guard.mjs';
 const APP = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -74,7 +74,37 @@ test('RUT_TURNS is six — the cohort median, and one above the 29 July session\
   assert.equal(RUT_TURNS, 6);
 });
 test('six consecutive questions carrying one word read as a rut on that word', () => {
-  assert.deepEqual(readRut(onQueue(6)), { word: 'queue', run: 6 });
+  assert.deepEqual(readRut(onQueue(6)), { word: 'queue', run: 6, span: 6 });
+});
+// 🔴 THE FAULT A STUDENT FOUND, 20 September 2026 — pinned so it cannot come back. Two words for one
+// subject, taking turns, so neither ever holds six questions in a row. Under the consecutive reading this
+// fired ZERO times across her twelve questions and was working exactly as written; the longest unbroken
+// run in the whole dialogue was four. Proved against the pre-fix arc.mjs: this test fails there.
+test('a rut that ALTERNATES between two words is still a rut — the consecutive count missed it entirely', () => {
+  // "common" in six of the last eight, "pointers" covering the gaps; no consecutive run reaches six.
+  const qs = [
+    'What would have to be true about a meeting for the minutes to be organized?',
+    'How do you know when a meeting has reached a conclusion?',
+    'Where do those pointers go once that middle ground is reached?',
+    'When the pointers become topics in the minutes, what happens to the middle ground?',
+    'What happens to the meeting when the common understanding is reached before all parties agree?',
+    'How does the common understanding change when all parties agree?',
+    'Where do the parts of the meeting that were not discussed go in your organized minutes?',
+    'Which pointers are sorted into the middle ground to be discussed first?',
+    'What makes the ones that were not discussed the ones that lead to a common agreement?',
+    'How do the postponed pointers change the way the next meeting reaches a common agreement?',
+    'When those pointers are postponed, what happens to the common understanding?',
+    'In what way does the common understanding stay with the discussed topics while the postponed pointers wait?',
+  ];
+  const r = readRut(qs);
+  assert.ok(r, 'an alternating rut must read as a rut');
+  assert.equal(r.word, 'common');
+  assert.ok(r.run >= RUT_TURNS, `${r.run} of the last ${r.span} questions carried it`);
+  // and the reading is honest about what it counted — never "the last six in a row"
+  assert.ok(r.span > r.run, 'a windowed reading reports a span wider than the count');
+});
+test('the window is the smallest that reaches that dialogue, and is stated as a choice', () => {
+  assert.equal(RUT_WINDOW, 8);
 });
 test('five do not', () => {
   assert.equal(readRut(onQueue(5)), null);
@@ -82,7 +112,10 @@ test('five do not', () => {
 test('it fires once per six — seven is silent, twelve fires again (the invitation kept the noun and re-fired every turn on a real replay)', () => {
   assert.equal(readRut(onQueue(7)), null);
   assert.equal(readRut(onQueue(11)), null);
-  assert.deepEqual(readRut(onQueue(12)), { word: 'queue', run: 12 });
+  // 🔴 The refractory survives the move to a window, derived by replay rather than by a modulo, so the
+  // reading stays stateless. `run` is now the count INSIDE the window and is therefore capped at
+  // RUT_WINDOW — it used to be the unbounded consecutive length, which is why this read 12 before.
+  assert.deepEqual(readRut(onQueue(12)), { word: 'queue', run: RUT_WINDOW, span: RUT_WINDOW });
 });
 test('the run must end at the LATEST question — a rut that was broken is not a rut', () => {
   const qs = [...onQueue(6), 'Where does the rider stand?'];
@@ -111,8 +144,12 @@ test('asking back outranks the aim, the anchor and the invites, and asks for the
   assert.match(out, /"queue", "tyre"/, 'their own words are offered back as the material');
 });
 test('the rut invite hands the subject back and never names the word', () => {
-  const out = buildTurnContext({ message: 'the queue', rutInvite: { word: 'queue', run: 6, exhausted: false } });
-  assert.match(out, /The last 6 questions have all turned on the same thing/);
+  const out = buildTurnContext({ message: 'the queue', rutInvite: { word: 'queue', run: 6, span: 8, exhausted: false } });
+  // 🔴 The sentence must say what was actually counted. It read "The last 6 questions have all turned on
+  // the same thing", which a windowed reading makes FALSE — six of the last eight is not six in a row, and
+  // a prompt that overstates its own evidence is the invent-no-premise fault aimed at the model.
+  assert.match(out, /6 of the last 8 questions have turned on the same thing/);
+  assert.doesNotMatch(out, /have all turned/, 'a window may never be reported as an unbroken run');
   assert.match(out, /Invite them to name ANOTHER part/);
   assert.doesNotMatch(out, /same thing.*"queue"|avoid.*queue/i, 'a word named is a word the model reaches for');
 });

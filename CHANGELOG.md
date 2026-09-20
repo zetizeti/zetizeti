@@ -26,6 +26,28 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.12.0] — 20 September 2026
+
+**The loop-breaker could not see a real rut, and a tester found it by being stuck in one.** She sent two dialogues and said the stone had got stuck. It had: twelve questions circling one subject, and `readRut` — the reading that fires the hand-back when the questioning has turned on the same thing too long — never fired once. It was working exactly as written.
+
+🔴 **The rut alternated, and the detector required a run.** `readRut` counted **consecutive** questions carrying one content word, and needed six. In her dialogue `common` appears in six of the last eight questions and never in six in a row; `pointers` covers the gaps. Two words, one subject. The longest consecutive run anywhere in the twelve is four. So the requirement was not strict — it was *unreachable* for the shape a rut actually takes, and the shape it could see is the one a rut does not take, because the tool is varying its own wording the whole time and that is what a rut looks like from inside.
+
+**A second blind spot went with it, and nothing had ever reported it.** The periodicity test was `run % RUT_TURNS === 0`, so a run of seven, eight, nine, ten or eleven fired nothing at all — only exact multiples of six. Two independent ways to miss, in eleven lines.
+
+**It now reads presence in a window: `RUT_TURNS = 6` of the last `RUT_WINDOW = 8` questions.** Same move on firing, same invitation, same refusal to ban a word.
+
+🔴 **The refractory is derived by replay, because the service stores nothing.** *Do not fire again for six questions* cannot be a variable on a stateless route. `readRut` replays its own history from the first eligible turn on every call and reports only what would have fired at the last one — the same shape the rotation's phase has used since v1.3.1, and the reason a fixture still replays byte-identically.
+
+⚠️ **`RUT_WINDOW = 8` is mine, not his, and it reverts in one line.** Measured over the 488 questions of the twenty-one class fixtures: before, 19 fires (3.9 per 100 questions); window 7, 31 (6.4); **window 8, 39 (8.0)**; window 9, 51 (10.5). Eight is the smallest window that reaches the dialogue that reported the fault. Fixture `l` — seven turns, no rut — fires zero under every window and is the control. The cost is uptake: roughly one turn in twelve now spends itself handing the subject back rather than asking, against one in twenty-six before.
+
+**Proved against the pre-fix code, not merely asserted.** `verification/asking-back-and-rut.test.mjs` carries her twelve questions as a case, and the pre-fix `readRut` — extracted with `git show HEAD:app/lib/arc.mjs` — returns `null` on them. A test that would have passed before the change proves nothing; this one fails there. `RUT_WINDOW === 8` is pinned by its own test so the number cannot drift without somebody meaning to. Suite: 565 pass, 0 fail.
+
+**Both dialogues are saved as fixtures, and the pair is the point.** `docs/ops/fixtures/testing-20260920/`, letters not her name, the directory publish-excluded as the cohort set is. `a` ruts and `b` does not, same person, same day — a fixture that fires proves a detector can fire, and only a matched one that does not proves it has not been loosened until everything fires. README: `docs/ops/fixtures/README-20260920-testing.md`.
+
+⚠️ **What is NOT fixed, and it is visible in the dialogue that found this.** `common` and `pointers` are one subject wearing two words. The window counts words, so it caught this rut because one word happened to clear six on its own; a rut spread evenly over three synonyms clears nothing and stays invisible at any window width. That is the `ANCHOR_MAX` bound — a word is not a subject — and it is recorded under Known limits in `docs/concept/dialogue.md` rather than worked around.
+
+**Also in this release.** `server.mjs` carried a comment reading *"Default 40 (≈ $0.20 of Haiku…)"* against a setting whose default is 0, meaning disabled, and whose model is not Haiku — wrong on both counts, and stale for long enough that nobody had read it against the code. Corrected, along with the same two claims in `CLAUDE.md`.
+
 ## [1.11.0] — 17 September 2026
 
 **A question that goes back to the last one now says what the answer left out.** Prayas: *"when a question is repeated (seemingly) because the student's answer was neither complete or detailed enough - specify what was left out, what detail is still needed."* The tool stays on one subject for up to three questions when an answer comes back to it, and on the critique surface the reading plan stays on one part of the text for up to three. From the student's side both look like being asked the same thing again, with no reason given.

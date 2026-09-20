@@ -80,9 +80,12 @@ const POOL_KEY = (process.env.OPENROUTER_API_KEY || '').trim();          // PERS
 const POOL_KEY_ORG = (process.env.OPENROUTER_API_KEY_ORG || '').trim();  // STUDENTS cohort — the org/pilot key
 const POOL_DAILY_USD = Number(process.env.ZETIZETI_POOL_DAILY_USD || 0) || 0;
 // Per-user daily turn allowance (chat messages) — the user-facing "free for X turns" limit and the
-// header counter. So no single person eats the day's budget. Default 40 (≈ $0.20 of Haiku, so ≥5
-// users share a $1 day). Override with ZETIZETI_POOL_USER_TURNS. The $/day total above is the hard
-// money ceiling regardless.
+// header counter. So no single person eats the day's budget. Set ZETIZETI_POOL_USER_TURNS to enable it;
+// the $/day total above is the hard money ceiling regardless.
+// ⚠️ These three lines read "Default 40 (≈ $0.20 of Haiku, so ≥5 users share a $1 day)" until 20 September
+// 2026, contradicting the note directly below them and stale twice over — the default has been 0 since
+// 29 July, and the model has not been Haiku since June. CLAUDE.md carried the same wrong default in two
+// places. Corrected after a healthy instance reporting `poolUserTurns: 0` was read as a misconfiguration.
 // 🔵 "no turn cap. adaptive" (Prayas, 29 Jul 2026). Default 0 = DISABLED: the fixed daily turn count
 // bounded something that costs almost nothing (24 Jul: 28 users, ₹37 of ₹12,000) and cut off exactly
 // the students the pilot wants — a real tester hit 40 mid-thought and asked for her chats to be
@@ -796,7 +799,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // THE RUT (9 Sep 2026) — the stone's own last RUT_TURNS questions all carry one word. Hands the subject
   // back, exactly as `stalled` does; see readRut for why it is not a ban and not the refused re-ask gate.
   const rut = (!prepping && !declined && !corrected && !askingBack && !stalledInvite && !featureInvite) ? readRut(stoneTurns) : null;
-  const rutInvite = rut ? { word: rut.word, run: rut.run, exhausted: false } : null;
+  const rutInvite = rut ? { word: rut.word, run: rut.run, span: rut.span, exhausted: false } : null;
   // Dwell is suppressed by either invite, and for one reason: both mean STOP MINING THIS MATERIAL, and an
   // anchor block would say the opposite in the same prompt.
   const dwell = (featureInvite || stalledInvite || rutInvite || askingBack) ? null : dwellRead;
