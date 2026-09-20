@@ -26,6 +26,22 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.14.0] — 20 September 2026
+
+**An own-purpose lens — four entries on having a reason of your own, and on when your own sense counts as evidence.** Prayas: *"add a corpus of the importance of individual sense of purpose in design and not go by textbooks."* `corpus/domain/own-purpose.md`. The corpus is now 283 entries, 210 of them pending a person's read.
+
+🔴 **The corpus already held eight method critiques, so this is deliberately not a ninth.** `the-method-or-the-judgement` and `design-thinking-and-its-critics` already argue whether process can substitute for judgement; `after-the-rules` (Poynor) and `the-rule-and-the-recantation` (Tschichold) hold the breaking of a discipline's rules; `the-designerly-leap-or-the-evidence` (Cross), `reflection-in-action-and-wicked-problems` (Schön, Rittel), `knowing-by-making` (Frayling) and `the-canonical-defended` hold the rest. **Writing a ninth would have been filler, which the tracker's no-filler bar forbids for a requested corpus as much as a spontaneous one.** What none of them asks is the two questions this lens asks: when is your own sense admissible as evidence, and what is your reason for making this particular thing.
+
+**The four.** `the-rule-you-are-meant-to-outgrow` — Dreyfus's five-stage model, where the rule is the beginner's necessary scaffold and *"if one seeks the safety of rules, one will not get beyond competence"*, against the half that gets dropped: the rule stage cannot be skipped, and a student who discards method before having the experience to replace it is a novice without a scaffold. `is-your-certainty-evidence` — Kahneman and Klein's conditions for trusting intuition, and their uncomfortable conclusion that **subjective experience is not a reliable indicator of judgement accuracy**; Dane, Rockmann and Pratt found intuition beats analysis only at high domain expertise. `the-part-you-cannot-write-down` — Polanyi's tacit knowing, against the serious counter that what cannot be said also cannot be examined, taught or disagreed with, which is exactly where inherited prejudice sits undisturbed. `why-this-and-why-you` — the reason that would not survive being handed to another person with the brief, against the sharper edge that **a purpose which cannot be questioned is not a purpose but a position**.
+
+⚠️ **"Trust yourself, not the textbook" is the flattering half and the one a student already holds**, which is why `is-your-certainty-evidence` exists to make it answerable to something. Much design work is the hard case for intuition: outcomes arrive late or never, they are confounded, and nobody says which choice did the work.
+
+🔴 **`verification/lens-registration.test.mjs` was GENERALISED rather than given a second instance.** Its first cut, written this morning, pinned `withholding` by name — an instance, not the class, which this project's own guard-parity rule says does not fix anything. A lens file now declares itself with the phrase *cross-cutting lens* in its header, and the test reads that as the marker of intent: add a lens file from the template, forget the registration, and it fails by file name. Proved by unregistering `own-purpose` and watching it name `own-purpose.md`, with the source restored byte-identical. ⚠️ Its header states what it still cannot catch — three registered lenses live in files without the header phrase, so the check covers every lens written to the template and not those three.
+
+**Retrieval proved including the negative case.** Each entry ranks first on its own conventional phrasing, and a student describing a festival poster gets none of the four. `the-method-or-the-judgement` surfaces *alongside* the new rule entry rather than instead of it, which is the distinction in the file's header holding up in practice rather than merely being asserted.
+
+⚠️ **The corpus figures were counted, not incremented** — 283 / 210 / 73 — and `admission-figures.test.mjs` refused the suite until the README's public admission was corrected from 206 of 279.
+
 ## [1.13.0] — 20 September 2026
 
 **A withholding lens — five entries on declining to supply.** Prayas: *"add a corpus of doing less, design being about withholding with exa and consensus."* `corpus/domain/withholding.md`. The corpus is now 279 entries, 206 of them pending a person's read.
