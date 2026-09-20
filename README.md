@@ -12,7 +12,7 @@
   <a href="https://zetizeti.com"><img src="https://img.shields.io/badge/live-zetizeti.com-0f7d72?style=flat-square" alt="live at zetizeti.com"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/zetizeti/zetizeti?style=flat-square&color=173a8c" alt="AGPL-3.0"></a>
   <a href="https://github.com/zetizeti/zetizeti/releases"><img src="https://img.shields.io/github/v/release/zetizeti/zetizeti?style=flat-square&color=f0b324" alt="release"></a>
-  <img src="https://img.shields.io/badge/tests-565%20passing-0f7d72?style=flat-square" alt="565 tests passing">
+  <img src="https://img.shields.io/badge/tests-567%20passing-0f7d72?style=flat-square" alt="567 tests passing">
 </p>
 
 <p align="center">
@@ -46,7 +46,7 @@ an education conducted elsewhere, and it is retired.)*
 
 It asks a great deal of patience. People who do not have it to give leave, and most people do not have it to give.
 
-201 of the 274 corpus entries are still awaiting sign-off on their framing. Their citations are verified — that gate is absolute and no entry ships without it — and the curtain states which of the two states each entry is in, per entry, in the learner's own view. The method core (Part A) is a single note where it should be many. The reading plan on the criticism surface was measured against the clock it replaced and came back null on question quality: it changes the route, not what gets asked. Until v0.16.0 that surface asked two-box questions, which handed the student a menu instead of a question. It was found because a student said it felt off and could not say why.
+206 of the 279 corpus entries are still awaiting sign-off on their framing. Their citations are verified — that gate is absolute and no entry ships without it — and the curtain states which of the two states each entry is in, per entry, in the learner's own view. The method core (Part A) is a single note where it should be many. The reading plan on the criticism surface was measured against the clock it replaced and came back null on question quality: it changes the route, not what gets asked. Until v0.16.0 that surface asked two-box questions, which handed the student a menu instead of a question. It was found because a student said it felt off and could not say why.
 
 ## The two voices
 

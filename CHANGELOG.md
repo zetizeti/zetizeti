@@ -26,6 +26,28 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.13.0] — 20 September 2026
+
+**A withholding lens — five entries on declining to supply.** Prayas: *"add a corpus of doing less, design being about withholding with exa and consensus."* `corpus/domain/withholding.md`. The corpus is now 279 entries, 206 of them pending a person's read.
+
+🔴 **Withholding is not subtraction, and the file exists on that distinction.** `subtract-or-add` already asks whether removing something already there would serve better, and rests on the additive-bias literature. This lens asks whether to supply in the first place — the answer, the instruction, the recommendation, the feature, the artefact. Nothing has to be taken away for a withholding decision to have been made, and nobody ever sees what was withheld, which is what makes it hard to examine and worth a lens of its own.
+
+**Overlap was checked against all 274 existing entries before a word was written, and it cut more than it kept.** Not written, because already held: Hara and *ma*, Gaver's ambiguity, the Zeigarnik effect, Suits on unnecessary obstacles, Aravena's half a good house, Fogg and Thaler on nudging, Iyengar on choice overload, and three separate entries on minimalism as a position.
+
+**The five.** `the-answer-withheld` — an unsuccessful attempt to retrieve an answer, before the answer is given, produces better later memory than being shown both together (Kornell, Hays & Bjork, 2009), against the strongest counter in the file: minimal guidance does not work for a novice with nothing to attach the struggle to (Kirschner, Sweller & Clark, 2006). `struggle-before-telling` — productive failure, written as contested. `the-implication-is-not-to-design` — research into a problem can honestly conclude that nothing should be built (Baumer & Silberman, 2011). `limitation-as-the-feature` — a limit can be what somebody comes for rather than a shortfall (Pierce & Paulos, 2014). `who-pays-for-what-you-left-out` — every withholding moves work onto somebody who is usually not in the conversation.
+
+🔴 **The fifth entry runs against the other four on purpose.** This tool withholds answers by construction, so a lens arguing for withholding would be the tool teaching its own constitution back to the student. Each entry carries its counter at full strength and one carries nothing else.
+
+⚠️ **`struggle-before-telling` is deliberately the weakest claim here, because the evidence is.** Three of four studies retrieved report a null or a failed replication: merely delaying instruction did not increase conceptual understanding and instruction-first was better for procedural fluency (Loibl, Tillema, Rummel & van Gog, 2020); no support in fifth-graders (Mazziotti et al., 2019); no replication, with prior-knowledge activation mattering more than failure itself (Braas et al., 2025). The entry is written so it cannot be read as licence.
+
+🔴 **`withholding` was added to `LENS_DISCIPLINES` in `lib/retrieval.mjs`, and without that line the file would have done nothing.** The five entries would index, retrieve and rank as ordinary field material and never once behave as a lens — no error, no failing test, nothing visible on any surface. That is precisely the fault the comment sitting above `LENS_DISCIPLINES` has described since 7 September, arriving a fifth time in the file that documents it.
+
+**Retrieval proved, including the negative case.** Each entry ranks first on its own conventional phrasing, and the control — a student describing a comfortable chair — returns none of the five. A lens that fires on everything is a theme being imposed, which was the second of the two faults the 7 September lens repair existed to fix.
+
+**`verification/admission-figures.test.mjs` caught the documentation half, as designed.** Adding five entries made the README's public admission false, and the suite refused until the copy was corrected: 201 of 274 is now 206 of 279. ⚠️ The figures standing in `CLAUDE.md` were 274 / 204 / 70 and did not add up — the 204 was stale, and incrementing it would have produced another wrong number. They are now counted from `corpus/domain/` rather than carried forward, and the file says to count rather than increment.
+
+⚠️ **Two provenance caveats, on the page rather than in a working note.** Kapur & Bielaczyc (2012) and Kirschner, Sweller & Clark (2006) were taken from the reference list of the settled Loibl record rather than queried directly, so their page ranges are unconfirmed. And one title was wrong in my query and right in the result: Pierce's paper is *"Undesigning technology: considering the negation of design by design"*.
+
 ## [1.12.0] — 20 September 2026
 
 **The loop-breaker could not see a real rut, and a tester found it by being stuck in one.** She sent two dialogues and said the stone had got stuck. It had: twelve questions circling one subject, and `readRut` — the reading that fires the hand-back when the questioning has turned on the same thing too long — never fired once. It was working exactly as written.
