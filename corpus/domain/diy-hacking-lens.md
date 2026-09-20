@@ -44,7 +44,7 @@
 **failure_modes:** designing a "community layer" that is really an unpaid production line; keeping the rights while giving away the credit; assuming that because contributors enjoy it, nothing is owed; refusing all contribution because it might be exploitative, and so denying people the agency they are asking for.
 **questions_it_invites:** What work is this design asking other people to do for nothing — and who ends up owning what they make? · If you named that contribution as labour rather than as community, what would you owe, and would you still design it this way?
 **sources:** Kücklich, "Precarious Playbour: Modders and the Digital Games Industry", *The Fibreculture Journal* 5 (FCJ-025, 2005); Postigo, "From Pong to Planet Quake: Post-Industrial Transitions from Leisure to Work", *Information, Communication & Society* 6(4) (2003); Terranova, "Free Labor: Producing Culture for the Digital Economy", *Social Text* 18(2) (2000).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — playbour is Kücklich's own term and central thesis, verified at the Fibreculture Journal's own text of FCJ-025; the Postigo and Terranova positions are quoted and cited within that text, and the two-sidedness (exploitation vs non-alienated ownership) is Kücklich's own, not imported.
 
 ---
@@ -57,7 +57,7 @@
 **failure_modes:** treating a rebuild as obviously more serious work than a repair; shipping novelty because novelty is legible as design; patching indefinitely around a decision that should be reopened; romanticising repair until nothing is ever allowed to end.
 **questions_it_invites:** If you started from what breaks here rather than from what is new, what would you be designing instead? · Which of these is this — a thing that wants remaking, or a thing that wants keeping going, and how would you tell the difference?
 **sources:** Jackson, "Rethinking Repair", in Gillespie, Boczkowski & Foot (eds), *Media Technologies: Essays on Communication, Materiality, and Society* (MIT Press, 2014), pp. 221–240.
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — "broken world thinking" is Jackson's own term and the chapter's stated project; pagination and volume verified against the publisher's and the author's own listings. The counter-pole is constructed rather than cited, and is flagged as such: it is the ordinary engineering objection, not a named opponent.
 
 ---
@@ -70,7 +70,7 @@
 **failure_modes:** treating the deliverable as the work and the sustaining of it as overhead; describing yourself by what you produce rather than by what you do; designing only the parts that photograph; dismissing making as ideology and producing nothing anyone can hold.
 **questions_it_invites:** What in this project leaves no artefact behind — and is that part being counted as design at all? · Who has to keep this going after you have finished it, and what does your design assume about them?
 **sources:** Chachra, "Why I Am Not a Maker", *The Atlantic*, 23 January 2015; Franklin, *The Real World of Technology* (CBC Massey Lectures, 1989), for the prescriptive/holistic technologies distinction Chachra draws on.
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — the Atlantic piece was read in full at source; the caregiving argument, the Franklin distinction and the explicit concession that making matters "especially for groups that previously haven't had access" are all hers, in her own framing. The Massey Lectures attribution is verified via Chachra's own citation of it.
 
 ---
@@ -83,7 +83,7 @@
 **failure_modes:** sealing a thing and calling it simplicity; treating every abstraction as a kindness; requiring credentials for work that does not need them; opening everything and calling the resulting burden freedom.
 **questions_it_invites:** What can someone do with this without anyone's permission — and what did you close off, for whose benefit? · If the person using this wanted to change how it works, where exactly would they be stopped?
 **sources:** Illich, *Tools for Conviviality* (Harper & Row, 1973), particularly the account of convivial versus industrial tools and the institutional means by which tools are closed.
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — the convivial/industrial distinction, the "without previous certification" criterion and the professional-monopoly examples were read at source in the text of the book; expressed here in original prose, with no passage reproduced. The counter-pole is constructed and flagged as such.
 
 ---
@@ -96,7 +96,7 @@
 **failure_modes:** calling an under-resourced deliverable "incremental" to avoid saying it is unfinished; handing over the open half with no rules and no support and treating whatever happens as agency; designing the increment so tightly that nothing is really handed over; insisting on completeness when the budget makes completeness a fiction.
 **questions_it_invites:** Which half of this are you finishing, and which are you leaving for someone else to complete — and why that line? · What happens in the part you no longer control, and who is answerable for it in five years?
 **sources:** Aravena / Elemental, Quinta Monroy, Iquique (2004), the "half of a good house" incremental model; O'Brien et al., "Beyond the freedom to build: Long-term outcomes of Elemental's incremental housing in Quinta Monroy" (2020), a longitudinal study of the same site; Namias, "Half a good home isn't enough", *Le Monde diplomatique* (English edition), April 2016.
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — the project's design logic, budget figure and the "half of a good house" phrasing were verified across the published study, the Le Monde diplomatique piece and contemporary architectural reporting; the critical findings are quoted from the 2020 longitudinal paper's own conclusions rather than characterised second-hand. ⚠️ Consensus check still pending on the incremental-housing literature more broadly — the counter-pole currently rests on one longitudinal study plus press criticism, which is enough to hold the entry two-sided but should be strengthened before Gate-4.
 
 ---
@@ -109,7 +109,7 @@
 **failure_modes:** treating a licence as a maintenance plan; open-sourcing a thing at the point of abandoning it and calling that stewardship; assuming a community exists because a repository does; keeping something closed because opening it looks like work.
 **questions_it_invites:** If you open this, whose evenings does it become — and have you asked them? · What are you actually transferring when you make this open: the right to use it, or the duty to keep it alive?
 **sources:** Eghbal, *Roads and Bridges: The Unseen Labor Behind Our Digital Infrastructure* (Ford Foundation, 2016), including the 2015 Federal University of Minas Gerais study of 133 active GitHub projects it reports.
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — read at source in the Ford Foundation's own publication and its summary; the one-or-two-maintainer figure, the roads-and-bridges framing and the "money alone won't fix it" conclusion are Eghbal's own. ⚠️ The 133-project study is cited here as Eghbal reports it; the primary paper has not been read directly and should be traced before Gate-4.
 
 ---
@@ -122,7 +122,7 @@
 **failure_modes:** treating an existing workaround as evidence of ignorance rather than of design; designing from a stated need while ignoring the adapted object sitting on the desk; assuming every user is a lead user; handing the whole brief to users and calling the abdication participation.
 **questions_it_invites:** What have the people you are designing for already made or altered for themselves here — and what does it tell you that your version does not? · If they have already solved it their way, what exactly is your design adding?
 **sources:** von Hippel, *Democratizing Innovation* (MIT Press, 2005) and *The Sources of Innovation* (1988); Urban & von Hippel, "Lead User Analyses for the Development of New Industrial Products", *Management Science* 34(5) (1988); Trott & Hartmann et al., "Users as innovators? Exploring the limitations of user-driven innovation", *Prometheus* 31(2) (2013), for the critical position.
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high on the position, medium on one figure — von Hippel's thesis and the Urban & von Hippel study were verified via Consensus (the latter at 1,223 citations, *Management Science*, 1988), as was the Trott critique. ⚠️ The lead-user percentages reported in the secondary literature (82% / 87% versus 1%) vary between sources and are therefore *described* here rather than stated as a number; the primary paper must be read before any figure enters this entry.
 
 ---
@@ -135,7 +135,7 @@
 **failure_modes:** treating a locked thing as automatically illegitimate; treating an official channel as automatically sufficient; confusing curiosity with entitlement when other people's data is inside the system; designing a barrier because a barrier looks responsible, without asking what it protects.
 **questions_it_invites:** Where does this design require someone to ask permission — and what would actually go wrong if they did not? · If someone opened this up to understand it, whose interests would be touched, and which of those would you defend?
 **sources:** Levy, *Hackers: Heroes of the Computer Revolution* (Anchor Press/Doubleday, 1984), for the hacker ethic and the hands-on imperative.
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high on the position, medium on the wording — the tenets and the "hands-on imperative" phrasing were verified against Levy's own description of the book and an independent teaching summary of the ethic; the specific numbered formulations circulate in many paraphrases, so no tenet is quoted verbatim here and the entry states the position rather than the text.
 
 ---

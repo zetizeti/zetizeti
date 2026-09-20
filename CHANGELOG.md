@@ -26,6 +26,18 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.14.1] — 20 September 2026
+
+**Eight entries signed off — the `diy-hacking` lens is now read.** Prayas worked the Gate-4 bench between 17:35 and 17:41 and flipped `the-mod-and-the-unpaid-hour`, `broken-world-or-the-new-thing`, `the-maker-and-the-carer`, `the-tool-you-can-open`, `half-a-good-thing`, `open-and-who-maintains-it`, `the-user-who-already-solved-it` and `the-hands-on-imperative` from pending to verified. The corpus stands at **283 entries, 202 pending, 81 verified**.
+
+**This is student-visible and that is the whole point of shipping it.** The curtain states, per entry, whether a framing has been read by a person. Eight entries that said *awaiting sign-off* now say otherwise to anyone who opens them, and the README's public admission moves from 210 of 283 to 202 of 283.
+
+🔴 **Nothing but provenance lines changed.** The diff is eight `**provenance:** pending` → `**provenance:** verified` and nothing else — no wording, no sources, no vocabulary. Verified here means the framing has been read and stood behind; the citations were already verified before any entry shipped, which is invariant #0 and an absolute gate rather than a state that moves.
+
+⚠️ **`many-eyes-or-few-hands` in the same file is still pending**, so the lens is eight of nine rather than complete. Recorded because a file that is nearly all verified reads as done at a glance, and a later session should not infer that the ninth was covered.
+
+**Every flip is logged** to `docs/corpus-build/signoff-log.md` with a second-precision timestamp and the route that made it. The bench binds 127.0.0.1 and never enters the deploy tarball.
+
 ## [1.14.0] — 20 September 2026
 
 **An own-purpose lens — four entries on having a reason of your own, and on when your own sense counts as evidence.** Prayas: *"add a corpus of the importance of individual sense of purpose in design and not go by textbooks."* `corpus/domain/own-purpose.md`. The corpus is now 283 entries, 210 of them pending a person's read.

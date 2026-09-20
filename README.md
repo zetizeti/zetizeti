@@ -46,7 +46,7 @@ an education conducted elsewhere, and it is retired.)*
 
 It asks a great deal of patience. People who do not have it to give leave, and most people do not have it to give.
 
-210 of the 283 corpus entries are still awaiting sign-off on their framing. Their citations are verified — that gate is absolute and no entry ships without it — and the curtain states which of the two states each entry is in, per entry, in the learner's own view. The method core (Part A) is a single note where it should be many. The reading plan on the criticism surface was measured against the clock it replaced and came back null on question quality: it changes the route, not what gets asked. Until v0.16.0 that surface asked two-box questions, which handed the student a menu instead of a question. It was found because a student said it felt off and could not say why.
+202 of the 283 corpus entries are still awaiting sign-off on their framing. Their citations are verified — that gate is absolute and no entry ships without it — and the curtain states which of the two states each entry is in, per entry, in the learner's own view. The method core (Part A) is a single note where it should be many. The reading plan on the criticism surface was measured against the clock it replaced and came back null on question quality: it changes the route, not what gets asked. Until v0.16.0 that surface asked two-box questions, which handed the student a menu instead of a question. It was found because a student said it felt off and could not say why.
 
 ## The two voices
 
