@@ -21,6 +21,7 @@ import { readSensed } from './lib/sensed.mjs';
 import { qualify, toCanonSegments, segmentText } from './lib/qualify.mjs';   // DETERMINISTIC, no-LLM qualification (locating)
 import { planFor, windowOf, briefDigest } from './lib/plan.mjs';   // the reading plan — DETERMINISTIC, no LLM
 import { prepPlan, parseTasks, readiness as prepReadiness } from './lib/prep.mjs';   // the prep arc — DETERMINISTIC, no LLM
+import { isLight, LIGHT_MAX } from './lib/contour.mjs';   // the hidden intensity contour: a quiet turn is a short question, guarded
 import { blankTurn, ackTurn, beatMs, BLANK_MS, sleep } from './lib/pace.mjs';   // when a turn is silent or does not ask, and the beat — DETERMINISTIC, no LLM
 import { STATEMENT_SYSTEM, statementBrief, validateStatement, sayBack } from './lib/dialogue.mjs';   // the turn that does not ask: its prompt and its guard
 import { docFreq, informativeOf } from './lib/reading.mjs';          // engagement sensors — planner-only, never rendered
@@ -847,7 +848,15 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // ⚠️ No association join on a return turn. A join asks the question to hold two far-apart things; a return
   // asks it to go after one missing detail. Both at once is two directions for one question, and the join's
   // own guard (`mustHold`) would then have to be satisfied alongside the return's.
-  const assoc = (prepping || declined || corrected || askingBack || rutInvite || returnNote) ? null : readAssociation({ studentTurns, stoneTurns, selector: 'open' });
+  // A QUIET TURN (30 Sep 2026): where the hidden contour is low, the question is a few words that press on
+  // nothing. Only on a plain turn: a return, a decline, a correction, an asking-back, a play footing or an
+  // invite each already say what this turn is for. It carries no association join either: the join demands a
+  // word from two earlier statements, which a quiet turn built from their own words cannot also satisfy.
+  const light = !prepping && !declined && !corrected && !askingBack && !playing && !rutInvite && !stalledInvite
+    && !featureInvite && !returnNote
+    && contentWords(message).length >= 2      // a quiet question is built from their words, so there must be some
+    && isLight({ replies: studentTurns.slice(1), goal, asked: Math.max(0, studentTurns.length - 1 - notAsked) });
+  const assoc = (prepping || declined || corrected || askingBack || rutInvite || returnNote || light) ? null : readAssociation({ studentTurns, stoneTurns, selector: 'open' });
   // OPENER BAN — the question may not open with the word either of the last two questions opened with
   // (proactive here; enforced in the guard). 22 of 24 questions in a real session opened "When…" while
   // every sameness metric read clean.
@@ -868,7 +877,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // as capacity, because a repeated reply has the same volume as a fresh one. Volume was never the thing;
   // it was a proxy for having particulars ready to give, and `stalled` reads that directly.
   const recent = studentTurns.slice(-3).map((t) => contentWords(t).length).sort((a, b) => a - b);
-  const precision = !prepping
+  const precision = !prepping && !light
     && recent.length >= 2
     && recent[Math.floor(recent.length / 2)] >= 10
     && !stalled
@@ -933,6 +942,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
       banOpeners,
       banHeads,
       precision,
+      light: light ? contentWords(message) : null,
       featureInvite,
       stalledInvite,
       rutInvite,
@@ -978,7 +988,8 @@ app.post('/api/chat', requireUser, async (req, res) => {
         // ⚠️ 40 during prep, on the criticism surface's precedent (45 there): a prep question quotes a term
         // or a claim from the document verbatim, which is the method rather than padding, and the quoted
         // span is inside the count. Named as a chosen difference rather than left to be discovered.
-        maxWords: prepping ? 40 : 34,
+        maxWords: prepping ? 40 : light ? LIGHT_MAX : 34,
+        quietWords: light ? new Set([...studentTurns, message].flatMap((t) => contentWords(t))) : null,   // a quiet turn uses only words they have said
         // THE THREE PREP GUARDS. noDefine keeps prep from becoming teaching; mustAddress keeps the question
         // about this learner rather than about the field, which is what makes asking another model pointless
         // instead of merely discouraged; noHypeVerdict keeps the one judgement the arc solicits on the
@@ -1106,7 +1117,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
           onToken: () => {}, apiKey, onUsage,
         }),
         // The hand-back changes the subject, so the return's demand goes with it, as the join's does.
-        validate: (t) => validateOutput(t, { ...guardOptions, mustHold: null, returnNote: null }),
+        validate: (t) => validateOutput(t, { ...guardOptions, mustHold: null, returnNote: null, quietWords: null, maxWords: 34 }),
       },
       generate: (correction) => streamQuestion({
         system,

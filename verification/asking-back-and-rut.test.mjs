@@ -239,6 +239,7 @@ test('the route reads both new readings and passes both blocks and the fallback'
   assert.match(s, /askingBack,\n\s+banOpeners,\n\s+banHeads,\n\s+message,\n\s+\}\)\n\s+: buildTurnContext/, 'and asking back reaches the prep turn');
   assert.match(s, /fallback: prepping \? null : \{/, 'the guard is given a hand-back on the enquiry surface');
   // v1.11.0: the return's demand goes with the join's — both are tied to the subject the hand-back gives up.
-  assert.match(s, /validateOutput\(t, \{ \.\.\.guardOptions, mustHold: null, returnNote: null \}\)/, 'the fallback drops the join and the return, and nothing else');
+  // v1.15.2 (30 Sep): it also drops a quiet turn's demand (their words only, 14 words), since the hand-back gives the subject up.
+  assert.match(s, /validateOutput\(t, \{ \.\.\.guardOptions, mustHold: null, returnNote: null, quietWords: null, maxWords: 34 \}\)/, 'the fallback drops the join, the return and the quiet demand, and nothing else');
   assert.match(s, /fallback: !!guarded\.fallback/, 'and the client is told which shipped');
 });

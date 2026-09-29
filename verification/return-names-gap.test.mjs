@@ -162,7 +162,7 @@ test('BOTH routes send the return to the guard and to the prompt, and the hand-b
   assert.match(s, /readReturn\(\{ anchor: dwell\.anchor/, 'enquiry reads the return off the dwell anchor');
   assert.match(s, /\n\s+returnNote,\n\s+message,\n\s+\}\);/, 'enquiry turn context carries it');
   assert.match(s, /\/\/ The return must say what the last answer left out[^\n]*\n\s+returnNote,/, 'enquiry guard options carry it');
-  assert.match(s, /mustHold: null, returnNote: null \}/, 'the hand-back changes the subject, so the demand goes');
+  assert.match(s, /mustHold: null, returnNote: null, quietWords: null, maxWords: 34 \}/, 'the hand-back changes the subject, so the demand goes');
   assert.match(s, /sameSubject: true, alsoGiven: artefact/, 'critique reads the return off the plan');
   assert.match(s, /noJargon: true, returnNote: critReturnNote \}/, 'critique guard carries it');
   assert.match(s, /returnNote: critReturnNote,\n\s+\}\);/, 'critique prompt carries it');
@@ -173,7 +173,7 @@ test('BOTH routes send the return to the guard and to the prompt, and the hand-b
 
 test('a return turn carries no association join, and the footing is reported', () => {
   const s = src('server.mjs');
-  assert.match(s, /rutInvite \|\| returnNote\) \? null : readAssociation/);
+  assert.match(s, /rutInvite \|\| returnNote(?: \|\| light)?\) \? null : readAssociation/);   // a quiet turn (v1.15.2) carries none either
   assert.match(s, /returnNote \? 'return' : null \}\);/);
 });
 
