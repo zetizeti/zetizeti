@@ -26,6 +26,17 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.15.0] — 29 September 2026
+
+**Ebb and flow.** Built from a student's report that the dialogue was "constant hammering".
+
+- **Pace.** Most turns add no pause; a worked reply earns some air; new material earns a held beat, during which the page is still; the question unfolds word by word. Built from the findings of the retired director-named timing scales (`lib/pace.mjs`).
+- **Turns that do not ask.** When the dialogue needs it — new material, a learner tiring, the same answer twice, or a short reply whose words are all new — the stone quotes one phrase of the latest reply back: *"…," you say.* Code chooses when and adds the attribution; a guard holds the phrase to the learner's own words in their order. A rare **blank** follows a naming.
+- **Play.** Jokes and sarcasm are answered for what they mean; the guard withholds questions testing a joke's literal truth.
+- **Words.** Typos are never echoed; time and quantity words never become the thing asked about; the first question never asks "how do you know" of an aim.
+- **Privacy.** Every model call is routed only to providers that keep nothing.
+- **Corpus.** The method note's examples follow the measured question forms; 19 entries signed off (183 still pending).
+
 ## [1.14.1] — 20 September 2026
 
 **Eight entries signed off — the `diy-hacking` lens is now read.** Prayas worked the Gate-4 bench between 17:35 and 17:41 and flipped `the-mod-and-the-unpaid-hour`, `broken-world-or-the-new-thing`, `the-maker-and-the-carer`, `the-tool-you-can-open`, `half-a-good-thing`, `open-and-who-maintains-it`, `the-user-who-already-solved-it` and `the-hands-on-imperative` from pending to verified. The corpus stands at **283 entries, 202 pending, 81 verified**.

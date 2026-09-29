@@ -10,7 +10,7 @@
 
 ## entry: seeming-intelligent-the-failure-mode
 **discipline:** memorability
-**provenance:** pending
+**provenance:** verified
 **vocabulary:** seeming intelligent, polished, derivative, conventional, indistinguishable, generic, dominant narrative, looks like everyone else, fluent, safe, unstrategised default, imitate or react, position
 **felt as:** it looks professional but it's like everyone else's; my portfolio could be anyone's; it's polished but generic; i've seen this exact project forty times; it imitates the usual style; it's a reaction against the usual style; i tried to look clever; nothing here feels like a position i chose.
 **the_tension:** The portfolio is a bid for a stranger's thirty seconds, ending in shortlist or reject, with no middle ground. Here is the double-bind. Fluency — polish, command of the field's conventions — is table stakes: work that lacks it is discarded as incompetent. Yet fluency is also what makes a portfolio indistinguishable from the forty others that week, and the fluent, conventional piece is discarded for being forgettable. Polish is at once necessary and insufficient; the maker can neither abandon it nor be saved by it. So the live question is not whether to be fluent but what, *besides* fluency, gives a stranger a reason to stop — and whether anything in this work is doing that second job, or whether it is competence all the way down.
@@ -22,7 +22,7 @@
 
 ## entry: attention-is-the-scarce-resource
 **discipline:** memorability
-**provenance:** pending
+**provenance:** verified
 **vocabulary:** attention scarcity, poverty of attention, information overload, scarce resource, attention economy, compete for attention, overabundance, allocate attention, capture, corrode
 **felt as:** there's too much out there; nobody has time to look; i'm competing for their attention not just doing good work; how do i get noticed in the flood; everything is fighting to be seen; attention is the bottleneck.
 **the_tension:** A wealth of information creates a poverty of attention: when information is abundant, the scarce resource is the attention it consumes, and it must be rationed among far more sources than can be attended to. The portfolio therefore competes not only on quality but on *attention-worthiness* — which is why memorability matters at all. But the same logic has a trap inside it: optimising purely for attention-capture can corrode the work, turning it into bait, which is the very move the attention economy rewards — and which any of the five positions can refuse. The difficulty is earning attention without letting the hunt for it hollow out what the attention was meant to land on.
@@ -34,7 +34,7 @@
 
 ## entry: the-first-pass-verdict
 **discipline:** memorability
-**provenance:** pending
+**provenance:** verified
 **vocabulary:** first pass, glance, skim, recruiter, shortlist, reject, binary verdict, no middle ground, snap judgement, thin slice, fifty milliseconds, hundred milliseconds, formed before reasoning, pile
 **felt as:** they'll only look for a few seconds; shortlist or reject, nothing in between; nobody reads the whole case study; they decided before i could explain; it has to land in one glance; the gut reaction happens instantly; what do they see in the first second; it's lost in the pile.
 **the_tension:** The work is first met not by a careful reader but by a fast binary verdict — shortlist or reject — against a large pile, with no middle ground to land in. And the verdict is quick: visual-appeal impressions of web pages form in around fifty milliseconds, and trait judgements of a face made after about a hundred milliseconds correlate highly with judgements made with unlimited time (some dimensions register in as little as thirty-nine, though not all are above chance that fast). Longer looking mainly raises the viewer's *confidence*, refining the judgement only modestly rather than overturning it. Whether a *designed artefact* triggers the same fast machinery as a face is itself an open question — faces are an evolutionarily special stimulus class — but if even part of this carries over, the verdict arrives before the reasoning the maker hoped to present. So the difficulty is double: a piece built to reward slow study can fail the glance that decides whether study ever happens, and a piece built only for the glance can be loud at first pass and empty on the second. Whether the thing that stops the skim is the same thing that rewards the longer look the shortlist earns is the question the maker cannot dodge.
@@ -46,7 +46,7 @@
 
 ## entry: research-to-insight-to-form
 **discipline:** memorability
-**provenance:** pending
+**provenance:** verified
 **vocabulary:** research to insight to form, downstream, derived, honest, performed, performed distinctiveness, costume, hollow, grounded, synthesis, abduction, where did this come from
 **felt as:** i want it to look striking; did i find this or did i decide it should look impressive; is this grounded or am i performing; i jumped to the form before the research; where did this actually come from; can i trace why it is this way; it looks distinctive but i can't say why.
 **the_tension:** The orthodox account says memorability that lasts is *downstream* of a chain from research to insight to form — distinctiveness arrived at by sitting with the material until it contradicts the obvious solution. But design synthesis is abductive, and abduction does not always run forwards: makers often reach the form first, by hand, and find its reason afterward. So the chain's *direction* is genuinely in question. A reason discovered after the form can be an honest discovery — the making was the thinking — or a cover story bolted on to justify a move aimed at the reviewer, and the two read alike once written up. The live question is therefore not "did research come first" but whether the reason, whenever it arrived, actually holds the form up — or merely decorates it.
@@ -58,7 +58,7 @@
 
 ## entry: fluency-bias
 **discipline:** memorability
-**provenance:** pending
+**provenance:** verified
 **vocabulary:** fluency, processing fluency, easy to process, feels true, feels good, likeable, polished reads as competent, disfluency, friction, hard to read, contested
 **felt as:** it looks clean so it feels good; polished reads as competent; easy-on-the-eye seems trustworthy; should i make it harder to feel more serious; does friction make it more memorable; it's smooth but i forget it instantly.
 **the_tension:** Things that are easy to process are judged more favourably — more likeable, more true, more competent — purely because the processing is fluent. This is a real and robust bias, and it is exactly what the polished, derivative portfolio rides: smoothness reads as quality at a glance. The tempting counter-move is to engineer *friction* — to make the work harder to process so it is attended to and remembered. But here the evidence is genuinely mixed: a famous study found hard-to-read fonts improved recall, yet many replications failed and a meta-analysis found no reliable effect on memory. So manufactured difficulty is an unreliable route to residue. The difficulty is telling a fluency that flatters from a substance that lasts — and resisting the conclusion that friction, by itself, is the answer.
@@ -70,7 +70,7 @@
 
 ## entry: the-costly-signal
 **discipline:** memorability
-**provenance:** pending
+**provenance:** verified
 **vocabulary:** signal, costly signal, hard to fake, credible, separating equilibrium, handicap, cheap to imitate, proof of quality, what a weaker candidate couldnt do, signalling
 **felt as:** the portfolio is a signal to an employer; anyone could fake this; what proves i can actually do it; it has to show something hard; could a weaker student have made this too; what here couldn't be copied overnight.
 **the_tension:** A portfolio is a signal sent to an employer who cannot directly observe the candidate's ability. Signalling theory holds that a signal is credible only when it is *costly* — hard enough to fake that a weaker candidate could not have produced it; the cost is what makes it honest. The implication for memorability is sharp: a move that is cheap to imitate signals nothing, however striking it looks. Residue that means something comes from what the work demonstrates *could not* have been cooked up from a template overnight — the sustained research, the hard-won particular, the executed craft. The difficulty is distinguishing a signal that is merely loud from one that is genuinely expensive to send.
@@ -82,7 +82,7 @@
 
 ## entry: the-signal-the-glance-cannot-read
 **discipline:** memorability
-**provenance:** pending
+**provenance:** verified
 **vocabulary:** costly signal, the glance, fast verdict, cost is invisible, proxy for effort, legible labour, expensive to fake, cheap signal of cost, second look, two audiences, the work doesn't show
 **felt as:** they'll never see how much work went in; the effort is invisible at a glance; how do they know it was hard to make; a cheap trick can look as costly as real work; will the depth even register in a few seconds; the labour doesn't show.
 **the_tension:** Two things this corpus holds are each true and they collide. A signal means something only when it is *costly* — residue worth crediting comes from what could not have been faked overnight: sustained research, the hard-won particular, executed craft. But the first-pass verdict forms in a fraction of a second, far too fast to appraise sustained cost; a glance cannot weigh the months behind a piece. So the very thing that makes residue credible — its expense — is largely invisible to the judgement that decides shortlist or reject. The glance does not read cost; at most it reads a *proxy* for it — visible density, finish, a trace of labour — and proxies can be faked, which is exactly how a cheap signal of cost (mere polish, the aesthetic halo) can pass for an expensive one. The collision has no clean resolution: either the work finds a visible trace that carries the evidence of its cost *into* the glance (and risks that trace being mimicked by cheaper work), or the cost pays off only at the second look — making the glance and the depth two different audiences asking for two different things.
@@ -94,7 +94,7 @@
 
 ## entry: residue-and-its-cost
 **discipline:** memorability
-**provenance:** pending
+**provenance:** verified
 **vocabulary:** residue, stays with you, lingers, leaves a mark, sacrifice, give something up, cost, discomfort, disapproval, hard to explain, institutional script, what's lost
 **felt as:** i want it to leave a mark; i keep adding things to feel safe; what am i willing to cut; it makes me uncomfortable to show this; i can't easily explain it to my parents; what if the reviewer doesn't like it; does it have to please everyone.
 **the_tension:** What stays in memory — the residue a project leaves — tends to be bought by giving something up: a feature, a reassurance, a claim to serve everyone. A project that refuses every sacrifice tends to leave nothing, because it has taken no position sharp enough to remember; and a position that cost nothing to take signals nothing about the maker. The chosen position also carries real, namable costs: the reviewer's discomfort, the field's mild disapproval, the difficulty of explaining the project to a parent or a non-design friend, the feeling of having stepped outside the institutional script. These are real — but they are not the cost of *failing to land the job*. The difficulty is holding that discomfort rather than smoothing it away, and being able to say what the project gave up and why.

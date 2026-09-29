@@ -452,6 +452,22 @@ terse and often wordless, one dense and analytical. They want opposite things, a
 one while harming the other is not a fix. The fixtures themselves are private (a student's tutorial
 transcript is theirs); the harness that runs them is public, in `scripts/flow-probe.mjs`.
 
+## Rhythm, pace and the turns that do not ask (v1.15.0, 29 September 2026)
+
+Built from a student's report that the dialogue was "constant hammering" and from Prayas's line that dialogue "has ebb and flow". The study is `dialogue-flow.md`; the record of every step is `docs/ops/flow-probe-log.md` (28–29 September).
+
+**Pace** (`lib/pace.mjs`, `beatMs`). One timing, built from the measurements of the six retired director scales: most turns add no pause, since generation (about 3.4 s) is already the gap; a reply of twelve words or more earns some air (0.6–4 s); a felt SEM event, new material entering the learner's words, earns a held beat (1.8–6 s), sent to the page as `hold` so the "drawing the edge" indicator goes quiet. The question then unfolds word by word (110 ms a word).
+
+**The blank.** An empty turn marked `<blank>`, for dramatic effect only: after a felt LEX event (the learner naming what matters), from the third reply, never twice running. No model call.
+
+**Turns that do not ask.** Code decides when, from need, never from counting: a felt SEM event, the learner tiring (from reply 10, the last two replies under half their own early median), the same answer again, or a charged short reply (six words or fewer, every material word new to the dialogue, at least two questions since the last such turn). Never on the first reply, never twice running. The model picks one phrase from the latest reply, an unbroken run of the learner's words, spelling corrected; code quotes it and attributes it: *"Swinging starts from loose ideas," you say.* `validateStatement` refuses a question mark, FORBIDDEN, more than ten words, any content word not in the latest reply, and any phrase that is not a run of it. Two attempts, then the turn asks a question as before. Never answering is untouched; always asking was the other half of invariant #3 and is separable.
+
+**Play and tone.** A reply marked as play (*absurd, laughing, joke, haha*…) sets a play footing on that turn and the next: dwell, succession, posture and precision are suppressed, a play block closes the turn's instructions, and the guard's `noLiteral` refuses questions testing the joke's literal truth. The system prompt asks the model to answer sarcasm and jokes for what they mean. A pun-ish voice was tried and dropped: none of four models made an obvious pun.
+
+**Words.** The learner's words are reused spelt correctly (`isTheirWord` lets the guards accept a corrected spelling). Time and quantity words (*few, days, ago, sometimes*…), the *create* and *put* families and *there* never anchor a question. The first turn never takes the provenance ("how do you know") or one-sentence forms, since an edge is an aim.
+
+**Routing.** Every model call asks OpenRouter for providers that keep nothing (`data_collection: 'deny'`). The model stays `google/gemini-3.1-flash-lite`: MiMo-V2.6 Flash read better blind on 30 turns and worse in Prayas's live use.
+
 ## Known limits
 
 - ⚠️ **The return's reading of "left out" is lexical, and so is the check that the question then asks for it.** A reply can answer *where* in words the list does not contain. The kind check covers when, who, why, how many and yes/no, and a *what* or *which* answered by naming something. *Where*, *how* and *what would have to be true* rely on the word list alone.

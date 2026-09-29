@@ -21,6 +21,8 @@ import { readSensed } from './lib/sensed.mjs';
 import { qualify, toCanonSegments, segmentText } from './lib/qualify.mjs';   // DETERMINISTIC, no-LLM qualification (locating)
 import { planFor, windowOf, briefDigest } from './lib/plan.mjs';   // the reading plan — DETERMINISTIC, no LLM
 import { prepPlan, parseTasks, readiness as prepReadiness } from './lib/prep.mjs';   // the prep arc — DETERMINISTIC, no LLM
+import { blankTurn, ackTurn, beatMs, BLANK_MS, sleep } from './lib/pace.mjs';   // when a turn is silent or does not ask, and the beat — DETERMINISTIC, no LLM
+import { STATEMENT_SYSTEM, statementBrief, validateStatement, sayBack } from './lib/dialogue.mjs';   // the turn that does not ask: its prompt and its guard
 import { docFreq, informativeOf } from './lib/reading.mjs';          // engagement sensors — planner-only, never rendered
 import {
   googleConfigured, adminConfigured, emailIsAdmin, currentUser, logout, publicUser,
@@ -51,7 +53,7 @@ import { dashboardConfigured, dashboardAccount, sendToDashboard, sendProblem } f
 import { generateGuarded } from './lib/guard.mjs';           // the guard's ENFORCEMENT layer (invariant #3)
 import { startHeartbeat } from './lib/heartbeat.mjs';       // keeps the guard's SILENT interval alive (see the file)
 import { computeSignals, content as contentWords } from './lib/signals.mjs';
-import { readDwell, isDecline, isCorrection, lastSubstantive, readRepeat, NONMATERIAL, isAskingBack, readRut, readReturn } from './lib/arc.mjs';
+import { readDwell, isDecline, isCorrection, isPlay, lastSubstantive, readRepeat, NONMATERIAL, isAskingBack, readRut, readReturn } from './lib/arc.mjs';
 import { readAssociation, associationBlock } from './lib/assoc.mjs';
 import { semanticFreshness, refineFresh } from './lib/novelty.mjs';   // SHADOW ONLY — measured, not wired (see novelty.mjs)           // the enquiry surface's dynamic arc (line of questioning)
 import { decideNudge, feltPosture, formShape } from './lib/nudge.mjs';
@@ -147,6 +149,7 @@ const usageCost = (u) => (u && typeof u.cost === 'number' && u.cost > 0)
 const guardStats = {
   enquiry:   { turns: 0, regenerated: 0, flagged: 0 },
   criticism: { turns: 0, regenerated: 0, flagged: 0 },
+  statement: { turns: 0, regenerated: 0, flagged: 0 },   // the turn that does not ask; a flagged one is never delivered
 };
 // Felt-shift telemetry — same discipline as guardStats: counts + a latency reading, never content.
 const feltStats = { computed: 0, sem: 0, lex: 0, skipped: 0, msLast: 0 };
@@ -502,10 +505,24 @@ async function feltForTurn({ goal, history, message }) {
 // (turn counts + billed cost, no content) is written, for the caps + admin monitor.
 // Body: { message, history[], goal, kind:'goal'|'redraw'|'turn', honed, exchanges, lineage[], turnsSinceNudge }
 app.post('/api/chat', requireUser, async (req, res) => {
+  const t0 = Date.now();                      // the turn's clock — the pace is measured from here, not from the model call
   const {
-    message = '', history = [], goal = '', kind = 'turn',
+    message = '', history: rawHistory = [], goal = '', kind = 'turn',
     honed = 0, exchanges = 0, lineage = [], turnsSinceNudge = 99,
   } = req.body || {};
+  // 🔴 A BLANK IS A TURN THAT HAPPENED, AND IT IS NOT A TURN THE MODEL MAY SEE. It has to be in the posted
+  //    history or the service — which stores nothing — could not tell it had just blanked, and the saved
+  //    transcript would lose it. But an empty assistant message is malformed to the provider and would
+  //    enter the opener ban, the head ban and the rut reading as a question with no words.
+  // 🔴 ONE derivation, here, feeding all four places history is consumed. Four separate guards is the
+  //    shape that has shipped a defect in this file three times; the raw array is read once, for the one
+  //    question it alone can answer — did the last stone turn ask?
+  // A blank has no words and an ack has no question mark: after either, the next turn asks.
+  const lastStoneAsked = (() => {
+    const stone = rawHistory.filter((h) => h.role !== 'student');
+    return stone.length > 0 && String(stone[stone.length - 1].content || '').includes('?');
+  })();
+  const history = rawHistory.filter((h) => h.role === 'student' || String(h.content || '').trim());
   // CONCEPT-ONLY FOCUS (12 Aug 2026). Whitelisted rather than passed through: only the exact string
   // 'concept' turns it on, so an unknown value is no focus rather than an unspecified one.
   const focus = req.body?.focus === 'concept' ? 'concept' : null;
@@ -781,6 +798,8 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // disturbed-reproduction indicator, worn protectively: their correction is authoritative, so the
   // steering that would press on is suppressed and the next question takes up what they re-stated.
   const corrected = !declined && !askingBack && isCorrection(message);
+  // They have said it is a joke (lib/arc.mjs, isPlay): the latest reply or the one before.
+  const playing = !declined && !askingBack && (isPlay(message) || isPlay(studentTurns[studentTurns.length - 2] || '')) ? { edge: studentTurns[0] || goal } : null;
   // 🔴 `stalled` NOW REACHES THE STEERING, AND ITS RESPONSE IS ITS OWN (6 Sep 2026). Since 17 August the
   // two grades have had one consumer each — `stalled` the precision gate, `repeated` the dwell read —
   // and `stalled` therefore could not change what the next question was ABOUT. A real session of
@@ -943,6 +962,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
     // off — gemini-lite defaults to a thinking budget; zetizeti is a thin composer.
     // ONE option set for both validators below — the ordinary one and the fallback's — so they cannot drift.
     const guardOptions = {
+        noLiteral: !!playing,                    // play: a question testing the joke's literal truth is withheld (29 Sep 2026)
         focus,                                   // concept-only: a production question is withheld, not discouraged
         avoid: stoneTurns,
         banOpeners,
@@ -1005,10 +1025,67 @@ app.post('/api/chat', requireUser, async (req, res) => {
     const handBackMessages = () => [
       ...history.map((h) => ({ role: h.role === 'student' ? 'user' : 'assistant', content: h.content })),
       { role: 'user', content: buildTurnContext({
-        retrieved, focus, shape: formShape(exchanges, { flow: true }), declined, corrected, banOpeners, banHeads, message,
+        retrieved, focus, shape: formShape(exchanges, { flow: true }), declined, corrected, playing, banOpeners, banHeads, message,
         rutInvite: { word: rut ? rut.word : null, run: rut ? rut.run : 0, exhausted: true },
       }) },
     ];
+    // 🔴 THE TURN THAT SAYS NOTHING (21 September 2026). Prayas: "blank response with <blank> should be
+    //    possible". It sits HERE — after every wallet gate, before the only model call — so a student with
+    //    no credit still gets the refusal they would have got, and a blank costs nothing because nothing
+    //    is generated. The decision is code's alone and no prompt is involved.
+    // 🔴 IT IS MARKED, NEVER JUST ABSENT. An unmarked blank is indistinguishable from a broken tool, which
+    //    is the same reason the pause below had to become legible. The client renders the marker.
+    // 🔴 AND IT DOES NOT TOUCH THE EMPTY-GENERATION BACKSTOP. guard.mjs catches a failed generation by its
+    //    missing question mark; a deliberate blank never reaches the model, so the two cannot be confused
+    //    and the backstop goes on guarding every turn that does call it.
+    //    It is for dramatic effect: only after the learner has just named what matters (a felt LEX event).
+    //    studentTurns[0] is the opening edge, not a reply.
+    if (blankTurn({ named: !!(fs && fs.lexEvent), replies: studentTurns.length - 1, lastStoneAsked })) {
+      await sleep(BLANK_MS - (Date.now() - t0));
+      send('blank', {});
+      noteTurnDepth({
+        day: utcDay(),
+        surface: prepping ? 'prep' : 'enquiry',
+        version: BUILD.version,
+        depth: prepping ? studentTurns.length : studentTurns.length - (prepWalk ? prepWalk.path.length : 0),
+      });
+      send('done', {});
+      return res.end();
+    }
+    // 🔴 A TURN THAT DOES NOT ASK. Code decides when (lib/pace.mjs, ackTurn); the model writes one sentence
+    //    from the dialogue; validateStatement refuses it unless it asks nothing, answers nothing and uses only
+    //    the learner's words. If it never passes, this turn asks a question as before.
+    const ack = prepping ? null : ackTurn({
+      replies: studentTurns.slice(1), lastStoneAsked, newMaterial: !!(fs && fs.semEvent),
+      earlier: [...studentTurns.slice(0, -1), ...stoneTurns],
+      questionsSince: (() => { let n = 0; for (const q of [...stoneTurns].reverse()) { if (!String(q).includes('?')) break; n++; } return n; })(),
+    });
+    if (ack) {
+      const ownWords = new Set(String(message).toLowerCase().match(/[a-z']+/g) || []);   // their LATEST reply only: joining it to earlier words made claims they never made
+      const said = await generateGuarded({
+        attempts: 2,                             // a failure falls back to a question, so it must not cost the learner long
+        validate: (t) => validateStatement(t, { ownWords, reply: message }),
+        generate: (correction) => streamQuestion({
+          system: STATEMENT_SYSTEM,
+          messages: [
+            ...history.map((h) => ({ role: h.role === 'student' ? 'user' : 'assistant', content: h.content })),
+            { role: 'user', content: `${message}\n\n${statementBrief()}` },
+            ...(correction && correction.previous ? [{ role: 'assistant', content: correction.previous }, { role: 'user', content: `[Refused: ${correction.reasons.join('; ')}. Write the one sentence again.]` }] : []),
+          ],
+          maxTokens: 60, reasoning: { enabled: false }, onToken: () => {}, apiKey, onUsage,
+        }),
+      });
+      noteGuard('statement', said);
+      if (said.check.ok) {
+        const beat = beatMs({ replyWords: String(message).split(/\s+/).filter(Boolean).length, moment: fs && fs.semEvent ? 'new' : null });
+        if (beat) { send('hold', { ms: beat }); await sleep(beat); }
+        send('ack', { t: sayBack(said.text) });
+        noteTurnDepth({ day: utcDay(), surface: 'enquiry', version: BUILD.version, depth: studentTurns.length - (prepWalk ? prepWalk.path.length : 0) });
+        if (meter) { addPoolSpend(utcDay(), req.user.id, poolCost, poolFlag); if (usingPool) send('pool', poolEvent(req.user.id)); }
+        send('done', {});
+        return res.end();
+      }
+    }
     const guarded = await generateGuarded({
       lead: !!returnNote,                        // the repair must ask for the return's lead-in, not forbid it
       // avoid: the repeat gate (round 4) — a question sharing a five-word frame with an earlier one is
@@ -1050,15 +1127,19 @@ app.post('/api/chat', requireUser, async (req, res) => {
       send('error', { code: 'EMPTY_GENERATION', message: EMPTY_MSG });
       return res.end();
     }
+    // 🔴 THE BEAT (lib/pace.mjs): mostly nothing, air after a worked reply, a rare long hold where new
+    //    material has entered. The page is told the hold began, so it shows stillness, not processing.
+    const beat = beatMs({ replyWords: String(message).split(/\s+/).filter(Boolean).length, moment: fs && fs.semEvent ? 'new' : null });
+    if (beat) { send('hold', { ms: beat }); await sleep(beat); }
     send('token', { t: full });                  // the ACCEPTED question, delivered whole
     send('validation', { ...guarded.check, attempts: guarded.attempts, regenerated: guarded.regenerated, fallback: !!guarded.fallback,
       // which footing this turn took — what the last message WAS and what the tool did about it, never who they are
-      footing: askingBack ? 'asking-back' : declined ? 'declined' : corrected ? 'corrected' : rutInvite ? 'rut-invite' : stalledInvite ? 'stalled-invite' : featureInvite ? 'invite' : returnNote ? 'return' : null });
+      footing: askingBack ? 'asking-back' : declined ? 'declined' : corrected ? 'corrected' : playing ? 'playing' : rutInvite ? 'rut-invite' : stalledInvite ? 'stalled-invite' : featureInvite ? 'invite' : returnNote ? 'return' : null });
     // LOCAL, operator-only capture (no-op in production and unless ZETIZETI_CAPTURE_DIR is set) — the
     // situation → the question, so a chat can be replayed by the 2.0 "sounds-like-Prayas" harness. The
     // returned id lets the local UI attach an on-voice/off-voice label to this exact question. The guard's
     // work is captured too (a repaired question is a different kind of specimen from a first-pass one).
-    const capId = capture({ mode: prepping ? 'prep' : 'enquiry', prepStation: prepping ? (prepWalk.station ? prepWalk.station.key : prepWalk.phase) : null, prepPart: prepping ? prepWalk.part : null, chatKey: studentTurns[0] || goal, goal, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, dwell: featureInvite ? 'INVITE' : stalledInvite ? 'INVITE-STALLED' : dwell ? `${dwell.anchor}×${dwell.returns}` : null, joined: assoc ? assoc.distance : null, declined: !!declined, corrected, repeated, stalled, returned: returnRead ? { kind: returnRead.kind, missing: returnRead.missing } : null, newMaterial: newMaterial.slice(0, 3), shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
+    const capId = capture({ mode: prepping ? 'prep' : 'enquiry', prepStation: prepping ? (prepWalk.station ? prepWalk.station.key : prepWalk.phase) : null, prepPart: prepping ? prepWalk.part : null, chatKey: studentTurns[0] || goal, goal, turn: exchanges, student: message, retrieved: retrieved.map((r) => r.id), posture: nudge.posture || null, fired: nudge.fired || null, dwell: featureInvite ? 'INVITE' : stalledInvite ? 'INVITE-STALLED' : dwell ? `${dwell.anchor}×${dwell.returns}` : null, joined: assoc ? assoc.distance : null, declined: !!declined, corrected, playing, repeated, stalled, returned: returnRead ? { kind: returnRead.kind, missing: returnRead.missing } : null, newMaterial: newMaterial.slice(0, 3), shape: exchanges % 4, // SHADOW: what the semantic channel read, and what `advancement` WOULD have become had it steered.
       // Logged side by side so the comparison the todo doc asks for can be made on real transcripts
       // before anything is wired again. Local capture only — never in production (capture.mjs).
       sem: fs && fs.semFresh ? +fs.semFresh[fs.semFresh.length - 1].toFixed(3) : null,

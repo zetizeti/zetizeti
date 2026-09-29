@@ -353,6 +353,11 @@ async function assertLiveBuild() {
 
   // A replay has exactly as many real replies as the fixture holds; it ends where the dialogue was cut off.
   const MAX_ROUNDS = REPLAY_FIXTURE ? Math.min(ROUNDS, REPLAY_FIXTURE.turns.length - 1) : ROUNDS;
+  // 🔴 THE EDGE IS THE FIRST STUDENT TURN, AS IN THE PAGE (29 Sep 2026). public/index.html pushes the goal into
+  // history before the first question; this probe did not, so every replay until today reached the route with
+  // one reply fewer than a real student had written — found when a reading that waits for the second reply
+  // fired in the page and not in the replay. Round 1 still sends history [] (slice drops the edge).
+  if (!savedTurns) history.push({ role: 'student', content: EDGE });
   for (let round = 1; !savedTurns && round <= MAX_ROUNDS; round++) {
     const stoneTurns = history.filter((h) => h.role === 'stone').map((h) => h.content);
     const studentTurns = history.filter((h) => h.role !== 'stone').map((h) => h.content);
@@ -373,9 +378,10 @@ async function assertLiveBuild() {
       goal: EDGE, kind: round === 1 ? 'open' : 'turn', exchanges: round - 1, discipline: DISCIPLINE,
       turnsSinceNudge: 99,
     });
-    question = ev.filter((e) => e.event === 'token').map((e) => e.data.t).join('').trim();
+    // A turn that does not ask arrives as `ack` (a sentence) or `blank` (nothing); both are turns, as in the page.
+    question = ev.filter((e) => e.event === 'token' || e.event === 'ack').map((e) => e.data.t).join('').trim();
     const validation = ev.find((e) => e.event === 'validation')?.data || {};
-    if (!question) throw new Error(`round ${round}: no question came back`);
+    if (!question && !ev.some((e) => e.event === 'blank')) throw new Error(`round ${round}: nothing came back`);
     history.push({ role: 'stone', content: question });
 
     const prevReply = studentTurns[studentTurns.length - 1];

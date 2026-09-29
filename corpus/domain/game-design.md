@@ -199,7 +199,7 @@
 **failure_modes:** so much randomness that skill barely affects the outcome and choices feel pointless; so little uncertainty that the outcome is decided early and there is no reason to keep playing; assuming "uncertainty" must mean dice, when hidden information or opponents' choices could supply it instead.
 **questions_it_invites:** Where does the uncertainty in this game actually come from — chance, hidden information, the opponent, or the player's own skill? · Is the randomness here opening the game up and keeping it alive, or loosening the link between what a player does and how well they do?
 **sources:** Costikyan, *Uncertainty in Games* (MIT Press, 2013).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — Costikyan's "uncertainty sustains games" plus the taxonomy of uncertainty sources is the book's correctly-attributed thesis (citation-verified, MIT Press 2013, Playful Thinking series). Two-sided (chance welcomes newcomers vs dilutes skill). Strong board/tabletop relevance.
 
 ---
@@ -212,7 +212,7 @@
 **failure_modes:** asymmetry so unbalanced that one option dominates and the rest are dead on arrival; balancing toward such sameness that the factions lose all character and the game goes flat; chasing perfect balance forever when "varied and roughly fair" is what the game actually needs.
 **questions_it_invites:** Is the variety you want here worth the balancing it will cost — and can you keep the differences while keeping them viable? · When one option looks "best", is that a flaw to fix, or difference that is fair in a way "identical" wouldn't be?
 **sources:** Schreiber & Romero, *Game Balance* (A K Peters/CRC Press, 2021).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** medium — balance/asymmetry and the dominant-strategy problem are standard game-design concerns; Schreiber & Romero (2021) is a correctly-attributed textbook treatment (citation-verified) rather than the origin of the idea, so cited as the field's reference, not its coinage. Two-sided. Strong board + competitive-digital relevance.
 
 ---
@@ -225,5 +225,5 @@
 **failure_modes:** tuning a loop for retention or spend until players are compelled rather than delighted (and resent it on reflection); importing gambling-style variable rewards without owning what they do to people; flinching from all reward loops so the game loses the rhythm and momentum that make play absorbing.
 **questions_it_invites:** Is this loop optimised for the player's enjoyment, or for their continued presence and spend — and are those the same here? · Someone deep in this loop, stepping back from it later — what would they say the time gave them?
 **sources:** Schüll, *Addiction by Design: Machine Gambling in Las Vegas* (Princeton University Press, 2012); cf. Deterding et al., MindTrek '11 (2011), on game elements outside games.
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** medium — Schüll's machine-gambling analysis is correctly attributed and citation-verified (Princeton 2012); applying it to game compulsion loops / loot boxes is a well-established but interpretive move (framed as "the lineage behind", not a claimed equivalence). Two-sided (immersion vs exploitation; the line is whose-interest, not the mechanic). NB overlap with interaction-design's dark-patterns-and-ethics (co-retrieves under this tag): kept distinct by the game-specific reward-schedule / gambling-lineage axis.

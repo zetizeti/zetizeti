@@ -16,7 +16,7 @@
 **failure_modes:** admiring a "jugaad" fix while taking the idea — scaling or publishing it with no credit, reward or reciprocity to the innovator (the Honey Bee ethic violated); reworking a local solution until the contextual fit that made it work is sanitised away; dismissing an improvised solution as "just jugaad" and, with it, the real knowledge of the person who made it; or the reverse — leaving a genuinely useful solution unsafe, unscaled and unshared in the name of authenticity, so it helps no one beyond its maker; or refusing, on the maker's behalf, the scale, safety or reward they might actually have wanted.
 **questions_it_invites:** Whose innovation is this — and if you ran it through the factory, what would that give it and the maker, and what would it take from them? · If instead you keep it as-theirs and unscaled, who does it not reach — and are you honouring the maker's knowledge, or romanticising a shortcut on their behalf?
 **sources:** Gupta, *Grassroots Innovation: Minds on the Margin Are Not Marginal Minds* (Random House India, 2016); Kudva & Kamath, "Against Jugaad: Making a Case for Design as Innovation," *Ekistics and The New Habitat* 80(2), 2021, pp. 47–57; Smith, Fressoli, Abrol, Arond & Ely, *Grassroots Innovation Movements* (Routledge, 2017). The celebratory framing this entry resists: Radjou, Prabhu & Ahuja, *Jugaad Innovation* (Jossey-Bass, 2012). The critical paradox: Ananthram & Chan, "The paradox of responsible Jugaad innovation," *Journal of Open Innovation* 11(4), 2025, art. 100672.
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** medium-high — the grassroots-innovation framing (Gupta; minds-on-the-margin; Honey Bee reciprocity) and the *appropriation* tension are faithful to Gupta's stated position and the grassroots-innovation-movements literature (Smith et al.). **Deliberate, user-instructed exception to the no-verdict rule:** this entry carries a verdict *on the term "jugaad"* — it does not hold "jugaad" as a neutral pole — at Prayas's explicit instruction and on the scholarly authority of Gupta and of Kudva & Kamath. The two-sided rule is preserved on the *design choice* the student faces (respect-as-theirs vs run-through-the-discipline-that-appropriates); the verdict is on the discourse, not on the student's decision. Pass 3 should read this exception as intended, not as drift. Citations Pass-4 verified (24 May 2026); confirm Gupta's anti-jugaad position against the book text at sign-off. **Three-pass (24 May 2026): Pass 2/3 confirmed the term-verdict is correctly scoped, but flagged that pejorative register and a 3:1 failure-mode ratio let the verdict bleed onto the *design choice* (the discipline pole). Fixed: softened frequency adverbs, gave the discipline pole a genuine benefit (reach/reward via Honey Bee reciprocity) and added a respect-pole failure mode (paternalistic refusal), de-scare-quoted "improving", and reworked Q2 to carry the cost of refusal. The design choice now holds open; the term-verdict remains, as intended.** The Kudva & Kamath quote ("neither quality design nor frugal innovation") is now **verbatim-confirmed** against the paper's abstract (Pass 4, 24 May 2026); the remaining sign-off item is confirming Gupta's anti-jugaad position against the book's own text.
 
 ---
@@ -30,7 +30,7 @@
 **failure_modes:** designing in ignorance of how a thing is made, so it arrives unmakeable or far too costly; surrendering every interesting decision to "the factory can't" until design shrinks to tweaking what the machine already does; or pushing a process to chase a design ambition whose cost or scale never justified the reach.
 **questions_it_invites:** When the factory says "no", is this genuinely unmakeable, or unfamiliar to this process? · Are you bending the design to fit the machine, or asking the machine to reach the design — and what does each cost, here?
 **sources:** Boothroyd, Dewhurst & Knight, *Product Design for Manufacture and Assembly* (CRC Press, 3rd ed., 2010); Mears & Summers, "Manufacturing for Design: A sustaining approach to drive manufacturing process evolution, then innovation," *Procedia Manufacturing* 48 (2020), pp. 1136–1142.
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — DFM/DFMA is Boothroyd, Dewhurst & Knight's central, standard contribution. The "Manufacturing for Design" counter is now **confirmed against Mears & Summers' own abstract** (Gate 2 closed, 24 May 2026, via the NSF open-access copy): they argue product-design creativity should be a "motive force" to rethink manufacturing processes — explicitly as an **extension/complement to DFM (a blended "MFD|DFM approach"), not a replacement** — which the entry now states. Citations Pass-4 verified. Three-pass: Pass 3 clean PASS; Pass 2 flagged a mild Q1 tilt ("just / happen to have"), fixed.
 
 ---
@@ -44,7 +44,7 @@
 **questions_it_invites:** Does this want to be one identical thing made at volume, or many close variants made in small runs — and which does the need actually call for? · What does committing to a high-volume tool foreclose if the design or context later varies — and is that a risk worth taking here?
 **failure_modes:** tooling up for mass volume a thing whose value lay in variation or fit, so it ships uniform and wrong for most; clinging to small-batch craft for a genuinely standard need until it is too costly to reach the people it was for.
 **sources:** Piore & Sabel, *The Second Industrial Divide: Possibilities for Prosperity* (Basic Books, 1984); Gershenfeld, *Fab: The Coming Revolution on Your Desktop* (Basic Books, 2005); Anderson, *Makers: The New Industrial Revolution* (Crown Business, 2012).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — flexible specialisation (Piore & Sabel) and the digital-fabrication "new industrial revolution" (Gershenfeld, Anderson) are well-known positions, citations Perplexity-verified. Position-in-named-works (not a contested empirical claim): citation-verified, framing PENDING three-pass + Prayas's sign-off.
 
 ---
@@ -57,7 +57,7 @@
 **questions_it_invites:** What can this place and this user actually make, maintain and afford — and does the standard advanced answer fit that, or your idea of progress? · Is choosing the lower-tech "appropriate" option serving the user, or deciding on their behalf what they should settle for?
 **failure_modes:** imposing a standardised, advanced solution the context cannot maintain, afford or repair, so it fails after the designer leaves; romanticising low-tech "appropriateness" until you withhold from people the quality or capability they actually wanted.
 **sources:** Schumacher, *Small Is Beautiful: A Study of Economics as if People Mattered* (Blond & Briggs, 1973); Papanek, *Design for the Real World: Human Ecology and Social Change* (1971).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — intermediate/appropriate technology (Schumacher) and real-needs design (Papanek) are well-known positions, citations Perplexity-verified. Position-in-named-works: citation-verified, framing PENDING three-pass + Prayas's sign-off. (Schumacher also anchors entrepreneurship's scale-vs-craft on the *business-scale* axis; here the axis is manufacturing/material appropriateness — distinct framing.)
 
 ---
@@ -71,7 +71,7 @@
 **questions_it_invites:** When this breaks or its life ends, can the way it's made let it be repaired or recovered — or does its construction commit it to waste? · Is designing for that afterlife the right call here, or are you adding cost for a recovery system that doesn't exist for this product?
 **failure_modes:** sealing a thing shut for cost or looks so it cannot be repaired or recovered, designing in the waste; engineering for a disassembly and recycling the surrounding system will never actually perform, paying in cost and bulk for an afterlife that never comes.
 **sources:** McDonough & Braungart, *Cradle to Cradle: Remaking the Way We Make Things* (North Point Press, 2002); Stahel, "The Product-Life Factor" (1982) and *The Performance Economy* (Palgrave Macmillan, 2010).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — cradle-to-cradle (McDonough & Braungart) and product-life/circular economy (Stahel) are well-known positions, citations Perplexity-verified. The empirics on whether life-extension and design-for-repair reduce waste are independently Consensus-backed under slow-design's the-new-model-or-the-lasting-thing [NM-Ba, NM-Pr, NM-Ha]. Position-in-named-works otherwise: citation-verified, framing PENDING three-pass + Prayas's sign-off.
 
 ---
@@ -85,7 +85,7 @@
 **questions_it_invites:** What separates this prototype from a product — what would fail on the hundredth unit, in someone else's hands, at scale? · Is the gap between "it works here" and "it's a product" being respected, or wished away — and is closing it worth the cost for this thing?
 **failure_modes:** shipping a prototype as a product, so what worked once fails in the field, unsafe or unrepeatable; over-hardening for production a thing that needed to ship early and learn, until the effort outruns what the product warranted.
 **sources:** Ulrich & Eppinger, *Product Design and Development* (McGraw-Hill, 1st ed. 1995; later editions).
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** high — Ulrich & Eppinger's product-development process (concept → manufacturable, production-ready design) is the standard textbook account, Perplexity-verified. Position-in-named-works: citation-verified, framing PENDING three-pass + Prayas's sign-off. (Relates to grassroots-innovation-not-jugaad's "finished, dignified thing" but is the general prototype→production discipline, not the appropriation question.)
 
 ---
@@ -99,5 +99,5 @@
 **questions_it_invites:** What would mechanising this give, and to whom — and who does the machine displace, made better off or merely done without? · Is keeping the handwork honouring a livelihood and a skill, or romanticising drudgery the maker would gladly be freed from?
 **failure_modes:** mechanising to cut cost while displacing the artisans whose livelihood and knowledge the work carried, and calling it progress; insisting on handwork out of romance, trapping makers in slow, precarious labour a machine would have relieved.
 **sources:** Gandhi, *Hind Swaraj or Indian Home Rule* (1909); and the Gandhi–Nehru debate on decentralised craft production versus centralised heavy industry in Indian development.
-**provenance:** pending
+**provenance:** verified
 **framing_confidence:** medium-high — Gandhi's *Hind Swaraj* critique of centralising machinery (carefully: anti-mass-industrial, *not* anti-technology — he allowed socially useful machines) and the charkha/khadi philosophy, plus the enduring Gandhi–Nehru industrialisation debate, are well-documented positions (Perplexity-verified). Position-in-named-works: citation-verified, framing PENDING three-pass + Prayas's sign-off. (Distinct from slow-design's automate-or-by-hand, which is the individual designer's craft-skill; this is the political economy of decentralised vs centralised production.) Confirm Gandhi's nuanced position against *Hind Swaraj*'s own text at sign-off.
