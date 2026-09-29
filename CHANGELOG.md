@@ -26,6 +26,12 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.15.1] — 29 September 2026
+
+**The approach rotation counts questions asked, not replies.** A turn that does not ask (a said-back phrase, a blank) is still answered, and the extra reply moved the rotation on by one without an approach having been used. In a real nine-turn dialogue the frame *just before* came up twice, on questions 3 and 7. `approachFor` now subtracts the stone's turns that carried no question (`notAsked`, counted in `server.mjs` from the raw history, since blanks are dropped from the filtered one). With no such turns the index is the same as before, so existing dialogues and fixtures are unchanged.
+
+⚠️ This does not stop a frame repeating by itself: the head ban reads three words and the frame gate five, so a four-word frame like *the moment just before* is still invisible to both.
+
 ## [1.15.0] — 29 September 2026
 
 **Ebb and flow.** Built from a student's report that the dialogue was "constant hammering".

@@ -784,7 +784,8 @@ app.post('/api/chat', requireUser, async (req, res) => {
   const newMaterial = [...new Set(contentWords(message))].filter((w) => !earlierWords.has(w)).slice(0, 4);
   const stalled = !newMaterial.length;
   const repeated = readRepeat(studentTurns);
-  const dwellRead = prepping ? null : readDwell({ studentTurns, stoneTurns, goal, repeated });
+  const notAsked = rawHistory.filter((h) => h.role !== 'student' && !String(h.content || '').includes('?')).length;   // said-backs and blanks: answered, but no approach was used
+  const dwellRead = prepping ? null : readDwell({ studentTurns, stoneTurns, goal, repeated, notAsked });
   // The learner has declined this question. Outranks everything: nothing is built on words that carry no
   // content, and the next question changes footing to material they themselves supplied earlier.
   // ASKING BACK (9 Sep 2026) — they could not follow the last question and handed its words back as a

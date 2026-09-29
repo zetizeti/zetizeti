@@ -168,6 +168,20 @@ test('the opening turn never takes the provenance or one-sentence form, whatever
   }
 });
 
+// 🔴 THE ROTATION COUNTS QUESTIONS, NOT REPLIES (29 Sep 2026): a turn that does not ask is answered too, and
+//    the extra reply moved the rotation on, so a real dialogue was asked "just before" on questions 3 and 7.
+test('a turn that does not ask does not move the approach rotation', async () => {
+  const { approachFor, APPROACHES } = await import('../lib/arc.mjs');
+  const goal = 'I am trying to organise a programme for the leadership';
+  const replies = (n) => Array.from({ length: n }, (_, i) => `reply ${i}`);
+  for (let n = 2; n <= 12; n++) {
+    assert.equal(approachFor(APPROACHES, replies(n + 1), goal, 1), approachFor(APPROACHES, replies(n), goal, 0), `after ${n} replies`);
+  }
+  const seen = [];
+  for (let q = 1; q <= APPROACHES.length; q++) seen.push(approachFor(APPROACHES, replies(q + 1 + (q > 3 ? 1 : 0)), goal, q > 3 ? 1 : 0));
+  assert.equal(new Set(seen).size, APPROACHES.length, 'five questions with a said-back in the middle still use five approaches');
+});
+
 test('a said-back phrase is theirs, quoted and attributed by code, never left bare', async () => {
   const { sayBack } = await import('../lib/dialogue.mjs');
   const own = new Set('what do i actually feel like what i do'.split(' '));
