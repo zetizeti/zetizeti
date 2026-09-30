@@ -46,10 +46,11 @@ test('the server serves the app shell at /spec, or a reload 404s', () => {
 });
 
 test('the third face is in the nav, the view map, the router and the click handlers', () => {
-  assert.match(html, /<a id="navSpec">/, 'no nav entry');
+  // From v1.16.0 the surface is offline by default (surfaces-offline.test.mjs): the entry is in the markup, hidden until the server says the surface is on, and the route asks the same switch.
+  assert.match(html, /<a id="navSpec" hidden>/, 'no nav entry');
   assert.match(code, /spec:\$\('view-spec'\)/, 'view-spec is not in the views map — showView cannot reach it');
   assert.match(code, /'spec-chat':\$\('view-spec-chat'\)/, 'view-spec-chat is not in the views map');
-  assert.match(code, /case '\/spec':\s*openNewSpec\(\)/, '/spec does not route');
+  assert.match(code, /case '\/spec':\s*cfg\.surfaces\.includes\('spec'\) \? openNewSpec\(\)/, '/spec does not route');
   assert.match(code, /\$\('navSpec'\)\.addEventListener\('click'/, 'the nav entry does nothing');
 });
 

@@ -727,8 +727,8 @@
     </div>
     <nav>
       <a id="navQuests">new enquiry</a>
-      <a id="navCrit">critique</a>
-      <a id="navSpec">spec</a>
+      <a id="navCrit" hidden>critique</a>
+      <a id="navSpec" hidden>spec</a>
       <a id="navAuthor" class="nav-author" hidden>author</a>
       <a id="navDeposit" class="nav-deposit" hidden>deposit</a>
       <a id="navAbout">about</a>
@@ -966,7 +966,7 @@
       </div>
 
       <div class="about-mode crit">
-        <div class="about-tag">second voice · to stress-test</div>
+        <div class="about-tag">second voice · to stress-test<span id="critOffline"> · offline for now</span></div>
         <h3>It stress-tests an idea — does it hold?</h3>
         <p>Bring an idea you want to pressure-test — a conclusion you reached in an enquiry, an answer a machine handed you, a claim you found anywhere — and paste it in. The stone questions <em>that text</em> instead of you. A settled idea, wherever it came from, is a conclusion already sitting in your understanding; the question worth asking is whether you reached it, or it was simply deposited there. So the stone does to the text what it does to your own premature certainty — it locates the spots where the text quietly decided something <em>for</em> you (called a thing "intuitive", "best practice", "obviously" — a judgement worn as a description) and asks you about those spots.</p>
         <p class="about-want"><b>What this voice wants.</b> Not to tell you the idea is wrong. It never grades the text, never marks it right or wrong — that would only be a second deposited verdict, this time the tool's. It wants to give you back the act of judging. <b>It locates; you decide.</b> It is the <em>neti neti</em> of the name turned outward — "not this, not this" — subtracting the text's smuggled certainties until what is left is yours to weigh.</p>
@@ -1305,12 +1305,12 @@ async function route(path){
   // EPHEMERAL (11 Jul 2026): nothing is saved, so nothing resumes. A deep link to a past enquiry or
   // critique simply opens a fresh one — there is no stored thread to reopen.
   if(conv){ startFreshEnquiry(); return; }
-  if(crit){ openNewCritique(); return; }
+  if(crit){ cfg.surfaces.includes('criticism') ? openNewCritique() : showStart(); return; }
   switch(path){
     case '/about':    showView('about'); break;
     case '/deposit':  showView('deposit'); loadDeposits(); break;
-    case '/critique': openNewCritique(); break;
-    case '/spec':     openNewSpec(); break;
+    case '/critique': cfg.surfaces.includes('criticism') ? openNewCritique() : showStart(); break;   // an offline surface lands on the start screen
+    case '/spec':     cfg.surfaces.includes('spec') ? openNewSpec() : showStart(); break;
     case '/author':   openAuthor(); break;
     case '/admin':    openAdmin(); break;
     case '/enquiry':  startFreshEnquiry(); break;
@@ -1331,7 +1331,7 @@ function el(html){ const t=document.createElement('template'); t.innerHTML=html.
 let me=null, quests=[];
 // shared "pool" key state: whether a free shared key is configured, the daily per-user allowance,
 // and how many free messages this user has left today (null until fetched).
-let cfg={poolEnabled:false, poolUserTurns:0}, poolTurnsLeft=null, poolBudget=null, isAiClub=false;
+let cfg={poolEnabled:false, poolUserTurns:0, surfaces:[]}, poolTurnsLeft=null, poolBudget=null, isAiClub=false;
 
 // ---------- conversation state (per quest) — declared BEFORE boot() so the file:// self-demo can run ----------
 const stream=$('stream'), input=$('input'), send=$('send'), field=$('field'), hint=$('hint');
@@ -1371,6 +1371,11 @@ let turnsSinceNudge=99;
   ]);
   cfg.poolEnabled = !!c.poolEnabled; cfg.poolUserTurns = c.poolUserTurns || 0; cfg.guestAllowed = !!c.guestAllowed;
   cfg.version = c.version || '';
+  // Which surfaces are on (30 Sep 2026: the critique and spec pages are offline, enquiry only). The two nav links are hidden in the markup and shown only when the server says their surface is on; the about page's "offline for now" is removed when it is.
+  cfg.surfaces = c.surfaces || [];
+  $('navCrit').hidden = !cfg.surfaces.includes('criticism');
+  $('navSpec').hidden = !cfg.surfaces.includes('spec');
+  if(cfg.surfaces.includes('criticism')){ const o=$('critOffline'); if(o) o.remove(); }
   if(cfg.version) document.querySelectorAll('.build-ver').forEach(e=>{ e.textContent='v'+cfg.version; });
   cfg.capture = !!c.capture;   // LOCAL capturing instance only — enables the on-voice/off-voice marks + author mode
   if(cfg.capture){ document.body.classList.add('capturing'); const na=$('navAuthor'); if(na) na.hidden=false; }
@@ -2702,7 +2707,9 @@ function resumeFromTranscript(parsed){
   for(const t of parsed.turns){
     history.push({role:t.role, content:t.content});
     if(t.role==='student'){ addYou(t.content); lastNode=stream.lastElementChild; }
-    else { lastNode=addStone(t.content, null, null, {opening:true}); attachExplain(lastNode, t.content, { surface:'enquiry', goal, context: explainContext(history.slice(0,-1)) }); }
+    else { lastNode=addStone(t.content, null, null, {opening:true});
+      if(!t.content){ const b=lastNode.querySelector('.body'); b.classList.add('blank'); b.innerHTML='<span class="mark">&lt;blank&gt;</span>'; }   // a resumed blank is marked, as a live one is
+      attachExplain(lastNode, t.content, { surface:'enquiry', goal, context: explainContext(history.slice(0,-1)), notAsked: !t.content.includes('?') || undefined }); }
   }
   exchanges=Math.max(0, history.filter(h=>h.role==='student').length-1);
   phase='dialogue'; input.placeholder=DIALOG_PH;
@@ -2804,8 +2811,9 @@ function attachCurtain(node, retrieved, guard){
 // the next question is composed as it would have been, and the download does not carry it.
 // Fetched once per question and kept, so opening it again costs nothing.
 function attachExplain(node, question, ctx){
-  if(!node || !question || node.querySelector(':scope > .explain-chip')) return;
-  const chip = el(`<button class="explain-chip" type="button" aria-expanded="false"><span class="xq-mark" aria-hidden="true"></span><span class="xq-label">explain question</span></button>`);
+  if(!node || (!question && !ctx.notAsked) || node.querySelector(':scope > .explain-chip')) return;
+  const name = ctx.notAsked ? 'explain this turn' : 'explain question';
+  const chip = el(`<button class="explain-chip" type="button" aria-expanded="false"><span class="xq-mark" aria-hidden="true"></span><span class="xq-label">${name}</span></button>`);
   const panel = el(`<div class="explain" hidden></div>`);
   const label = chip.querySelector('.xq-label');
   let state = 'idle';                                   // idle · loading · ready
@@ -2818,7 +2826,7 @@ function attachExplain(node, question, ctx){
     const ok = await streamExplain({ question, ...ctx }, panel);
     chip.classList.remove('busy');
     state = ok ? 'ready' : 'idle';
-    label.textContent = ok ? 'explain question' : 'explain question · try again';
+    label.textContent = ok ? name : name+' · try again';
     scrollTurnIntoView(panel);
   });
   const body = node.querySelector('.body');
@@ -2852,7 +2860,7 @@ async function streamExplain(payload, panel){
 // Bring the opened panel into view without the page-height overshoot this file already knows about.
 function scrollTurnIntoView(elm){ try{ elm.scrollIntoView({block:'nearest', behavior:'smooth'}); }catch(e){} }
 // The turns before a question, as the explanation's context. A snapshot, taken when the question lands.
-const explainContext = (arr)=> arr.slice(-6).map((m)=>({ role: (m.role==='student'||m.role==='you') ? 'student' : 'stone', content: String(m.content||'') }));
+const explainContext = (arr)=> arr.map((m)=>({ role: (m.role==='student'||m.role==='you') ? 'student' : 'stone', content: String(m.content||'') }));
 
 function showEdge(){ edge.hidden=false; showSaveStrip(); }
 // ONE place reveals the save strip (v1.9.2). It was four copies, and the dashboard link needs a second look at
@@ -2958,13 +2966,14 @@ async function streamStone(message, kind, reuseNode){
   if(revealing) await revealing;      // the chips and the curtain arrive once the question has finished unfolding
   // 🔴 A BLANK IS A TURN IN THE HISTORY, with empty content. The service stores nothing, so this is the
   //    only way it can know on the next turn that it has just blanked — and the only way the saved
-  //    transcript keeps a turn that happened. No explain chip and no curtain: there is no question to
-  //    explain, and nothing was composed from what was retrieved.
+  //    transcript keeps a turn that happened. No curtain: nothing was composed from what was retrieved.
+  // 🔴 A TURN THAT DID NOT ASK HAS ITS OWN CHIP (30 September 2026, Prayas: "there should be a explain-like chip under non-questions explaining the narrative logic in the conversation (so also enquiry logic)"). `notAsked` tells the route this is a turn to explain as a move in the conversation, not a question.
   if(blanked && !errored){
     body.classList.add('blank'); body.innerHTML='<span class="mark">&lt;blank&gt;</span>'; scroll();
+    attachExplain(node, '', { surface:'enquiry', goal, context: explainContext(history), notAsked:true });
     history.push({role:'interlocutor', content:''});
   }
-  if(full && !errored && !acked) attachExplain(node, full, { surface:'enquiry', goal, context: explainContext(history) });
+  if(full && !errored) attachExplain(node, full, { surface:'enquiry', goal, context: explainContext(history), notAsked: acked || undefined });
   if(full) history.push({role:'interlocutor', content:full});
   // refractory bookkeeping: reset when a nudge surfaced this turn, else it grows by one.
   turnsSinceNudge = nudgedThisTurn ? 0 : turnsSinceNudge+1;

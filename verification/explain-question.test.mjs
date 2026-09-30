@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {
   readExplanation, capWords, readingGrade, explainQuestion, buildExplainPrompt, explainInputs,
-  EXPLAIN_MAX_WORDS, EXPLAIN_PARTS,
+  EXPLAIN_MAX_WORDS, EXPLAIN_PARTS, EXPLAIN_ATTEMPTS,
 } from '../lib/explain.mjs';
 
 const APP = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -71,27 +71,34 @@ test('the reading-level measure separates a child’s paragraph from an academic
   assert.ok(readingGrade(HARD) > 12, `hard read as ${readingGrade(HARD)}`);
 });
 
-test('too hard → exactly one regeneration, and the easier draft is delivered', async () => {
+// From 30 September 2026 every draft passes the explanation's own guard or is asked for again with the guard's reasons (explain-guard.test.mjs holds the rules). A draft that passes must be built from the conversation's own words, so these tests carry the conversation it was drawn from.
+const INPUT = explainInputs({ question: 'Where does the lock go when the bike is moving?', goal: 'a bike lock people do not forget', context: [{ role: 'student', content: 'people forget their locks at the stand' }] });
+const PASSES = `ABOUT: This question asks where the lock goes when the bike is moving. You said people forget their locks at the stand.
+HELPS: Thinking about it lets you look at the lock and the bike together. You can see what the lock does for people.
+CHANGES: If you say the lock stays on the bike, the talk moves to the bike. If you say it stays at the stand, the talk moves to the stand.`;
+
+test('too hard → refused with the reason and asked for again; the draft that passes is delivered', async () => {
   const calls = [];
-  const out = await explainQuestion({ generate: async (c) => { calls.push(c); return c ? EASY : HARD; } });
+  const out = await explainQuestion({ input: INPUT, generate: async (c) => { calls.push(c); return c ? PASSES : HARD; } });
   assert.equal(calls.length, 2);
   assert.match(calls[1].instruction, /ten-year-old/);
   assert.equal(out.attempts, 2);
-  assert.match(out.parts[0].text, /bike lock/);
+  assert.match(out.parts[0].text, /where the lock goes/);
 });
 
-test('easy on the first draft → one call only', async () => {
+test('a draft that passes on the first attempt → one call only', async () => {
   let n = 0;
-  const out = await explainQuestion({ generate: async () => { n++; return EASY; } });
+  const out = await explainQuestion({ input: INPUT, generate: async () => { n++; return PASSES; } });
   assert.equal(n, 1);
   assert.equal(out.attempts, 1);
 });
 
-test('a malformed draft is asked for once more, then given up on', async () => {
+test('a malformed draft is asked for again up to the shared budget, then withheld', async () => {
   let n = 0;
-  const out = await explainQuestion({ generate: async () => { n++; return 'no markers here'; } });
-  assert.equal(n, 2);
-  assert.equal(out, null);
+  const out = await explainQuestion({ input: INPUT, generate: async () => { n++; return 'no markers here'; } });
+  assert.equal(n, EXPLAIN_ATTEMPTS);
+  assert.equal(out.withheld, true);
+  assert.equal(out.parts, undefined, 'nothing is delivered');
 });
 
 test('the prompt carries his scope: three parts, 250 words, a ten-year-old, and leaves the answering to them', () => {
@@ -220,24 +227,27 @@ const JARGONY = `ABOUT: This question is about the affordances of your bike lock
 HELPS: If you think about it, you can see what the lock is really for. That makes the idea clearer.
 CHANGES: If you say on the bike, the lock gets heavier. If you say at the stand, the stand needs to change.`;
 
-test('an explanation that adds jargon is asked for once more, in everyday words', async () => {
+test('an explanation that adds jargon is refused by name and asked for again', async () => {
   const calls = [];
-  const out = await explainQuestion({ own: new Set(['bike', 'lock']), generate: async (c) => { calls.push(c); return c ? EASY : JARGONY; } });
+  const out = await explainQuestion({ input: INPUT, generate: async (c) => { calls.push(c); return c ? PASSES : JARGONY; } });
   assert.equal(calls.length, 2);
-  assert.match(calls[1].instruction, /without these design words: affordance/);
-  assert.deepEqual(out.jargon, []);
-  assert.match(out.parts[0].text, /where the bike lock should go/);
+  assert.match(calls[1].instruction, /affordance/);
+  assert.match(out.parts[0].text, /where the lock goes/);
 });
 
 test('a jargon word already in the question may be explained', async () => {
   let n = 0;
-  const out = await explainQuestion({ own: new Set(['what', 'affordances', 'does', 'the', 'lock', 'have']), generate: async () => { n++; return JARGONY; } });
+  const input = explainInputs({ question: 'What affordances does the lock have?', goal: 'a bike lock' });
+  const draft = `ABOUT: This question asks about the affordances of the lock.
+HELPS: Thinking about it lets you look at the lock again.
+CHANGES: If you say more about the lock, the talk stays with the lock.`;
+  const out = await explainQuestion({ input, generate: async () => { n++; return draft; } });
   assert.equal(n, 1);
-  assert.deepEqual(out.jargon, []);
+  assert.match(out.parts[0].text, /affordances/);
 });
 
-test('the explanation prompt forbids jargon and the route passes the licensing words', () => {
+test('the explanation prompt forbids jargon and the route hands the guard its inputs', () => {
   const p = buildExplainPrompt(explainInputs({ question: 'Where does it go?' }));
   assert.match(p, /No design jargon/);
-  assert.match(route, /own: explainOwnWords\(input\)/);
+  assert.match(route, /explainQuestion\(\{\s*input,/);
 });

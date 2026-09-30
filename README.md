@@ -12,7 +12,7 @@
   <a href="https://zetizeti.com"><img src="https://img.shields.io/badge/live-zetizeti.com-0f7d72?style=flat-square" alt="live at zetizeti.com"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/zetizeti/zetizeti?style=flat-square&color=173a8c" alt="AGPL-3.0"></a>
   <a href="https://github.com/zetizeti/zetizeti/releases"><img src="https://img.shields.io/github/v/release/zetizeti/zetizeti?style=flat-square&color=f0b324" alt="release"></a>
-  <img src="https://img.shields.io/badge/tests-602%20passing-0f7d72?style=flat-square" alt="602 tests passing">
+  <img src="https://img.shields.io/badge/tests-627%20passing-0f7d72?style=flat-square" alt="627 tests passing">
 </p>
 
 <p align="center">
@@ -62,6 +62,8 @@ as a property ("the *clean* interface"), a directive, a verdict relayed as settl
 those spots. It never grades the text, never says "this is wrong," never speculates about whether the
 text is AI-written. **The tool locates; you judge.**
 
+**At zetizeti.com only the first voice is running.** The second voice, and a third surface that questions a specification, are in the code and switched off by default. A self-hosted copy turns them on with `ZETIZETI_SURFACES=enquiry,criticism,spec`.
+
 ## How it works — the architecture
 
 The division of labour is fixed and literal: **the AI does language · code does judgement and
@@ -88,7 +90,7 @@ advises, or concludes; `validateCriticismOutput` extends it to reject any verdic
 "this-is-AI" claim about a pasted text. They are **code, not model self-assessment** — changing them
 changes what the product *is*.
 
-**One exception, on request.** Pressing the *explain question* chip under a question gives a plain explanation a ten-year-old can follow: what the question is about, why thinking about your answer helps your idea, and what your answer could change. It runs to at most 250 words. It does not pass through either guard, because explaining is what the guards exist to refuse. The model reading the conversation never sees it, and it is not in the downloaded transcript. The questions themselves are still guarded.
+**One exception, on request.** Pressing the *explain question* chip under a question gives a plain explanation a ten-year-old can follow: what the question is about, why thinking about your answer helps your idea, and what your answer could change. It runs to at most 250 words. It does not pass through the question guards, because explaining is what they exist to refuse. It has a guard of its own: an explanation may not ask, advise or praise, and may say nothing about your idea in words that are not already in the conversation. A draft that fails is written again, and if none passes, nothing is shown. Under a turn that does not ask, the chip reads *explain this turn* and describes how the conversation has been moving. The model reading the conversation never sees an explanation, and none is in the downloaded transcript. The questions themselves are still guarded.
 
 In the critique voice, the *locating* runs with **no model at all**: `lib/qualify.mjs` tags each
 segment by readable grammar rules and an editable on-disk lexicon (every flag carries a `why` naming the

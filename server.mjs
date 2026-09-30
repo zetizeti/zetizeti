@@ -49,7 +49,7 @@ import {
   noteTurnDepth, turnDepthCurve, turnDepthSummary, turnDepthVersions,
 } from './lib/db.mjs';
 import { streamQuestion } from './lib/llm.mjs';
-import { explainInputs, buildExplainPrompt, explainQuestion, explainOwnWords } from './lib/explain.mjs';
+import { explainInputs, buildExplainPrompt, explainQuestion, TURN_PARTS } from './lib/explain.mjs';
 import { dashboardConfigured, dashboardAccount, sendToDashboard, sendProblem } from './lib/dashboard.mjs';   // "send to dashboard" (16 Sep 2026)   // "explain question" — the one guard exception (16 Sep 2026)
 import { generateGuarded } from './lib/guard.mjs';           // the guard's ENFORCEMENT layer (invariant #3)
 import { startHeartbeat } from './lib/heartbeat.mjs';       // keeps the guard's SILENT interval alive (see the file)
@@ -288,6 +288,13 @@ const STUDIO = { zetizeti: (process.env.STUDIO_URL_ZETIZETI || '').trim(), mindm
 // separates a fresh server from a stale one is when it started, compared with when the source last
 // changed. Cheap, and it makes "which build answered this?" a question anybody can settle.
 const STARTED_AT = new Date().toISOString();
+
+// 🔴 ENQUIRY ONLY (30 September 2026). Prayas: "make the critique ad spec pages offline - only enquiry mode needed". The critique and spec surfaces stay in the code and are switched off. Their routes answer 404, as every closed door here does, and `/api/config` tells the page which surfaces are on, so it offers no way in. `ZETIZETI_SURFACES=enquiry,criticism,spec` brings them back, and the critique and spec probes need it set locally.
+const SURFACES = new Set((process.env.ZETIZETI_SURFACES || 'enquiry').split(',').map((s) => s.trim()).filter(Boolean));
+const surfaceOn = (name) => (req, res, next) => (SURFACES.has(name) ? next() : res.status(404).json({ error: 'not found' }));
+app.use('/api/criticism', surfaceOn('criticism'));
+app.use('/api/spec', surfaceOn('spec'));
+
 app.get('/api/version', (req, res) => res.json({ ...BUILD, startedAt: STARTED_AT }));
 
 app.get('/api/config', (req, res) => res.json({
@@ -298,6 +305,7 @@ app.get('/api/config', (req, res) => res.json({
   cohorts: cohortSummary({ personalEnabled, studentsEnabled }),   // which tiers are wired + their sizes (no per-user data)
   studio: STUDIO,
   dashboardConfigured,              // send-to-dashboard wired (URL + token set) — a boolean, never the URL or token
+  surfaces: [...SURFACES],          // which surfaces are on; the page shows a way in to these and no others
 }));
 
 // Credit affordance for the AI Club footer — how many questions the student's own ₹5,000 key affords, ₹ via the
@@ -1729,7 +1737,7 @@ app.post('/api/spec/build', requireUser, async (req, res) => {
 // Stateless; `req.body` is never logged (invariant #8).
 app.post('/api/explain', requireUser, async (req, res) => {
   const input = explainInputs(req.body || {});              // NEVER logged; bounded inside
-  if (!input.question) { res.status(400).json({ error: 'No question to explain.' }); return; }
+  if (!input.question && !input.notAsked) { res.status(400).json({ error: 'No question to explain.' }); return; }   // a blank turn has no text, and is still a turn to explain
   sseHeaders(res);
   const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
   const key = await resolveKeyForCriticism(req, res, send); if (!key) return;
@@ -1737,9 +1745,10 @@ app.post('/api/explain', requireUser, async (req, res) => {
     send('status', { t: 'explaining…' });
     let cost = 0;
     const system = buildExplainPrompt(input);
-    const base = [{ role: 'user', content: '(explain the question)' }];
+    const base = [{ role: 'user', content: input.notAsked ? '(explain the turn)' : '(explain the question)' }];
     const out = await explainQuestion({
-      own: explainOwnWords(input),
+      input,                                             // what the explanation's own guard checks a draft against
+      parts: input.notAsked ? TURN_PARTS : undefined,   // a turn that did not ask is explained under its own three labels
       generate: (correction) => streamQuestion({
         system,
         messages: correction
@@ -1750,7 +1759,7 @@ app.post('/api/explain', requireUser, async (req, res) => {
         maxTokens: 700, temperature: 0.3, reasoning: { enabled: false }, apiKey: key.apiKey,
       }),
     });
-    if (!out) send('error', { code: 'EMPTY_GENERATION', message: 'The explanation did not come through — try again.' });
+    if (out.withheld) send('error', { code: 'EXPLANATION_WITHHELD', message: 'No explanation passed the checks this time — try again.' });   // withheld, never delivered flagged
     else send('explanation', { parts: out.parts, words: out.words });
     if (key.meter) { addPoolSpend(utcDay(), req.user.id, cost, key.poolFlag); if (key.usingPool) send('pool', poolEvent(req.user.id)); }
     send('done', {});
