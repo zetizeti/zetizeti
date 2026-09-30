@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { validateExplanation, readExplanation, explainInputs, explainQuestion, explainRepair, buildExplainPrompt, EXPLAIN_WORDS, EXPLAIN_ATTEMPTS, TURN_PARTS } from '../lib/explain.mjs';
+import { validateExplanation, pruneExplanation, readExplanation, explainInputs, explainQuestion, explainRepair, buildExplainPrompt, EXPLAIN_WORDS, EXPLAIN_ATTEMPTS, TURN_PARTS } from '../lib/explain.mjs';
 
 const APP = join(dirname(fileURLToPath(import.meta.url)), '..');
 const server = readFileSync(join(APP, 'server.mjs'), 'utf8');
@@ -83,10 +83,31 @@ test('the first part of a turn explanation describes the movement and gives no c
   refused(check(about + ' It stops because your reply was short.', helps, next, input), /gives a cause/);
 });
 
-test('the repair names what was refused, and a draft that never passes is withheld, never delivered', async () => {
+// 🔴 WITHHOLD THE SENTENCE, NOT THE EXPLANATION (30 Sep 2026, Prayas on one explanation in five being withheld: "isn't this a problem in experience?").
+test('when no draft passes whole, the breaching sentences are cut and the rest is delivered', async () => {
+  let n = 0;
+  const bad = `ABOUT: ${A}\nHELPS: ${H} You should buy a chain.\nCHANGES: ${C} Is the stand the place?`;
+  const out = await explainQuestion({ input: INPUT, generate: async () => { n++; return bad; } });
+  assert.equal(n, EXPLAIN_ATTEMPTS, 'the whole budget is spent on a draft that passes whole first');
+  assert.equal(out.pruned, true);
+  const text = out.parts.map((p) => p.text).join(' ');
+  assert.doesNotMatch(text, /chain|should|\?/, 'nothing that was refused is shown');
+  assert.match(text, /You can see what the lock does for people\./, 'the sentences that passed are kept');
+  assert.equal(validateExplanation(out, INPUT).ok, true, 'what is delivered passes the whole guard');
+});
+
+test('the no-cause rule is cut from the first part of a turn explanation only', () => {
+  const input = explainInputs({ question: '“Locks at the stand,” you say.', notAsked: true, goal: 'a bike lock', context: [{ role: 'student', content: 'people forget their locks at the stand' }] });
+  const p = pruneExplanation({ parts: [{ text: 'The turns before this one asked questions. It stops because you said locks. This turn asks nothing.' }, { text: 'It lets you look at your own words again.' }, { text: 'The next move is yours because this turn asked nothing.' }] }, input);
+  assert.equal(p.parts[0].text, 'The turns before this one asked questions. This turn asks nothing.');
+  assert.match(p.parts[2].text, /because/, 'a "because" outside the first part is not a cause for the turn');
+});
+
+test('the repair names what was refused, and a draft with a part that cannot be saved is withheld, never delivered', async () => {
   assert.match(explainRepair(['it asks a question']), /refused: it asks a question/);
   let n = 0;
-  const bad = `ABOUT: ${A}\nHELPS: ${H} You should buy a chain.\nCHANGES: ${C}`;
+  const bad = `ABOUT: ${A}\nHELPS: ${H}\nCHANGES: You should buy a chain.`;
+  assert.equal(pruneExplanation(readExplanation(bad), INPUT), null, 'a part with no sentence left cannot be delivered');
   const out = await explainQuestion({ input: INPUT, generate: async () => { n++; return bad; } });
   assert.equal(n, EXPLAIN_ATTEMPTS);
   assert.equal(out.withheld, true);

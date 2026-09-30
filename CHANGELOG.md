@@ -26,6 +26,12 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.16.1] — 30 September 2026
+
+**An explanation that fails the guard loses its failing sentences, not the whole of it.** Under v1.16.0 about one explanation in five was withheld, and the chip said to try again. Prayas: *"isn't this a problem in experience?"* Every rule of the guard except the reading grade can be read off a single sentence. So when no draft passes whole, the sentences that breach are cut from a draft and the rest is delivered, provided each of the three parts keeps a sentence and what remains passes the whole guard. Replayed over the 77 stored cases from the two guarded samples, 1 was still withheld; on the later sample it had been 8 of 45. What was cut ran from 8 words to 154.
+
+⚠️ A cut explanation can be short, and a sentence can lose the one it leaned on. The wait is unchanged: the four attempts are spent first, since a draft that passes whole reads better than a cut one.
+
 ## [1.16.0] — 30 September 2026
 
 **Enquiry only.** The critique and spec pages are offline. Prayas: *"only enquiry mode needed"*. Both surfaces stay in the code, switched off by default: their routes answer 404, the two links are gone from the header, and an address for either lands on the start screen. `ZETIZETI_SURFACES=enquiry,criticism,spec` turns them on in a self-hosted copy.
