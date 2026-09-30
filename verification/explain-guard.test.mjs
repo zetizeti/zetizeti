@@ -96,6 +96,15 @@ test('when no draft passes whole, the breaching sentences are cut and the rest i
   assert.equal(validateExplanation(out, INPUT).ok, true, 'what is delivered passes the whole guard');
 });
 
+// 🔴 ALTERNATIVES STAND TOGETHER (30 Sep 2026, Prayas on the cut explanations: "does it still make sense"). Four of thirteen had kept one alternative of a pair, which reads as a nudge towards it.
+test('when one alternative is cut, the others in that part go with it and the framing stays', () => {
+  const next = 'Your reply changes what comes next. If you say the lock stays on the bike, the talk moves to the bike. If you say it goes in a helmet, the talk moves there. Each reply takes the talk to a different place.';
+  const p = pruneExplanation({ parts: [{ text: A }, { text: H }, { text: next }] }, INPUT);
+  assert.equal(p.parts[2].text, 'Your reply changes what comes next. Each reply takes the talk to a different place.');
+  const both = 'Your reply changes what comes next. If you say the lock stays on the bike, the talk moves to the bike. If you say it stays at the stand, the talk moves to the stand. That part is important.';
+  assert.match(pruneExplanation({ parts: [{ text: A }, { text: H }, { text: both }] }, INPUT).parts[2].text, /on the bike.*at the stand/, 'a pair that both pass is kept whole when some other sentence is cut');
+});
+
 test('the no-cause rule is cut from the first part of a turn explanation only', () => {
   const input = explainInputs({ question: '“Locks at the stand,” you say.', notAsked: true, goal: 'a bike lock', context: [{ role: 'student', content: 'people forget their locks at the stand' }] });
   const p = pruneExplanation({ parts: [{ text: 'The turns before this one asked questions. It stops because you said locks. This turn asks nothing.' }, { text: 'It lets you look at your own words again.' }, { text: 'The next move is yours because this turn asked nothing.' }] }, input);

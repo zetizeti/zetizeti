@@ -26,6 +26,12 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.16.2] — 30 September 2026
+
+**When sentences are cut from an explanation, alternatives stand or fall together.** Prayas, on v1.16.1: *"does it still make sense"*. Read in full, eight of the thirteen explanations that cutting had rescued read well. Four had lost one of a pair: *If you say X… If you say Y…* with the second cut leaves the first standing alone, and a lone alternative is a nudge towards it. Now, where a sentence offering an alternative is cut, the run from the part's first such sentence to its last goes with it, and the framing on either side stays. Replayed over the same 77 cases: 63 pass whole, 12 are delivered cut, 2 are withheld.
+
+⚠️ A cut explanation makes sense and says less. Its third part can come down to one sentence (*"Your reply changes the next part of your plan."*), and three of the twelve keep a word that pointed at a cut sentence (*those words*, *that extra work*, *also*).
+
 ## [1.16.1] — 30 September 2026
 
 **An explanation that fails the guard loses its failing sentences, not the whole of it.** Under v1.16.0 about one explanation in five was withheld, and the chip said to try again. Prayas: *"isn't this a problem in experience?"* Every rule of the guard except the reading grade can be read off a single sentence. So when no draft passes whole, the sentences that breach are cut from a draft and the rest is delivered, provided each of the three parts keeps a sentence and what remains passes the whole guard. Replayed over the 77 stored cases from the two guarded samples, 1 was still withheld; on the later sample it had been 8 of 45. What was cut ran from 8 words to 154.
