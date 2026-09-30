@@ -26,6 +26,14 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.15.3] — 30 September 2026
+
+**A said-back phrase no longer has the same words around it every time.** Prayas: *"quote and you say feels mechanical."* Since v1.15.0 every turn that does not ask had one form, *"…," you say.* There are now ten (`SAY_BACK` in `lib/dialogue.mjs`), taken in order through a dialogue by counting the said-backs it already holds, so a form comes round again only at the eleventh: *"…," you say.* · *You say, "…"* · *"…" is how you put it.* · *In your words: "…"* · *"…," you said just now.* · *You said it this way: "…"* · *"…," to use your words.* · *From what you just said: "…"* · *"…," you wrote.* · *One thing you said: "…"*. The model still writes only the phrase, and the guard on the phrase is unchanged; code adds the words around it. Every form keeps the quotation marks and says the words are the learner's. An unquoted run of their words in the history would make the repeat gate refuse a later question that reuses them.
+
+Measured: in a 30-round replay of a class dialogue the same four turns were said back as on 29 September, each in a different form. Each form is one line in the list, and deleting the line drops it.
+
+⚠️ A reply that declines (*"I didn't understand the question"*) is still said back, as it was before this release.
+
 ## [1.15.2] — 30 September 2026
 
 **A hidden intensity contour: some questions are quiet.** Prayas: *"even if there are a lot of questions, they should not have the same intensity. there should be a graph in the conversation anyhow."* He chose a contour the dialogue follows over a graph on the page, which would have been a score (invariants 5 and 6). `lib/contour.mjs` gives every question a value between 0 and 1: a slow wave of two unrelated periods, phased by a hash of the learner's edge so it is stateless and two dialogues do not breathe together, plus the last reply's weight against that person's own median. Where the value is low the turn is **quiet**: a question of at most 14 words built only from words the learner has said, plus a few question stems, enforced by the guard (`quietWords`), not requested in a prompt. A cap on length alone was tried first and did not work: the quiet turns still brought in a premise. Quiet turns never come on the opening question or twice running, need at least two content words in the reply, and stay off returns, declines, corrections, asking-back, play, invites and prep. They carry no association join, and the pointed-ask (`precision`) is off on them. The hand-back fallback drops the quiet demand. Nothing about the contour is shown, stored or sent to the client.

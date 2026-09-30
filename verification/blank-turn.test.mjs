@@ -186,8 +186,22 @@ test('a said-back phrase is theirs, quoted and attributed by code, never left ba
   const { sayBack } = await import('../lib/dialogue.mjs');
   const own = new Set('what do i actually feel like what i do'.split(' '));
   assert.equal(validateStatement('Do I like what I do', { ownWords: own }).ok, true, 'their I stays: it is quoted');
-  assert.equal(sayBack('swinging starts from loose ideas.'), '“Swinging starts from loose ideas,” you say.');
-  assert.match(server, /send\('ack', \{ t: sayBack\(said\.text\) \}\)/, 'the route must quote and attribute every said-back phrase');
+  assert.equal(sayBack('swinging starts from loose ideas.', 0), '“Swinging starts from loose ideas,” you say.');
+  assert.match(server, /send\('ack', \{ t: sayBack\(said\.text, stoneTurns\.filter\(/, 'the route must quote and attribute every said-back phrase, and count the earlier ones');
+});
+
+// 🔴 ONE FORM EVERY TIME READ AS MECHANICAL (Prayas, 30 Sep 2026: "quote and you say feels mechanical").
+test('the words around a said-back phrase change each time, and every form still quotes it as theirs', async () => {
+  const { sayBack, SAY_BACK } = await import('../lib/dialogue.mjs');
+  const forms = SAY_BACK.map((_, n) => sayBack('do I like what I do', n));
+  assert.equal(new Set(forms).size, SAY_BACK.length, 'no form repeats until all are used');
+  assert.equal(sayBack('do I like what I do', SAY_BACK.length), forms[0], 'then the order starts again');
+  forms.forEach((f, n) => {
+    assert.match(f, /“Do I like what I do[,.]?”/, `their phrase, whole and in quotation marks: ${f}`);
+    assert.match(f, /\byou(r)?\b/i, `says whose words they are: ${f}`);
+    const short = sayBack('utter silence', n);   // short enough for the ten-word cap, so only the form is under test
+    assert.equal(validateStatement(short, { ownWords: new Set(short.toLowerCase().match(/[a-z']+/g)) }).ok, true, `asks nothing and carries no forbidden pattern: ${short}`);
+  });
 });
 
 test('a quoted phrase must be one unbroken run of their words: nothing added, nothing rearranged', () => {

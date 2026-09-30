@@ -1091,7 +1091,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
       if (said.check.ok) {
         const beat = beatMs({ replyWords: String(message).split(/\s+/).filter(Boolean).length, moment: fs && fs.semEvent ? 'new' : null });
         if (beat) { send('hold', { ms: beat }); await sleep(beat); }
-        send('ack', { t: sayBack(said.text) });
+        send('ack', { t: sayBack(said.text, stoneTurns.filter((q) => !String(q).includes('?')).length) });   // blanks are already out of `history`, so these are the earlier said-backs
         noteTurnDepth({ day: utcDay(), surface: 'enquiry', version: BUILD.version, depth: studentTurns.length - (prepWalk ? prepWalk.path.length : 0) });
         if (meter) { addPoolSpend(utcDay(), req.user.id, poolCost, poolFlag); if (usingPool) send('pool', poolEvent(req.user.id)); }
         send('done', {});
