@@ -26,6 +26,17 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.16.3] — 30 September 2026
+
+**A failed part is repaired alone before anything is cut.** Prayas, on the list of what v1.16.2 left imperfect: *"fix"*. Three things were on it: a cut explanation said less, a kept sentence could point at a cut one, and no cut explanation had been seen on a page.
+
+- The four attempts are now spent as two whole drafts and then part by part. The three parts are written to stand alone, so a part is taken from whichever whole draft it passed in, and a part that passed in neither is written again alone, twice at most, shown its own refused text. Only a part that never passes is cut. On 45 samples drawn from real dialogues: every part passed in 40, a part was cut in 5, and none was withheld; 43 kept more than 170 words and two came to about 100. Under v1.16.0 the same samples gave 37 delivered and 8 withheld.
+- A kept sentence that directly follows a cut one and leans on it (*also*, *those*, *them*, *instead*) is cut with it.
+- The reading grade still refuses a whole draft and no longer withholds at the last step: an explanation whose parts each passed is delivered. 42 of the 45 read at or under grade 6; the other three at 6.2, 6.9 and 7.5.
+- Seen on a page: on a local copy with four common words taken out of the allowed list, to force failures, all four explanations were delivered and read whole.
+
+⚠️ Two measured dead ends, recorded so they are not tried again. Repairing parts from the first draft on cost up to ten model calls for one explanation and delivered fewer whole ones, because a first draft nearly always reads too hard and only a whole rewrite answers that. And a repair that is not shown the text it is repairing does not converge.
+
 ## [1.16.2] — 30 September 2026
 
 **When sentences are cut from an explanation, alternatives stand or fall together.** Prayas, on v1.16.1: *"does it still make sense"*. Read in full, eight of the thirteen explanations that cutting had rescued read well. Four had lost one of a pair: *If you say X… If you say Y…* with the second cut leaves the first standing alone, and a lone alternative is a nudge towards it. Now, where a sentence offering an alternative is cut, the run from the part's first such sentence to its last goes with it, and the framing on either side stays. Replayed over the same 77 cases: 63 pass whole, 12 are delivered cut, 2 are withheld.

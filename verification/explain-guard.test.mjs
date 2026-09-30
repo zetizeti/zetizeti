@@ -84,11 +84,11 @@ test('the first part of a turn explanation describes the movement and gives no c
 });
 
 // 🔴 WITHHOLD THE SENTENCE, NOT THE EXPLANATION (30 Sep 2026, Prayas on one explanation in five being withheld: "isn't this a problem in experience?").
-test('when no draft passes whole, the breaching sentences are cut and the rest is delivered', async () => {
+test('a part that never passes is cut sentence by sentence, and the rest is delivered', async () => {
   let n = 0;
   const bad = `ABOUT: ${A}\nHELPS: ${H} You should buy a chain.\nCHANGES: ${C} Is the stand the place?`;
   const out = await explainQuestion({ input: INPUT, generate: async () => { n++; return bad; } });
-  assert.equal(n, EXPLAIN_ATTEMPTS, 'the whole budget is spent on a draft that passes whole first');
+  assert.equal(n, 2 + 2 * (EXPLAIN_ATTEMPTS - 2), 'two whole drafts, then two tries for each of the two parts that failed; the part that passed is not written again');
   assert.equal(out.pruned, true);
   const text = out.parts.map((p) => p.text).join(' ');
   assert.doesNotMatch(text, /chain|should|\?/, 'nothing that was refused is shown');
@@ -103,6 +103,39 @@ test('when one alternative is cut, the others in that part go with it and the fr
   assert.equal(p.parts[2].text, 'Your reply changes what comes next. Each reply takes the talk to a different place.');
   const both = 'Your reply changes what comes next. If you say the lock stays on the bike, the talk moves to the bike. If you say it stays at the stand, the talk moves to the stand. That part is important.';
   assert.match(pruneExplanation({ parts: [{ text: A }, { text: H }, { text: both }] }, INPUT).parts[2].text, /on the bike.*at the stand/, 'a pair that both pass is kept whole when some other sentence is cut');
+});
+
+// 🔴 WHOLE TWICE, THEN PART BY PART (30 Sep 2026, Prayas on the cut explanations that said too little: "fix").
+test('after two whole drafts only the part that failed is written again, shown its own refused text', async () => {
+  const calls = [];
+  const bad = `ABOUT: ${A}\nHELPS: ${H} You should buy a chain.\nCHANGES: ${C}`;
+  const out = await explainQuestion({ input: INPUT, generate: async (c) => { calls.push(c); return calls.length <= 2 ? bad : `HELPS: ${H}`; } });
+  assert.equal(calls.length, 3, 'one part failed, so one part is asked for');
+  assert.match(calls[2].instruction, /^The HELPS part was refused: /);
+  assert.match(calls[2].instruction, /The refused part read: """.*You should buy a chain\./s, 'a repair that is not shown what it is repairing does not converge');
+  assert.equal(out.pruned, false, 'nothing was cut: the part was repaired');
+  assert.deepEqual(out.parts.map((p) => p.text), [A, H, C]);
+});
+
+test('a part is taken from whichever whole draft it passed in', async () => {
+  let n = 0;
+  const one = `ABOUT: ${A}\nHELPS: ${H} You should buy a chain.\nCHANGES: ${C}`;
+  const two = `ABOUT: ${A}\nHELPS: ${H}\nCHANGES: ${C} Is the stand the place?`;
+  const out = await explainQuestion({ input: INPUT, generate: async () => (++n === 1 ? one : two) });
+  assert.equal(n, 2, 'both drafts failed whole, and every part passed in one of them, so nothing more is asked for');
+  assert.deepEqual(out.parts.map((p) => p.text), [A, H, C]);
+  assert.equal(out.pruned, false);
+});
+
+test('the reading grade refuses a whole draft and does not withhold an explanation whose parts all pass', async () => {
+  const long = 'This question asks where the lock goes when the bike is moving and where the lock goes when the bike is at the stand and where people forget their locks.';
+  const hard = `ABOUT: ${long}\nHELPS: Thinking about it lets you look at the lock and the bike together and lets you see what the lock does for people when they forget their locks at the stand.\nCHANGES: If you say the lock stays on the bike the talk moves to the bike and if you say it stays at the stand the talk moves to the stand and to the people.`;
+  assert.equal(validateExplanation(readExplanation(hard), INPUT).ok, false, 'as a whole draft it is refused for its grade');
+  let n = 0;
+  const out = await explainQuestion({ input: INPUT, generate: async () => { n++; return hard; } });
+  assert.equal(n, 2, 'it was asked for again whole, and no part needed repair');
+  assert.equal(out.withheld, undefined);
+  assert.ok(out.grade > 6, 'delivered, and known to read a little hard');
 });
 
 test('the no-cause rule is cut from the first part of a turn explanation only', () => {

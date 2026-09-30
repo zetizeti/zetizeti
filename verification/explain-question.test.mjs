@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {
   readExplanation, capWords, readingGrade, explainQuestion, buildExplainPrompt, explainInputs,
-  EXPLAIN_MAX_WORDS, EXPLAIN_PARTS, EXPLAIN_ATTEMPTS,
+  EXPLAIN_MAX_WORDS, EXPLAIN_PARTS,
 } from '../lib/explain.mjs';
 
 const APP = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -93,10 +93,10 @@ test('a draft that passes on the first attempt → one call only', async () => {
   assert.equal(out.attempts, 1);
 });
 
-test('a malformed draft is asked for again up to the shared budget, then withheld', async () => {
+test('a malformed draft is asked for once more whole, then withheld', async () => {
   let n = 0;
   const out = await explainQuestion({ input: INPUT, generate: async () => { n++; return 'no markers here'; } });
-  assert.equal(n, EXPLAIN_ATTEMPTS);
+  assert.equal(n, 2, 'a draft that cannot be read as three parts has no part to repair');
   assert.equal(out.withheld, true);
   assert.equal(out.parts, undefined, 'nothing is delivered');
 });
