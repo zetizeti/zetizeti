@@ -26,6 +26,10 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.17.1] — 1 October 2026
+
+**The choice turn comes when it is due.** Prayas: *"make it three turns minimum - try different prompt variations to get at least 3"*. v1.17.0 asked for exactly three questions and threw the whole set away if one failed, then gave up after two tries; on its first measurements a third of the turns that should have offered a choice asked one question instead. Now each try asks for five candidates, every candidate is checked on its own, and the ones that pass are kept across tries until there are three. There are three tries, each worded differently, before the turn falls back to one question. On five test dialogues, fifteen turns out of fifteen offered a choice, fourteen of them on the first try.
+
 ## [1.17.0] — 1 October 2026
 
 **A choice turn in enquiry.** Prayas: *"put the multiple choice thing in enquiry"*, and, to the objection that options break the questions-only rule, *"but multiple choice is not answering"*. When the learner says they do not know, or their reply adds nothing new, the stone can offer three questions instead of one, and the learner picks the one it asks. They can also write their own reply, and then none of the three is asked. Each option passes the same guard as any question and names a different thing the learner said, in their own word for it. If no set passes in two attempts, the turn asks one question as before. On the page the three sit in the stone's own type, with one light that moves to the question under the pointer and settles on the one chosen. Two first cuts were measured and dropped: holding every word of an option to the learner's own words produced word salad (*"When are the old Gujarati novels?"*), and the rule against repeating a recent opening word left three options almost no way to begin. An option not chosen is never asked and never saved; a choice not taken is saved as a turn that asked nothing.

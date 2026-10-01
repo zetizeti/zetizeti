@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { choiceTurn } from '../lib/pace.mjs';
-import { validateChoices, choiceLines, CHOICES } from '../lib/dialogue.mjs';
+import { validateChoices, choiceLines, keepChoices, CHOICES, CHOICE_BRIEFS } from '../lib/dialogue.mjs';
 import { content as contentWords } from '../lib/signals.mjs';
 import { NONMATERIAL } from '../lib/arc.mjs';
 
@@ -35,7 +35,7 @@ test('three open questions, each about a different thing they said, pass', () =>
 });
 
 test('the set is refused whole: a subject of the tool’s own, two on one thing, a missing question, a shared opening', () => {
-  assert.ok(validateChoices('What does the street give the people waiting?\nWhere does the shelter belong?\nWhat colour might a canopy be?', opts).reasons.some((r) => /question 3 names nothing they said/.test(r)), 'a subject of the tool’s own is refused');
+  assert.ok(validateChoices('What does the street give the people waiting?\nWhere does the shelter belong?\nWhat colour might a canopy be?', opts).reasons.some((r) => /question 3: names nothing they said/.test(r)), 'a subject of the tool’s own is refused');
   assert.ok(validateChoices('Where does the shelter belong?\nWho made the shelter belong?\nWhat does the street give the people waiting?', opts).reasons.some((r) => /about the same thing/.test(r)));
   assert.ok(validateChoices('What does the street give the people waiting?\nWhere does the shelter belong?', opts).reasons.some((r) => /exactly 3/.test(r)));
   assert.ok(validateChoices('What does the street give?\nWhat does the shelter belong to?\nWho notices the shelter every day?', opts).reasons.some((r) => /opens like another/.test(r)));
@@ -49,7 +49,8 @@ test('numbering and bullets are stripped, not counted as the question', () => {
 test('the route offers the choice before the ordinary question, and only a set that passed', () => {
   const at = server.indexOf('choiceTurn({ declined: !!declined, stalled: stalledInvite');
   assert.ok(at > 0 && at < server.indexOf('const guarded = await generateGuarded({'), 'decided before the ordinary question is generated');
-  assert.match(server, /if \(offered\.check\.ok\) \{[\s\S]{0,400}send\('choices', \{ qs: offered\.check\.qs \}\)/);
+  assert.match(server, /check: \{ ok: kept\.length >= CHOICES \}/);
+  assert.match(server, /if \(offered\.check\.ok\) \{[\s\S]{0,400}send\('choices', \{ qs: kept \}\)/);
 });
 
 test('the page holds the choice as an empty turn until one is chosen, and replying closes it', () => {
@@ -57,4 +58,17 @@ test('the page holds the choice as an empty turn until one is chosen, and replyi
   assert.match(page, /const entry=\{role:'interlocutor', content:''\}; history\.push\(entry\);/);
   assert.match(page, /entry\.content=qs\[i\];/);
   assert.match(page, /async function turn\(text\)\{\n  busy=true; send\.disabled=true;\n  closeChoices\(\);/);
+});
+
+test('good candidates are kept across tries until there are three, and a bad one does not sink the rest', () => {
+  let kept = keepChoices('What does the street give the people waiting?\nWhat colour might a canopy be?\nWhat does the street give the people waiting?', [], opts);
+  assert.deepEqual(kept, ['What does the street give the people waiting?'], 'the tool’s own subject and a repeat are dropped, the good one kept');
+  kept = keepChoices('Where, while they wait, does the shelter belong?\nWhat is it like to be dropped onto a street?\nWho else waits there every day?', kept, opts);
+  assert.equal(kept.length, CHOICES, 'stops at three');
+});
+
+test('three tries, each in a different wording', () => {
+  assert.ok(CHOICE_BRIEFS.length >= 3);
+  assert.equal(new Set(CHOICE_BRIEFS.map((b) => b(5))).size, CHOICE_BRIEFS.length);
+  assert.match(server, /for \(const brief of CHOICE_BRIEFS\)/);
 });

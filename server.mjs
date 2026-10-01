@@ -24,7 +24,7 @@ import { prepPlan, parseTasks, readiness as prepReadiness } from './lib/prep.mjs
 import { isLight, LIGHT_MAX } from './lib/contour.mjs';   // the hidden intensity contour: a quiet turn is a short question, guarded
 import { blankTurn, ackTurn, choiceTurn, beatMs, BLANK_MS, sleep } from './lib/pace.mjs';   // when a turn is silent or does not ask, and the beat — DETERMINISTIC, no LLM
 import { STATEMENT_SYSTEM, statementBrief, validateStatement, sayBack } from './lib/dialogue.mjs';   // the turn that does not ask: its prompt and its guard
-import { choiceBrief, validateChoices } from './lib/dialogue.mjs';   // the choice turn: three questions, the learner picks the one asked
+import { CHOICE_BRIEFS, CHOICES, CHOICE_ASK, keepChoices } from './lib/dialogue.mjs';   // the choice turn: three questions, the learner picks the one asked
 import { docFreq, informativeOf } from './lib/reading.mjs';          // engagement sensors — planner-only, never rendered
 import {
   googleConfigured, adminConfigured, emailIsAdmin, currentUser, logout, publicUser,
@@ -1115,33 +1115,37 @@ app.post('/api/chat', requireUser, async (req, res) => {
         return res.end();
       }
     }
-    // 🔴 THE CHOICE TURN (lib/pace.mjs, choiceTurn; lib/dialogue.mjs, validateChoices). Code decides when; the
-    //    model writes three questions; each must pass the question guard and name a different thing the learner
-    //    said, or the whole set is refused. Two attempts, then this turn asks one question as before. The learner picks
-    //    the one that is asked; the page posts it back as the stone's turn, or an empty turn if none was taken.
+    // 🔴 THE CHOICE TURN (lib/pace.mjs, choiceTurn; lib/dialogue.mjs, keepChoices). Code decides when. Up to three
+    //    tries, each in a different wording (CHOICE_BRIEFS), each asking for CHOICE_ASK candidates; every candidate
+    //    must pass the question guard and name a different thing the learner said, and the passing ones are kept
+    //    across tries until there are three. Short of three after every wording, this turn asks one question as
+    //    before. The learner picks the one that is asked; the page posts it back as the stone's turn, or an empty
+    //    turn if none was taken.
     if (!prepping && choiceTurn({ declined: !!declined, stalled: stalledInvite, replies: studentTurns.length - 1, lastStoneAsked })) {
       // ⚠️ No opener ban on the options: it keeps the ASKED questions from a rhythm, only the chosen one is asked, and
       //    three options that must open unlike each other AND unlike the last three questions had almost no
       //    words left (the local walk of 1 Oct: two of three sets refused for it). The head ban and the repeat gate stay.
       const choiceOptions = { ...guardOptions, banOpeners: [], mustHold: null, returnNote: null, quietWords: null, theirs: new Set(studentTurns.flatMap((t) => contentWords(t)).filter((w) => !NONMATERIAL.has(w))) };
-      const offered = await generateGuarded({
-        attempts: 2,
-        validate: (t) => validateChoices(t, choiceOptions),
-        generate: (correction) => streamQuestion({
+      let kept = [], tries = 0;
+      for (const brief of CHOICE_BRIEFS) {
+        if (kept.length >= CHOICES) break;
+        tries++;
+        const text = await streamQuestion({
           system,
           messages: [
             ...history.map((h) => ({ role: h.role === 'student' ? 'user' : 'assistant', content: h.content })),
-            { role: 'user', content: `${message}\n\n${choiceBrief()}` },
-            ...(correction && correction.previous ? [{ role: 'assistant', content: correction.previous }, { role: 'user', content: `[Refused: ${correction.reasons.join('; ')}. Write the three questions again.]` }] : []),
+            { role: 'user', content: `${message}\n\n${brief(CHOICE_ASK)}` },
           ],
-          maxTokens: 150, reasoning: { enabled: false }, onToken: () => {}, apiKey, onUsage,
-        }),
-      });
+          maxTokens: 250, reasoning: { enabled: false }, onToken: () => {}, apiKey, onUsage,
+        });
+        kept = keepChoices(text, kept, choiceOptions);
+      }
+      const offered = { regenerated: tries > 1, check: { ok: kept.length >= CHOICES } };
       noteGuard('choice', offered);
       if (offered.check.ok) {
         const beat = beatMs({ replyWords: String(message).split(/\s+/).filter(Boolean).length, moment: fs && fs.semEvent ? 'new' : null });
         if (beat) { send('hold', { ms: beat }); await sleep(beat); }
-        send('choices', { qs: offered.check.qs });
+        send('choices', { qs: kept });
         noteTurnDepth({ day: utcDay(), surface: 'enquiry', version: BUILD.version, depth: studentTurns.length - (prepWalk ? prepWalk.path.length : 0) });
         if (meter) { addPoolSpend(utcDay(), req.user.id, poolCost, poolFlag); if (usingPool) send('pool', poolEvent(req.user.id)); }
         send('done', {});
