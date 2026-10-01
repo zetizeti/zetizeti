@@ -26,6 +26,10 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.17.2] — 1 October 2026
+
+**The choices sit on translucent white panels.** Prayas asked for slick options on a translucent white ground. Each of the three questions is now its own frosted panel over the page; the one under the pointer brightens and moves forward, the one picked turns red, and the other two fall back.
+
 ## [1.17.1] — 1 October 2026
 
 **The choice turn comes when it is due.** Prayas: *"make it three turns minimum - try different prompt variations to get at least 3"*. v1.17.0 asked for exactly three questions and threw the whole set away if one failed, then gave up after two tries; on its first measurements a third of the turns that should have offered a choice asked one question instead. Now each try asks for five candidates, every candidate is checked on its own, and the ones that pass are kept across tries until there are three. There are three tries, each worded differently, before the turn falls back to one question. On five test dialogues, fifteen turns out of fifteen offered a choice, fourteen of them on the first try.

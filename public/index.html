@@ -447,29 +447,23 @@
   @keyframes blankrun{to{height:58px}}
   .turn.stone .body.blank .mark{position:absolute; left:20px; bottom:6px; font-family:var(--mono);
     font-size:11px; letter-spacing:.22em; color:var(--faint)}
-  /* THE CHOICE TURN (1 Oct 2026; docs/ops/choice-turn-sample-20261001.html, the sample Prayas shaped:
-     "bg shading too and hover this looks fragmented", then "make it look slick"). The three questions
-     are the stone's own type on one field; one vermilion light, faded at every edge, glides to the question
-     under the pointer and settles, brighter, on the one chosen. No box, no numbers. */
+  /* THE CHOICE TURN (1 Oct 2026). Prayas: slick options on a translucent white ground. Each question is its own
+     frosted panel over the field; hover lifts it, the chosen one takes the red as a mass and the others fall back. */
   .choose{position:relative; max-width:640px}
   .choose-lead{font-family:var(--mono); font-size:11.5px; letter-spacing:.12em; color:var(--bone); opacity:.82; margin:0 0 14px}
-  .ways{position:relative; list-style:none; margin:0; padding:0}
-  .glide{position:absolute; left:-48px; right:-48px; top:0; height:0; z-index:0; pointer-events:none; opacity:0;
-    background:linear-gradient(90deg,transparent 0%,rgba(232,67,31,.42) 14%,rgba(232,67,31,.42) 66%,transparent 92%);
-    -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 28%,#000 72%,transparent 100%); mask-image:linear-gradient(180deg,transparent 0%,#000 28%,#000 72%,transparent 100%);
-    transition:top .5s cubic-bezier(.22,.8,.24,1), height .5s cubic-bezier(.22,.8,.24,1), opacity .4s ease, background .5s ease}
-  .glide.hot{background:linear-gradient(90deg,transparent 0%,rgba(232,67,31,.9) 14%,rgba(232,67,31,.9) 66%,transparent 92%)}
-  .ways.hovering .glide, .ways.decided .glide{opacity:1}
-  .way{position:relative; z-index:1; display:block; padding:13px 0; cursor:pointer; font-family:var(--display); font-size:22px; line-height:1.45; color:var(--goldtext); transition:color .4s ease, opacity .5s ease}
-  .way.lit, .way.chosen{color:var(--bone)}
-  .ways.decided .way{cursor:default}
-  .ways.decided .way:not(.chosen), .ways.closed .way{opacity:.7; color:var(--bone-dim)}
-  .ways.closed .way{cursor:default}
-  .way:focus-visible{outline:none}
+  .ways{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px}
+  .way{display:block; padding:14px 20px; cursor:pointer; font-family:var(--display); font-size:21px; line-height:1.42; color:var(--bone);
+    background:rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.16); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+    box-shadow:0 10px 30px rgba(5,10,30,.28); transition:background .3s ease, border-color .3s ease, transform .3s cubic-bezier(.22,.8,.24,1), opacity .4s ease, color .3s ease}
+  .way:hover, .way.lit{background:rgba(255,255,255,.17); border-color:rgba(255,255,255,.32); transform:translateX(6px)}
+  .way.chosen{background:rgba(232,67,31,.62); border-color:rgba(255,190,170,.45); color:#fff6ec; transform:none}
+  .ways.decided .way, .ways.closed .way{cursor:default}
+  .ways.decided .way:not(.chosen), .ways.closed .way{opacity:.42; transform:none; background:rgba(255,255,255,.05)}
+  .way:focus-visible{outline:2px solid rgba(255,255,255,.5); outline-offset:2px}
   .choose .own{margin-top:16px; font-family:var(--mono); font-size:11.5px; letter-spacing:.12em; color:var(--bone-dim); opacity:.85}
   .choose .own u{text-decoration-color:rgba(205,214,234,.4); text-underline-offset:4px; cursor:pointer}
   .choose.taken .own{display:none}
-  @media(max-width:640px){ .way{font-size:20px} .glide{left:-16px; right:-16px} }
+  @media(max-width:640px){ .way{font-size:19px; padding:12px 16px} }
   .divider{padding:18px 0 2px; font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--vermilion); opacity:0; animation:rise .7s forwards}
   .divider::before{content:"— "}.divider::after{content:" —"}
   /* a read handed back to the learner (the nudge's "surface" — never a verdict, a question) */
@@ -2936,17 +2930,16 @@ function redraw(text){
 //    and the three stay unasked. The service stores nothing, so this entry is the whole record of the choice.
 function offerChoices(node, body, qs){
   const entry={role:'interlocutor', content:''}; history.push(entry);
-  body.innerHTML=`<div class="choose"><p class="choose-lead">three ways on, from your words — choose the one to be asked</p><ol class="ways"><span class="glide"></span>${qs.map(q=>`<li class="way" tabindex="0">${esc(q)}</li>`).join('')}</ol><p class="own">or <u>write your own reply</u> — the three stay unasked</p></div>`;
-  const list=body.querySelector('.ways'), glide=list.querySelector('.glide'), ways=[...list.querySelectorAll('.way')];
-  const place=(li)=>{ glide.style.top=(li.offsetTop-14)+'px'; glide.style.height=(li.offsetHeight+28)+'px'; };
+  body.innerHTML=`<div class="choose"><p class="choose-lead">three ways on, from your words — choose the one to be asked</p><ol class="ways">${qs.map(q=>`<li class="way" tabindex="0">${esc(q)}</li>`).join('')}</ol><p class="own">or <u>write your own reply</u> — the three stay unasked</p></div>`;
+  const list=body.querySelector('.ways'), ways=[...list.querySelectorAll('.way')];
   const open=()=>!list.classList.contains('decided') && !list.classList.contains('closed');
-  const light=(w)=>{ if(!open()) return; ways.forEach(x=>x.classList.toggle('lit',x===w)); list.classList.add('hovering'); place(w); };
+  const light=(w)=>{ if(!open()) return; ways.forEach(x=>x.classList.toggle('lit',x===w)); };
   ways.forEach((w,i)=>{
     w.addEventListener('mouseenter',()=>light(w));
     w.addEventListener('focus',()=>light(w));
     const choose=()=>{ if(!open() || busy) return;
       ways.forEach(x=>x.classList.remove('lit')); w.classList.add('chosen');
-      list.classList.remove('hovering'); list.classList.add('decided'); glide.classList.add('hot'); place(w);
+      list.classList.add('decided');
       body.querySelector('.choose').classList.add('taken');
       entry.content=qs[i];
       attachExplain(node, qs[i], { surface:'enquiry', goal, context: explainContext(history) });
@@ -2954,13 +2947,13 @@ function offerChoices(node, body, qs){
     w.addEventListener('click', choose);
     w.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); choose(); } });
   });
-  list.addEventListener('mouseleave',()=>{ if(open()){ list.classList.remove('hovering'); ways.forEach(x=>x.classList.remove('lit')); } });
+  list.addEventListener('mouseleave',()=>{ if(open()) ways.forEach(x=>x.classList.remove('lit')); });
   body.querySelector('.own u').addEventListener('click',()=>input.focus());
   scroll();
 }
 // Replying closes any choice still open: from then on the three are unasked.
 function closeChoices(){
-  document.querySelectorAll('.choose:not(.taken)').forEach(c=>{ c.classList.add('taken'); const l=c.querySelector('.ways'); l.classList.add('closed'); l.classList.remove('hovering'); l.querySelectorAll('.way').forEach(x=>x.classList.remove('lit')); });
+  document.querySelectorAll('.choose:not(.taken)').forEach(c=>{ c.classList.add('taken'); const l=c.querySelector('.ways'); l.classList.add('closed'); l.querySelectorAll('.way').forEach(x=>x.classList.remove('lit')); });
 }
 
 // 🔴 THE QUESTION UNFOLDS, IT DOES NOT LAND (28 Sep 2026). Word by word at REVEAL_MS a word, so a question
