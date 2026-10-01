@@ -2,6 +2,8 @@
 
 *What to bring when you want to be questioned into an area you do not work in yet. What the file has to contain, and what the person who prepares it decides. 28 August 2026.*
 
+> 🔴 **Offline from v1.17.0 (1 October 2026).** Prayas: *"take prep offline"*. The doorway is hidden from the start screen, the readiness check answers 404, and the enquiry route ignores an attached sheet; the code is kept. `ZETIZETI_SURFACES=enquiry,prep` brings it back, and everything below describes how it works when it is on.
+
 Attach a prep sheet on the **begin an enquiry** screen, under the box where you would normally name your edge, and the conversation opens differently. Instead of asking about the edge you named, the stone walks six lines through the document you brought — what the field calls things, where it came from, what you need before you can start, what is hard here, what is already to hand, and what the field says about itself. Then it stops, and the enquiry is yours again, in an area you now have words for.
 
 It still never tells you anything. You brought the document, and the document is what does the telling. Every prep question points at a passage of your own file and asks what you already make of it. A question that glossed a term for you is withheld before you read it, by the same guard that withholds an answer anywhere else in this tool.

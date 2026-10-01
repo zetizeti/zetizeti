@@ -380,6 +380,9 @@ async function assertLiveBuild() {
     });
     // A turn that does not ask arrives as `ack` (a sentence) or `blank` (nothing); both are turns, as in the page.
     question = ev.filter((e) => e.event === 'token' || e.event === 'ack').map((e) => e.data.t).join('').trim();
+    // A choice turn (v1.17.0) offers three questions and the learner picks one; the probe always takes the first, so a run is reproducible.
+    const offered = ev.find((e) => e.event === 'choices');
+    if (offered) { question = offered.data.qs[0]; console.log(`   [choice turn: ${offered.data.qs.length} offered, the first taken]`); }
     const validation = ev.find((e) => e.event === 'validation')?.data || {};
     if (!question && !ev.some((e) => e.event === 'blank')) throw new Error(`round ${round}: nothing came back`);
     history.push({ role: 'stone', content: question });

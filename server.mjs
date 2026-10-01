@@ -22,8 +22,9 @@ import { qualify, toCanonSegments, segmentText } from './lib/qualify.mjs';   // 
 import { planFor, windowOf, briefDigest } from './lib/plan.mjs';   // the reading plan — DETERMINISTIC, no LLM
 import { prepPlan, parseTasks, readiness as prepReadiness } from './lib/prep.mjs';   // the prep arc — DETERMINISTIC, no LLM
 import { isLight, LIGHT_MAX } from './lib/contour.mjs';   // the hidden intensity contour: a quiet turn is a short question, guarded
-import { blankTurn, ackTurn, beatMs, BLANK_MS, sleep } from './lib/pace.mjs';   // when a turn is silent or does not ask, and the beat — DETERMINISTIC, no LLM
+import { blankTurn, ackTurn, choiceTurn, beatMs, BLANK_MS, sleep } from './lib/pace.mjs';   // when a turn is silent or does not ask, and the beat — DETERMINISTIC, no LLM
 import { STATEMENT_SYSTEM, statementBrief, validateStatement, sayBack } from './lib/dialogue.mjs';   // the turn that does not ask: its prompt and its guard
+import { choiceBrief, validateChoices } from './lib/dialogue.mjs';   // the choice turn: three questions, the learner picks the one asked
 import { docFreq, informativeOf } from './lib/reading.mjs';          // engagement sensors — planner-only, never rendered
 import {
   googleConfigured, adminConfigured, emailIsAdmin, currentUser, logout, publicUser,
@@ -151,6 +152,7 @@ const guardStats = {
   enquiry:   { turns: 0, regenerated: 0, flagged: 0 },
   criticism: { turns: 0, regenerated: 0, flagged: 0 },
   statement: { turns: 0, regenerated: 0, flagged: 0 },   // the turn that does not ask; a flagged one is never delivered
+  choice:    { turns: 0, regenerated: 0, flagged: 0 },   // the choice turn; a flagged set is never delivered
 };
 // Felt-shift telemetry — same discipline as guardStats: counts + a latency reading, never content.
 const feltStats = { computed: 0, sem: 0, lex: 0, skipped: 0, msLast: 0 };
@@ -294,6 +296,11 @@ const SURFACES = new Set((process.env.ZETIZETI_SURFACES || 'enquiry').split(',')
 const surfaceOn = (name) => (req, res, next) => (SURFACES.has(name) ? next() : res.status(404).json({ error: 'not found' }));
 app.use('/api/criticism', surfaceOn('criticism'));
 app.use('/api/spec', surfaceOn('spec'));
+// 🔴 PREP IS OFFLINE TOO (1 October 2026, Prayas: "take prep offline"). Prep is not a route of its own: it rides
+// inside /api/chat as a `prep` field. So the switch is two places, both below — the readiness helper's prefix
+// here, and the chat route, which ignores `prep`, `tasks` and `sheetName` unless the surface is on, so an offline
+// prep turn is byte-identical to a plain enquiry turn. `ZETIZETI_SURFACES=enquiry,prep` brings it back.
+app.use('/api/prep', surfaceOn('prep'));
 
 app.get('/api/version', (req, res) => res.json({ ...BUILD, startedAt: STARTED_AT }));
 
@@ -557,7 +564,8 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // branch is gated on `prepping`, which is false for every conversation that could have been had before
   // today. The two student fixtures are unaffected by construction, which is how the two-student rule is
   // discharged for a feature that adds a register instead of changing one.
-  const prepText = typeof req.body?.prep === 'string' ? req.body.prep.slice(0, DOC_MAX) : '';
+  const prepOn = SURFACES.has('prep');   // offline from 1 Oct 2026: a `prep` field is ignored, not refused
+  const prepText = prepOn && typeof req.body?.prep === 'string' ? req.body.prep.slice(0, DOC_MAX) : '';
   // The tasks document, if one was attached beside the sheet. Split, never composed: the entries are
   // whoever-prepared-the-material's decision and travel verbatim to the closing turn.
   const prepTasks = typeof req.body?.tasks === 'string' ? parseTasks(req.body.tasks.slice(0, DOC_MAX)) : [];
@@ -566,7 +574,8 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // mentor prepsheet, it is one. check filename"). His rule, and it replaces a heading heuristic I had
   // invented an hour earlier — the parts exist to hold the gaps, a mentor preparing himself at one desk
   // takes none, and a student walking a course built on three submissions takes three. Three stays the
-  // default, so dsl-status is untouched: it collects three transcripts and gates each part on its pack.
+  // default. dsl-status, which collected three transcripts and gated each part on its pack, was retired on
+  // 9 Sep 2026, so nothing live depends on the shape now, and prep itself is offline from v1.17.0.
   //
   // ⚠️ IT KEYS ON A NAME, so renaming a file changes how it is walked. That is legible rather than clever
   // — whoever writes the sheet also names it — but it is worth knowing before wondering why an arc got
@@ -1100,6 +1109,39 @@ app.post('/api/chat', requireUser, async (req, res) => {
         const beat = beatMs({ replyWords: String(message).split(/\s+/).filter(Boolean).length, moment: fs && fs.semEvent ? 'new' : null });
         if (beat) { send('hold', { ms: beat }); await sleep(beat); }
         send('ack', { t: sayBack(said.text, stoneTurns.filter((q) => !String(q).includes('?')).length) });   // blanks are already out of `history`, so these are the earlier said-backs
+        noteTurnDepth({ day: utcDay(), surface: 'enquiry', version: BUILD.version, depth: studentTurns.length - (prepWalk ? prepWalk.path.length : 0) });
+        if (meter) { addPoolSpend(utcDay(), req.user.id, poolCost, poolFlag); if (usingPool) send('pool', poolEvent(req.user.id)); }
+        send('done', {});
+        return res.end();
+      }
+    }
+    // 🔴 THE CHOICE TURN (lib/pace.mjs, choiceTurn; lib/dialogue.mjs, validateChoices). Code decides when; the
+    //    model writes three questions; each must pass the question guard and name a different thing the learner
+    //    said, or the whole set is refused. Two attempts, then this turn asks one question as before. The learner picks
+    //    the one that is asked; the page posts it back as the stone's turn, or an empty turn if none was taken.
+    if (!prepping && choiceTurn({ declined: !!declined, stalled: stalledInvite, replies: studentTurns.length - 1, lastStoneAsked })) {
+      // ⚠️ No opener ban on the options: it keeps the ASKED questions from a rhythm, only the chosen one is asked, and
+      //    three options that must open unlike each other AND unlike the last three questions had almost no
+      //    words left (the local walk of 1 Oct: two of three sets refused for it). The head ban and the repeat gate stay.
+      const choiceOptions = { ...guardOptions, banOpeners: [], mustHold: null, returnNote: null, quietWords: null, theirs: new Set(studentTurns.flatMap((t) => contentWords(t)).filter((w) => !NONMATERIAL.has(w))) };
+      const offered = await generateGuarded({
+        attempts: 2,
+        validate: (t) => validateChoices(t, choiceOptions),
+        generate: (correction) => streamQuestion({
+          system,
+          messages: [
+            ...history.map((h) => ({ role: h.role === 'student' ? 'user' : 'assistant', content: h.content })),
+            { role: 'user', content: `${message}\n\n${choiceBrief()}` },
+            ...(correction && correction.previous ? [{ role: 'assistant', content: correction.previous }, { role: 'user', content: `[Refused: ${correction.reasons.join('; ')}. Write the three questions again.]` }] : []),
+          ],
+          maxTokens: 150, reasoning: { enabled: false }, onToken: () => {}, apiKey, onUsage,
+        }),
+      });
+      noteGuard('choice', offered);
+      if (offered.check.ok) {
+        const beat = beatMs({ replyWords: String(message).split(/\s+/).filter(Boolean).length, moment: fs && fs.semEvent ? 'new' : null });
+        if (beat) { send('hold', { ms: beat }); await sleep(beat); }
+        send('choices', { qs: offered.check.qs });
         noteTurnDepth({ day: utcDay(), surface: 'enquiry', version: BUILD.version, depth: studentTurns.length - (prepWalk ? prepWalk.path.length : 0) });
         if (meter) { addPoolSpend(utcDay(), req.user.id, poolCost, poolFlag); if (usingPool) send('pool', poolEvent(req.user.id)); }
         send('done', {});

@@ -447,6 +447,29 @@
   @keyframes blankrun{to{height:58px}}
   .turn.stone .body.blank .mark{position:absolute; left:20px; bottom:6px; font-family:var(--mono);
     font-size:11px; letter-spacing:.22em; color:var(--faint)}
+  /* THE CHOICE TURN (1 Oct 2026; docs/ops/choice-turn-sample-20261001.html, the sample Prayas shaped:
+     "bg shading too and hover this looks fragmented", then "make it look slick"). The three questions
+     are the stone's own type on one field; one vermilion light, faded at every edge, glides to the question
+     under the pointer and settles, brighter, on the one chosen. No box, no numbers. */
+  .choose{position:relative; max-width:640px}
+  .choose-lead{font-family:var(--mono); font-size:11.5px; letter-spacing:.12em; color:var(--bone); opacity:.82; margin:0 0 14px}
+  .ways{position:relative; list-style:none; margin:0; padding:0}
+  .glide{position:absolute; left:-48px; right:-48px; top:0; height:0; z-index:0; pointer-events:none; opacity:0;
+    background:linear-gradient(90deg,transparent 0%,rgba(232,67,31,.42) 14%,rgba(232,67,31,.42) 66%,transparent 92%);
+    -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 28%,#000 72%,transparent 100%); mask-image:linear-gradient(180deg,transparent 0%,#000 28%,#000 72%,transparent 100%);
+    transition:top .5s cubic-bezier(.22,.8,.24,1), height .5s cubic-bezier(.22,.8,.24,1), opacity .4s ease, background .5s ease}
+  .glide.hot{background:linear-gradient(90deg,transparent 0%,rgba(232,67,31,.9) 14%,rgba(232,67,31,.9) 66%,transparent 92%)}
+  .ways.hovering .glide, .ways.decided .glide{opacity:1}
+  .way{position:relative; z-index:1; display:block; padding:13px 0; cursor:pointer; font-family:var(--display); font-size:22px; line-height:1.45; color:var(--goldtext); transition:color .4s ease, opacity .5s ease}
+  .way.lit, .way.chosen{color:var(--bone)}
+  .ways.decided .way{cursor:default}
+  .ways.decided .way:not(.chosen), .ways.closed .way{opacity:.7; color:var(--bone-dim)}
+  .ways.closed .way{cursor:default}
+  .way:focus-visible{outline:none}
+  .choose .own{margin-top:16px; font-family:var(--mono); font-size:11.5px; letter-spacing:.12em; color:var(--bone-dim); opacity:.85}
+  .choose .own u{text-decoration-color:rgba(205,214,234,.4); text-underline-offset:4px; cursor:pointer}
+  .choose.taken .own{display:none}
+  @media(max-width:640px){ .way{font-size:20px} .glide{left:-16px; right:-16px} }
   .divider{padding:18px 0 2px; font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--vermilion); opacity:0; animation:rise .7s forwards}
   .divider::before{content:"— "}.divider::after{content:" —"}
   /* a read handed back to the learner (the nudge's "surface" — never a verdict, a question) */
@@ -810,7 +833,7 @@
       <!-- BRING A PREP SHEET (28 Aug 2026). Same job as the transcript upload directly above — a file the
            student brings in at the start, read in the tab, never uploaded — so deliberately the same
            component rather than a second one that looks nearly like it. -->
-      <label class="ul-transcript" for="prepDoc">
+      <label class="ul-transcript" for="prepDoc" id="prepDoor" hidden>
         <span class="ul-lead">↑ bring a prep sheet for a new area</span> <span class="ul-file">choose a .pdf, .md or .txt</span>
       </label>
       <input id="prepDoc" type="file" accept=".pdf,application/pdf,.md,text/markdown,.txt,text/plain" hidden />
@@ -824,7 +847,7 @@
       <!-- Kept to three lines after rendering it: seven lines of dim mono under a chip reads as a wall on a
            screen whose whole job is one uncluttered choice, and the detail belongs in docs/concept/prep-file.md
            rather than on the doorway. -->
-      <p class="ul-note" id="prepNote">A glossary or briefing about a field you don't work in yet. Six lines of questioning
+      <p class="ul-note" id="prepNote" hidden>A glossary or briefing about a field you don't work in yet. Six lines of questioning
         across three sittings, asking where <em>you</em> stand — then it stops and the enquiry is yours. Read here in your
         browser, never uploaded.</p>
       <!-- 🔴 NO ONE-OR-THREE CONTROL (Prayas, 30 August 2026: "I do not want a two or one choice for a mentor
@@ -1376,6 +1399,8 @@ let turnsSinceNudge=99;
   $('navCrit').hidden = !cfg.surfaces.includes('criticism');
   $('navSpec').hidden = !cfg.surfaces.includes('spec');
   if(cfg.surfaces.includes('criticism')){ const o=$('critOffline'); if(o) o.remove(); }
+  // Prep is offline from 1 Oct 2026 ("take prep offline"): its doorway is hidden in the markup and shown only when the server says it is on.
+  if(cfg.surfaces.includes('prep')){ $('prepDoor').hidden=false; $('prepNote').hidden=false; }
   if(cfg.version) document.querySelectorAll('.build-ver').forEach(e=>{ e.textContent='v'+cfg.version; });
   cfg.capture = !!c.capture;   // LOCAL capturing instance only — enables the on-voice/off-voice marks + author mode
   if(cfg.capture){ document.body.classList.add('capturing'); const na=$('navAuthor'); if(na) na.hidden=false; }
@@ -2893,6 +2918,7 @@ function startDialogue(text){
 }
 async function turn(text){
   busy=true; send.disabled=true;
+  closeChoices();
   addYou(text); history.push({role:'student', content:text}); exchanges++; updateEdge();
   await streamStone(text,'turn');
   busy=false; send.disabled=false; input.focus();
@@ -2903,6 +2929,38 @@ function redraw(text){
   updateEdge(); addDivider('the edge, re-drawn'); addYou(text);
   busy=true; send.disabled=true;
   streamStone(text,'redraw').then(()=>{ busy=false; send.disabled=false; input.focus(); });
+}
+
+// 🔴 THE CHOICE TURN (1 Oct 2026). The stone's turn enters the history EMPTY, as a turn that asked nothing, and
+//    becomes the chosen question when the learner picks one; if they reply without choosing, it stays empty
+//    and the three stay unasked. The service stores nothing, so this entry is the whole record of the choice.
+function offerChoices(node, body, qs){
+  const entry={role:'interlocutor', content:''}; history.push(entry);
+  body.innerHTML=`<div class="choose"><p class="choose-lead">three ways on, from your words — choose the one to be asked</p><ol class="ways"><span class="glide"></span>${qs.map(q=>`<li class="way" tabindex="0">${esc(q)}</li>`).join('')}</ol><p class="own">or <u>write your own reply</u> — the three stay unasked</p></div>`;
+  const list=body.querySelector('.ways'), glide=list.querySelector('.glide'), ways=[...list.querySelectorAll('.way')];
+  const place=(li)=>{ glide.style.top=(li.offsetTop-14)+'px'; glide.style.height=(li.offsetHeight+28)+'px'; };
+  const open=()=>!list.classList.contains('decided') && !list.classList.contains('closed');
+  const light=(w)=>{ if(!open()) return; ways.forEach(x=>x.classList.toggle('lit',x===w)); list.classList.add('hovering'); place(w); };
+  ways.forEach((w,i)=>{
+    w.addEventListener('mouseenter',()=>light(w));
+    w.addEventListener('focus',()=>light(w));
+    const choose=()=>{ if(!open() || busy) return;
+      ways.forEach(x=>x.classList.remove('lit')); w.classList.add('chosen');
+      list.classList.remove('hovering'); list.classList.add('decided'); glide.classList.add('hot'); place(w);
+      body.querySelector('.choose').classList.add('taken');
+      entry.content=qs[i];
+      attachExplain(node, qs[i], { surface:'enquiry', goal, context: explainContext(history) });
+      input.focus(); };
+    w.addEventListener('click', choose);
+    w.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); choose(); } });
+  });
+  list.addEventListener('mouseleave',()=>{ if(open()){ list.classList.remove('hovering'); ways.forEach(x=>x.classList.remove('lit')); } });
+  body.querySelector('.own u').addEventListener('click',()=>input.focus());
+  scroll();
+}
+// Replying closes any choice still open: from then on the three are unasked.
+function closeChoices(){
+  document.querySelectorAll('.choose:not(.taken)').forEach(c=>{ c.classList.add('taken'); const l=c.querySelector('.ways'); l.classList.add('closed'); l.classList.remove('hovering'); l.querySelectorAll('.way').forEach(x=>x.classList.remove('lit')); });
 }
 
 // 🔴 THE QUESTION UNFOLDS, IT DOES NOT LAND (28 Sep 2026). Word by word at REVEAL_MS a word, so a question
@@ -2922,7 +2980,7 @@ async function streamStone(message, kind, reuseNode){
   const node=reuseNode||addStone('', null, null, {opening:true});
   const body=node.querySelector('.body');
   body.innerHTML=`<span class="thinking"><span class="bead"></span> drawing the edge</span>`;
-  let retrieved=null, guard=null, full='', errored=false, nudgedThisTurn=false, blanked=false, revealing=null, acked=false;
+  let retrieved=null, guard=null, full='', errored=false, nudgedThisTurn=false, blanked=false, revealing=null, acked=false, choices=null;
   try{
     // Stateless: no quest_id. The browser sends the whole transcript + turnsSinceNudge; the server stores nothing.
     const res = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'},
@@ -2943,6 +3001,8 @@ async function streamStone(message, kind, reuseNode){
         else if(type==='token'){ full+=data.t; revealing=revealWords(body, full); }
         // A turn that does not ask: a fixed line about the exchange, chosen by code. No chip, no curtain.
         else if(type==='ack'){ acked=true; full=data.t; revealing=revealWords(body, full); }
+        // A choice turn: three questions, and the learner picks the one asked. Code decided it; drawn once the stream ends.
+        else if(type==='choices'){ choices=data.qs; body.innerHTML=''; }
         else if(type==='signals') setVizSignals(data);
         else if(type==='nudge'){ if(data.surface) showNudge(data.surface); nudgedThisTurn=true; }   // a silent posture still starts the refractory
         else if(type==='prep'){
@@ -2973,11 +3033,12 @@ async function streamStone(message, kind, reuseNode){
     attachExplain(node, '', { surface:'enquiry', goal, context: explainContext(history), notAsked:true });
     history.push({role:'interlocutor', content:''});
   }
+  if(choices && !errored) offerChoices(node, body, choices);
   if(full && !errored) attachExplain(node, full, { surface:'enquiry', goal, context: explainContext(history), notAsked: acked || undefined });
   if(full) history.push({role:'interlocutor', content:full});
   // refractory bookkeeping: reset when a nudge surfaced this turn, else it grows by one.
   turnsSinceNudge = nudgedThisTurn ? 0 : turnsSinceNudge+1;
-  if(!errored && !blanked && !acked) attachCurtain(node, retrieved, guard);
+  if(!errored && !blanked && !acked && !choices) attachCurtain(node, retrieved, guard);
   if(!errored && prepText) afterPrepTurn();
 }
 

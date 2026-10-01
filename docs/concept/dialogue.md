@@ -472,6 +472,22 @@ Built from a student's report that the dialogue was "constant hammering" and fro
 
 **Routing.** Every model call asks OpenRouter for providers that keep nothing (`data_collection: 'deny'`). The model stays `google/gemini-3.1-flash-lite`: MiMo-V2.6 Flash read better blind on 30 turns and worse in Prayas's live use.
 
+## The choice turn (v1.17.0, 1 October 2026)
+
+Prayas: *"put the multiple choice thing in enquiry"*, and, when told that options would hand the learner pre-set material, *"but multiple choice is not answering"*. The options are questions, so nothing is answered; what changes is who chooses the direction, and here it is the learner.
+
+**When.** Code decides (`lib/pace.mjs`, `choiceTurn`): the learner has just declined (`isDecline`: *idk*, *not sure*, *no idea*) or their reply added no new word (`stalledInvite`). Both already mean *hand the subject back*; three ways on, offered from what they said, is that hand-back made concrete. Only after a turn that asked, and from the first reply. Which needs trigger it, and from which reply, are mine and his to move.
+
+**What.** One model call writes three questions (`choiceBrief`). `validateChoices` (`lib/dialogue.mjs`) refuses the whole set unless there are exactly three, each passes `validateOutput` under the turn's own options, each names a thing the learner said in their word for it, no two name the same thing, and no two open with the same three words. Two attempts; then the turn asks one question as before, so a refused set costs the learner nothing but time.
+
+**The page.** The three sit in the stone's type, with one vermilion light that glides to the question under the pointer and settles, brighter, on the one chosen (the sample shaped with Prayas: `docs/ops/choice-turn-sample-20261001.html`). The stone's turn enters `history` empty and becomes the chosen question when one is picked; if the learner replies without picking, it stays empty, which the route already reads as a turn that asked nothing, and the transcript saves it as `[blank]`. Options not chosen are never asked and never saved. Page check: `docs/ops/choice-walk.mjs`.
+
+**Two first cuts, measured and dropped.**
+- *Only their words.* Holding every content word of an option to the learner's words (the quiet turn's licence) produced word salad on the live probe: *"When are the old Gujarati novels?"*, *"Which newspaper is the quiet time?"*. The design sample's own questions fail that licence too. The licence is now the subject: their word for the thing asked about.
+- *The opener ban on each option.* Three options that must open unlike each other and unlike the last three questions had almost no openings left; on the page walk two of three sets were refused for it. Only the chosen option is ever asked, so the ban is lifted for options; the head ban and the repeat gate stay.
+
+⚠️ Measured once, 1 October 2026: posted decline and stall turns gave a choice on 6 of 9; the page walk on 1 of 3; the 38-round replay of fixture `q` offered two.
+
 ## Known limits
 
 - ⚠️ **The return's reading of "left out" is lexical, and so is the check that the question then asks for it.** A reply can answer *where* in words the list does not contain. The kind check covers when, who, why, how many and yes/no, and a *what* or *which* answered by naming something. *Where*, *how* and *what would have to be true* rely on the word list alone.

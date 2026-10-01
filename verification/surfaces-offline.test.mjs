@@ -46,3 +46,20 @@ test('the about page says the second voice is offline, until the server says it 
   assert.match(page, /second voice · to stress-test<span id="critOffline"> · offline for now<\/span>/);
   assert.match(page, /if\(cfg\.surfaces\.includes\('criticism'\)\)\{ const o=\$\('critOffline'\); if\(o\) o\.remove\(\); \}/);
 });
+
+// Prep offline (1 October 2026, Prayas: "take prep offline"). Prep rides inside /api/chat, so the gate is the
+// readiness prefix PLUS the chat route ignoring the sheet; a door hidden on the page alone would still let a
+// posted `prep` field run the arc.
+test('prep is off by default: its helper answers 404 and the chat route ignores a sheet', () => {
+  assert.ok(server.indexOf("app.use('/api/prep', surfaceOn('prep'))") > 0, 'the readiness helper is gated');
+  assert.ok(server.indexOf("app.use('/api/prep', surfaceOn('prep'))") < server.indexOf("app.post('/api/prep/readiness'"), 'gate registered before the route');
+  assert.match(server, /const prepOn = SURFACES\.has\('prep'\)/);
+  assert.match(server, /const prepText = prepOn && typeof req\.body\?\.prep === 'string'/);
+});
+
+test('the prep doorway is hidden in the markup and shown only when the server says prep is on', () => {
+  assert.match(page, /<label class="ul-transcript" for="prepDoc" id="prepDoor" hidden>/);
+  assert.match(page, /<p class="ul-note" id="prepNote" hidden>/);
+  assert.match(page, /\.ul-transcript\[hidden\]\{display:none\}/);
+  assert.match(page, /if\(cfg\.surfaces\.includes\('prep'\)\)\{ \$\('prepDoor'\)\.hidden=false; \$\('prepNote'\)\.hidden=false; \}/);
+});

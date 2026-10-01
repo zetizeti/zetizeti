@@ -267,8 +267,9 @@ test('prep turns are counted apart from enquiry turns in the survival curve', ()
 // The three parts hold the gaps and the gaps hold the tasks. Walking the whole arc at one desk there are
 // no gaps, so the boundary turns cost a quarter of the sitting and neither can say anything true: the
 // closing turn asks what you will go and do, and the resuming turn asks what happened while you were away.
-// 🔴 THE DEFAULT MUST NOT MOVE. dsl-status collects three transcripts and gates each part on its pack, so
-// a global change would break a student flow in another repository with nothing here failing.
+// 🔴 THE DEFAULT MUST NOT MOVE without a decision. Three sittings for any sheet not named for a mentor is
+// Prayas's rule (30 Aug 2026). dsl-status, which collected three transcripts and gated each part on its
+// pack, was retired on 9 Sep 2026, so the pin now guards his rule rather than another repository.
 
 test('one sitting walks all six stations with no closing and no resuming turn', () => {
   // ⚠️ Replayed with `walk`, never read off one plan's `path`: that array is the walk SO FAR and stops at
@@ -328,7 +329,7 @@ test('🔴 the three-sitting student path is UNCHANGED by the deep walk', () => 
   const after = walk(SHEET, [], 40, 3).length;
   assert.equal(before, after);
   const { dwell, earlyAdvance } = depthFor(3);
-  assert.equal(dwell, PREP_DWELL, 'the student dwell moved — dsl-status is built on this shape');
+  assert.equal(dwell, PREP_DWELL, 'the student dwell moved — the three-sitting shape is built on it');
   assert.equal(earlyAdvance, true, 'early advance was disabled for students too');
 });
 
