@@ -26,6 +26,12 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.19.2] — 4 October 2026
+
+**An answer is no longer told it left out what the question never asked.** Marking a dialogue, Prayas found *"It stops. The silence is no longer waiting."* met with *"You have not said what happens next when the hum stops."* The return counted every word of the last question, including the condition before the ask (*"If the 'only' in the placement … are the same, what happens to the hum?"*). Only the words of the ask itself count now: over 995 reply points on record, returns 74 → 70, none new, all four that stopped false.
+
+**One turn, one paragraph.** A return's lead-in and question arrived split by a blank line and read as two turns with the reply missing between them (*"how is no reply ok?"*); a turn is now joined into one paragraph before it is sent.
+
 ## [1.19.1] — 4 October 2026
 
 **Fewer questions sent out flagged.** v1.19.0's wider guards sent more questions out after failing every attempt: 6.7 a replay of the cohort fixture against 5.0 before, nearly all for repeating the shape of an earlier question, since the model now writes its own wording. The prompt now names the last four question shapes, as the criticism surface already did, and the question has five attempts instead of four: 3.3 a replay (three replays each).

@@ -246,3 +246,20 @@ test('a precision demand is not made again within three questions of the last', 
   assert.equal(validateOutput('What struggle does she include?', { lastThree }).ok, true);
   assert.equal(validateOutput('What specific struggle does she include?', { lastThree: ['Where do the roses sit?', 'What does she say?', 'How does it end?'] }).ok, true);
 });
+
+// 4 Oct 2026, Prayas marking a dialogue: "It stops. The silence is no longer waiting." was met with "You have not said
+// what happens next", because the words of the question's condition counted as gaps. Only what was asked counts.
+test('a condition before the ask is not counted as something the answer left out', async () => {
+  const { readReturn } = await import('../lib/arc.mjs');
+  const q = 'If the "only" in the placement and the "only" in the ones that broke it are the same, what happens to the hum?';
+  assert.equal(readReturn({ anchor: 'hum', lastQuestion: q, studentTurns: ['A tension', 'Ya. It hums.', 'Only the ones that broke it.', 'It stops. The silence is no longer waiting.'], goal: 'x' }), null);
+  const r = readReturn({ anchor: 'hum', lastQuestion: 'If it is the same, where does the hum go and who carries it?', studentTurns: ['A tension', 'It hums.', 'It goes.'], goal: 'x' });
+  assert.ok(r && r.missing.includes('carries'), 'a word of the ask itself still counts');
+});
+
+// 4 Oct 2026: a return's two sentences arrived split by a blank line and read as two turns with no reply between.
+test('a stone turn is delivered as one paragraph', () => {
+  const s = readFileSync(new URL('../server.mjs', import.meta.url), 'utf8');
+  const at = s.indexOf("full = full.replace(/\\s*\\n+\\s*/g, ' ').trim();");
+  assert.ok(at > 0 && at < s.indexOf("send('token', { t: full });"), 'joined before it is sent');
+});

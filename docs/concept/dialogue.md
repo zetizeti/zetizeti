@@ -504,6 +504,8 @@ From two testers' call and five of their dialogues. **A return says it is one an
 
 **v1.19.1.** The prompt names the last four question shapes and the question has five attempts, after v1.19.0's wider guards sent more questions out flagged (6.7 a replay of the cohort fixture against 5.0; now 3.3). A question may not press for *the specific* or *the exact* within three questions of the last that did (`lastThree`).
 
+**v1.19.2.** The return reads only the words of what the last question asked (`askedSentence`), never its opening condition, after a reply that answered was told it had not; and a stone turn is joined into one paragraph before it is sent, after a return's two sentences read as two turns with no reply between.
+
 ## Known limits
 
 - ⚠️ **The return's reading of "left out" is lexical, and so is the check that the question then asks for it.** A reply can answer *where* in words the list does not contain. The kind check covers when, who, why, how many and yes/no, and a *what* or *which* answered by naming something. *Where*, *how* and *what would have to be true* rely on the word list alone.

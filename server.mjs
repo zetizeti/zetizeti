@@ -1205,6 +1205,9 @@ app.post('/api/chat', requireUser, async (req, res) => {
     //    material has entered. The page is told the hold began, so it shows stillness, not processing.
     const beat = beatMs({ replyWords: String(message).split(/\s+/).filter(Boolean).length, moment: fs && fs.semEvent ? 'new' : null });
     if (beat) { send('hold', { ms: beat }); await sleep(beat); }
+    // One turn is one paragraph (4 Oct 2026): a return's lead-in and question arrived split by a blank line and read as
+    // two turns with the person's reply missing between them ("how is no reply ok?").
+    full = full.replace(/\s*\n+\s*/g, ' ').trim();
     // A return says it is one, in words code chooses, before the model's sentence about what was left out.
     if (returnNote && guarded.check.ok) full = returnMark(full, stoneTurns, returnNote.need);
     send('token', { t: full });                  // the ACCEPTED question, delivered whole
