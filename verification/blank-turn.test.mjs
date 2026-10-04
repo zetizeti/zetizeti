@@ -64,7 +64,7 @@ test('the model is never handed a mechanical account of the exchange', () => {
 });
 
 test('the route reads need from the felt reading, and says back only the latest reply', () => {
-  const at = server.indexOf('const ack = prepping ? null : ackTurn(');
+  const at = server.indexOf('const ack = prepping || declined ? null : ackTurn(');   // a decline goes to the choice turn, never said back
   assert.ok(at > 0 && at < server.indexOf('const guarded = await generateGuarded'));
   assert.match(server.slice(at, at + 300), /newMaterial: !!\(fs && fs\.semEvent\)/);
   assert.match(server, /const ownWords = new Set\(String\(message\)/, 'only their latest reply may be said back');
@@ -159,10 +159,11 @@ test('a corrected spelling still counts as their word, and a different word does
 
 // 🔴 THE OPENING TURN IS ASKED ABOUT AN AIM (29 Sep 2026): never "how do you know it" (it is not yet a
 //    claim) and never "say in one sentence what you are trying to do" (they just did).
-test('the opening turn never takes the provenance or one-sentence form, whatever the edge', async () => {
+//    Nor "just before" (4 Oct 2026, "And what happens just before you like dolls?": it presumes an event).
+test('the opening turn never takes the provenance, one-sentence or just-before form, whatever the edge', async () => {
   const { readDwell, APPROACHES } = await import('../lib/arc.mjs');
-  const barred = new Set([APPROACHES[3], APPROACHES[4]]);
-  for (const goal of ['I am trying to look at "an office" as a performance', 'I want to sing', 'a bridge across eternity', 'x', 'yy', 'zzz', 'sound scape of a barber shop']) {
+  const barred = new Set([APPROACHES[2], APPROACHES[3], APPROACHES[4]]);
+  for (const goal of ['I am trying to look at "an office" as a performance', 'I want to sing', 'a bridge across eternity', 'x', 'yy', 'zzz', 'sound scape of a barber shop', 'I like dolls', 'I want to talk about poetic ideas']) {
     const d = readDwell({ studentTurns: [goal], stoneTurns: [], goal });
     assert.ok(!d || !barred.has(d.approach), goal);
   }
@@ -241,4 +242,15 @@ test('under play, the guard withholds a question that tests the joke literally',
   assert.equal(validateOutput('What are you too busy for, when you are laughing at it?', { noLiteral: true }).ok, true);
   assert.equal(validateOutput('How can one call oneself when the phone is busy?').ok, true, 'only under play');
   assert.match(server, /noLiteral: !!playing,/);
+});
+
+// 4 October 2026, Prayas: "I don't like it. Make fresh, unique openings". The opening takes no frame and the
+// guard refuses the frames' heads on it; the frames start with the first reply.
+test('the opening question takes no frame, and the stock frames are refused on it', async () => {
+  const { approachFor, APPROACHES, OPENING_FRESH } = await import('../lib/arc.mjs');
+  const { OPENING_HEADS, validateOutput } = await import('../lib/dialogue.mjs');
+  assert.equal(approachFor(APPROACHES, ['I like dolls'], 'I like dolls'), OPENING_FRESH);
+  assert.ok(APPROACHES.includes(approachFor(APPROACHES, ['I like dolls', 'they wait'], 'I like dolls')), 'frames return with the first reply');
+  assert.equal(validateOutput('What would have to be true for you to like dolls?', { banHeads: OPENING_HEADS }).ok, false);
+  assert.ok(server.includes('const banHeads = stoneTurns.length ? headBans(stoneTurns) : OPENING_HEADS;'));
 });

@@ -12,7 +12,7 @@ import { buildIndex, retrieve } from './lib/retrieval.mjs';
 import {
   loadMethodCore, buildSystemPrompt, buildTurnContext, validateOutput,
   loadCriticismCore, buildCriticismSystemPrompt, validateCriticismOutput,
-  CRITICISM_POINTERS, questionOpener, openerBans, headBans, describeLocated,
+  CRITICISM_POINTERS, questionOpener, openerBans, headBans, OPENING_HEADS, describeLocated,
   PREP_CLOSING_AIM, PREP_CLOSING_AIM_SET, PREP_RESUMING_AIM, RETURN_LEAD_WORDS,
   buildSpecSystemPrompt, validateSpecOutput, buildBuilderPrompt, validateBuildReport,
 } from './lib/dialogue.mjs';
@@ -538,6 +538,12 @@ app.post('/api/chat', requireUser, async (req, res) => {
     const stone = rawHistory.filter((h) => h.role !== 'student');
     return stone.length > 0 && String(stone[stone.length - 1].content || '').includes('?');
   })();
+  // A choice may follow a question or a said-back turn, never a blank or a choice left unchosen: both enter the
+  // history empty (4 Oct 2026: "Yrd, I don't know" after a said-back got no choice).
+  const lastStoneSpoke = (() => {
+    const stone = rawHistory.filter((h) => h.role !== 'student');
+    return stone.length > 0 && !!String(stone[stone.length - 1].content || '').trim();
+  })();
   const history = rawHistory.filter((h) => h.role === 'student' || String(h.content || '').trim());
   // CONCEPT-ONLY FOCUS (12 Aug 2026). Whitelisted rather than passed through: only the exact string
   // 'concept' turns it on, so an unknown value is no focus rather than an unspecified one.
@@ -883,7 +889,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // questions: what/how/where, six laps, no guard firing. Both windows come from ONE derivation in
   // dialogue.mjs so the prompt and the guard cannot disagree.
   const banOpeners = openerBans(stoneTurns);
-  const banHeads = headBans(stoneTurns);
+  const banHeads = stoneTurns.length ? headBans(stoneTurns) : OPENING_HEADS;   // the opening takes no frame (4 Oct 2026)
   // PRECISION CAPACITY — pointed asks ("which one?", "what exactly?") only for a learner whose recent
   // replies show particulars ready to give: median material of the last three replies ≥ 10 content
   // words and no refusal in the last two. Two real students, opposite needs; the register follows the
@@ -952,7 +958,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
       posture: (felt && felt.posture) || nudge.posture || '',
       shape: formShape(exchanges, { flow: true }),
       dwell,
-      newMaterial: newMaterial.length ? newMaterial : null,
+      newMaterial: (() => { const m = newMaterial.filter((w) => !NONMATERIAL.has(w)); return m.length ? m : null; })(),   // never ask the model to build on a pronoun or hedge ("themselves", 4 Oct 2026)
       declined,
       corrected,
       assoc: assoc ? associationBlock(assoc) : '',
@@ -1084,7 +1090,9 @@ app.post('/api/chat', requireUser, async (req, res) => {
     // 🔴 A TURN THAT DOES NOT ASK. Code decides when (lib/pace.mjs, ackTurn); the model writes one sentence
     //    from the dialogue; validateStatement refuses it unless it asks nothing, answers nothing and uses only
     //    the learner's words. If it never passes, this turn asks a question as before.
-    const ack = prepping ? null : ackTurn({
+    // 🔴 Never on a decline (4 Oct 2026): "I dont' know" was said back, because a short reply of new words reads as
+    //    charged and this decision returned before the choice turn, the turn a decline is for, was reached.
+    const ack = prepping || declined ? null : ackTurn({
       replies: studentTurns.slice(1), lastStoneAsked, newMaterial: !!(fs && fs.semEvent),
       earlier: [...studentTurns.slice(0, -1), ...stoneTurns],
       questionsSince: (() => { let n = 0; for (const q of [...stoneTurns].reverse()) { if (!String(q).includes('?')) break; n++; } return n; })(),
@@ -1121,7 +1129,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
     //    across tries until there are three. Short of three after every wording, this turn asks one question as
     //    before. The learner picks the one that is asked; the page posts it back as the stone's turn, or an empty
     //    turn if none was taken.
-    if (!prepping && choiceTurn({ declined: !!declined, stalled: stalledInvite, replies: studentTurns.length - 1, lastStoneAsked })) {
+    if (!prepping && choiceTurn({ declined: !!declined, stalled: stalledInvite, replies: studentTurns.length - 1, lastStoneSpoke })) {
       // ⚠️ No opener ban on the options: it keeps the ASKED questions from a rhythm, only the chosen one is asked, and
       //    three options that must open unlike each other AND unlike the last three questions had almost no
       //    words left (the local walk of 1 Oct: two of three sets refused for it). The head ban and the repeat gate stay.

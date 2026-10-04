@@ -20,11 +20,11 @@ const said = ['I want the bus shelter to feel like it belongs to the street, not
 const opts = { noClosed: true, noBinary: true, theirs: new Set(said.flatMap((t) => contentWords(t)).filter((w) => !NONMATERIAL.has(w))) };
 
 test('code offers a choice only on need, and only after a turn that asked', () => {
-  assert.equal(choiceTurn({ declined: true, stalled: false, replies: 2, lastStoneAsked: true }), true);
-  assert.equal(choiceTurn({ declined: false, stalled: true, replies: 2, lastStoneAsked: true }), true);
-  assert.equal(choiceTurn({ declined: false, stalled: false, replies: 2, lastStoneAsked: true }), false, 'no need, no choice');
-  assert.equal(choiceTurn({ declined: true, stalled: false, replies: 0, lastStoneAsked: true }), false, 'never on the opening edge');
-  assert.equal(choiceTurn({ declined: true, stalled: false, replies: 3, lastStoneAsked: false }), false, 'a choice not taken is a turn that asked nothing, so none follows it');
+  assert.equal(choiceTurn({ declined: true, stalled: false, replies: 2, lastStoneSpoke: true }), true);
+  assert.equal(choiceTurn({ declined: false, stalled: true, replies: 2, lastStoneSpoke: true }), true);
+  assert.equal(choiceTurn({ declined: false, stalled: false, replies: 2, lastStoneSpoke: true }), false, 'no need, no choice');
+  assert.equal(choiceTurn({ declined: true, stalled: false, replies: 0, lastStoneSpoke: true }), false, 'never on the opening edge');
+  assert.equal(choiceTurn({ declined: true, stalled: false, replies: 3, lastStoneSpoke: false }), false, 'a choice not taken is stored empty, so none follows it');
 });
 
 test('three open questions, each about a different thing they said, pass', () => {
@@ -71,4 +71,16 @@ test('three tries, each in a different wording', () => {
   assert.ok(CHOICE_BRIEFS.length >= 3);
   assert.equal(new Set(CHOICE_BRIEFS.map((b) => b(5))).size, CHOICE_BRIEFS.length);
   assert.match(server, /for \(const brief of CHOICE_BRIEFS\)/);
+});
+
+test('a choice may follow a said-back turn, never a blank or a choice left unchosen (4 Oct 2026)', () => {
+  assert.match(server, /return stone\.length > 0 && !!String\(stone\[stone\.length - 1\]\.content \|\| ''\)\.trim\(\);/);
+  assert.ok(server.includes('replies: studentTurns.length - 1, lastStoneSpoke })'), 'the route passes what the last stone turn said, not whether it asked');
+});
+
+test('while they have named fewer than three things, the choices may share one (4 Oct 2026)', () => {
+  const one = { theirs: new Set(['surprise']) };
+  const qs = 'Where did you last notice surprise happening?\nWhat does surprise feel like when it arrives?\nWhen were you last surprised by something small?';
+  assert.equal(keepChoices(qs, [], one).length, CHOICES, 'one thing said, three questions about it');
+  assert.equal(keepChoices('Where is the street?\nWhat is the street like?\nWho uses the street?', [], { theirs: new Set(['street', 'shelter', 'waiting']) }).length, 1, 'with three things said, each question still takes a different one');
 });

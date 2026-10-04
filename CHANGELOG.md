@@ -26,6 +26,16 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.18.0] — 4 October 2026
+
+**The opening question takes no frame.** Prayas, on *"And what happens just before you like dolls?"*: *"formulaic. strange opening"*, then *"Make fresh, unique openings"*. The first question is now the model's own, about exactly what was written (`OPENING_FRESH`), and the guard refuses the stock frames' openings on it (`OPENING_HEADS`: *what would have…*, *what would you…*, *what happens just…*). The frames start with the first reply.
+
+**The choice of three reaches the replies it was built for.** A decline typed with a stray apostrophe (*"I dont' know"*) or with a word before it (*"Yrd, I don't know"*) is now read as a decline, and a decline is never said back, so it reaches the choice turn. A choice may follow a said-back turn, never a blank or an unchosen choice. While the person has named fewer than three things, the three questions may share one, so an early *"I don't know"* gets a choice four times in four, against once before.
+
+**Steering no longer pushes the model onto words that are not material.** The goal tether counts a goal word as asked about when a question used another form of it (*managing* for *manage*), and it is sent as *come back to*, never with the dwell's false *they keep coming back to it*. The words the model is told to build on leave out pronouns and hedges (*themselves*), and sixteen degree adverbs join the non-material list (*mostly*, *mainly*, *quite*, *very*…). Across 488 reply points in the 21 cohort dialogues the anchor changes in none.
+
+**A model blacklist, in code.** `lib/llm.mjs` refuses MiMo (failed Prayas's live test three times) and every OpenAI model: a banned `ZETIZETI_MODEL` stops the server at start, and a call naming one is refused. The live model stays `google/gemini-3.1-flash-lite`.
+
 ## [1.17.2] — 1 October 2026
 
 **The choices sit on translucent white panels.** Prayas asked for slick options on a translucent white ground. Each of the three questions is now its own frosted panel over the page; the one under the pointer brightens and moves forward, the one picked turns red, and the other two fall back.

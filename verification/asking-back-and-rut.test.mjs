@@ -243,3 +243,30 @@ test('the route reads both new readings and passes both blocks and the fallback'
   assert.match(s, /validateOutput\(t, \{ \.\.\.guardOptions, mustHold: null, returnNote: null, quietWords: null, maxWords: 34 \}\)/, 'the fallback drops the join, the return and the quiet demand, and nothing else');
   assert.match(s, /fallback: !!guarded\.fallback/, 'and the client is told which shipped');
 });
+
+// 4 October 2026: a decline typed with a stray apostrophe was read as new material, and said back instead of
+// getting the choice of three. Apostrophes are dropped before the patterns; the route never says a decline back.
+test('a decline is read whatever its apostrophes, and is never said back', () => {
+  for (const r of ["I dont' know", 'i dont know', 'I don’t know', "I'm not sure", 'cant say']) assert.equal(isDecline(r), true, r);
+  assert.equal(isDecline('I know exactly where it hides'), false);
+  assert.equal(isDecline("Yrd, I don't know"), true, 'a short reply with a decline anywhere in it');
+  assert.equal(isDecline("The bell rings at noon and I don't know why it always has"), false, 'a long reply with the phrase inside it is not a decline');
+  const s = readFileSync(new URL('../server.mjs', import.meta.url), 'utf8');
+  assert.ok(s.includes('const ack = prepping || declined ? null : ackTurn('), 'the said-back decision skips a decline');
+});
+
+// 4 October 2026: three questions on "managing people" and the goal tether still sent the model back to
+// "manage" as untouched, with the dwell's words "they keep coming back to it", beside a demand to build the
+// question out of "themselves". Synthetic dialogue below, same shape.
+test('a goal word asked about in another form is touched, a tether says so honestly, and a pronoun is never material to build on', async () => {
+  const { readDwell } = await import('../lib/arc.mjs');
+  const { buildTurnContext } = await import('../lib/dialogue.mjs');
+  const studentTurns = ['I never organise trips', 'no idea', 'I just go', 'I want surprises', 'They themselves'];
+  const stoneTurns = ['What happens before organising begins?', 'What do you do instead of organising?', 'When you just go, what do you want to happen?', 'Who decides what a surprise is?'];
+  const d = readDwell({ studentTurns, stoneTurns, goal: studentTurns[0] });
+  assert.ok(!d || d.anchor !== 'organise', 'questions on "organising" have touched "organise"');
+  const tether = buildTurnContext({ retrieved: [], posture: '', message: 'x', dwell: { anchor: 'trips', returns: 1, tether: true, approach: 'ask y' } });
+  assert.match(tether, /COME BACK TO "trips"/); assert.doesNotMatch(tether, /keep coming back/);
+  const s = readFileSync(new URL('../server.mjs', import.meta.url), 'utf8');
+  assert.match(s, /newMaterial: \(\(\) => \{ const m = newMaterial\.filter\(\(w\) => !NONMATERIAL\.has\(w\)\)/);
+});

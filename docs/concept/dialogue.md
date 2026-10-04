@@ -488,6 +488,16 @@ Prayas: *"put the multiple choice thing in enquiry"*, and, when told that option
 
 ⚠️ Measured on 1 October 2026: v1.17.0 gave a choice on 6 of 9 posted decline and stall turns and 1 of 3 on the page walk; v1.17.1 on 15 of 15 across five dialogues, 14 on the first try. The five candidates, the three wordings and the three tries are mine and his to move.
 
+**v1.18.0 (4 October 2026), from Prayas's live tests.** A decline is read whatever its apostrophes and anywhere in a reply of six words or fewer (*"I dont' know"*, *"Yrd, I don't know"*; none of 588 fixture replies changes), and it is never said back, so it reaches the choice. A choice may follow a said-back turn, never a blank or an unchosen choice (`lastStoneSpoke`). While the person has named fewer than three things the options may share one; after *"What is surprise about?"* and *"I don't know"* the choice came once in four tries before and four in four after.
+
+## The opening, the tether and the words a question is built on (v1.18.0, 4 October 2026)
+
+**The opening question takes no frame.** Prayas on *"And what happens just before you like dolls?"*: *"formulaic. strange opening"*, then *"Make fresh, unique openings"*. `approachFor` returns `OPENING_FRESH` on the first turn (the model's own question about exactly what was written) and the guard refuses `OPENING_HEADS` on it. Before, *just before* took 24 of 50 opening lines and every other opening began *What would have to be true…* or *What would you want…*.
+
+**The goal tether.** On *"They themselves"* the route told the model to *STAY ON "manage" — they keep coming back to it* (said once, in the opening) and to build the question out of *themselves*; MiMo wrote *"And what would you want managing people to make possible for themselves?"*. Now a goal word counts as asked about when a question used another form of it (same first five letters), a tether is marked and sent as *COME BACK TO*, and the *TAKE THIS UP* list leaves out NONMATERIAL words, to which sixteen degree adverbs were added (*mostly*, *mainly*, *quite*, *very*…). Over 488 cohort reply points the anchor changes in none. Replayed: 3.1 five of five on his sense (*"Where do they themselves place the line for what is reasonably happy in their work?"*).
+
+**The model blacklist** (`lib/llm.mjs`, `BANNED_MODELS`): MiMo, after three failed live tests, and OpenAI, his standing rule. A banned model stops the server at start; a call naming one is refused.
+
 ## Known limits
 
 - ⚠️ **The return's reading of "left out" is lexical, and so is the check that the question then asks for it.** A reply can answer *where* in words the list does not contain. The kind check covers when, who, why, how many and yes/no, and a *what* or *which* answered by naming something. *Where*, *how* and *what would have to be true* rely on the word list alone.
