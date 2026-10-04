@@ -26,6 +26,12 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.19.1] — 4 October 2026
+
+**Fewer questions sent out flagged.** v1.19.0's wider guards sent more questions out after failing every attempt: 6.7 a replay of the cohort fixture against 5.0 before, nearly all for repeating the shape of an earlier question, since the model now writes its own wording. The prompt now names the last four question shapes, as the criticism surface already did, and the question has five attempts instead of four: 3.3 a replay (three replays each).
+
+**No pressing for precision again so soon.** A tester's 25 questions asked for "the specific", "the exact" or "what actually" seven times, after she had said the book gave no such detail. A question may not press for precision within three questions of the last that did (116 of 1,178 questions on record make the demand; the rule fires on about 3%).
+
 ## [1.19.0] — 4 October 2026
 
 **A question asked again says so, and says why.** From two testers' call and five of their dialogues (9 of 39 questions went back to the previous question's subject; one said so; one tester left a dialogue tired of being brought *"back to the same thing"*). Prayas: *"question repetition because it was incompletely answered previously needs to be said clearly - in language"*, *"also say why"*. When code returns to a question because the answer left part of it out, the turn reads *[Asking again / Back to this once more / Asking this a second time / One more time on this], because [reason]*: the model's sentence naming the gap is the reason, and when it writes none, code gives it from what it read as missing.

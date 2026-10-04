@@ -972,6 +972,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
       light: light ? contentWords(message) : null,
       featureInvite,
       stalledInvite,
+      avoidFrames: stoneTurns.filter((q) => String(q).includes('?')).slice(-4).map((q) => String(q).replace(/\s+/g, ' ').trim().slice(0, 60)),
       rutInvite,
       askingBack,
       returnNote,
@@ -1028,6 +1029,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
         noCompound: true,
         noStockFrame: true,                      // intent kept, stock wording refused (4 Oct 2026)
         lastTwo: stoneTurns.filter((q) => String(q).includes('?')).slice(-2),   // no third question in a row on the same words (4 Oct 2026)
+        lastThree: stoneTurns.filter((q) => String(q).includes('?')).slice(-3),   // no precision demand within three of the last (4 Oct 2026)
         // No design jargon unless the learner used the word (v1.10.0).
         noJargon: true,
         // ownWords — the warmth clause may only say back words the learner used. Their whole transcript
@@ -1158,6 +1160,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
       }
     }
     const guarded = await generateGuarded({
+      attempts: 5,                               // one more than the default (4 Oct 2026): v1.19.0's wider guards sent more turns out flagged; the retry budget is the lever, not the gate
       lead: !!returnNote,                        // the repair must ask for the return's lead-in, not forbid it
       // avoid: the repeat gate (round 4) — a question sharing a five-word frame with an earlier one is
       // withheld and repaired (quoted learner text stripped first). Detection at the only place a repeat

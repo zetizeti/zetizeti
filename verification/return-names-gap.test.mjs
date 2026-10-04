@@ -228,3 +228,21 @@ test('a return says it is one in words code chooses, and a third question in a r
   const s = readFileSync(new URL('../server.mjs', import.meta.url), 'utf8');
   assert.ok(s.includes('if (returnNote && guarded.check.ok) full = returnMark(full, stoneTurns, returnNote.need);'));
 });
+
+// 4 Oct 2026: with the approaches reduced to intent, frame repeats went out more often; the enquiry prompt now names
+// the last shapes asked, as the criticism surface already did.
+test('the enquiry turn names the shapes already asked', async () => {
+  const { buildTurnContext } = await import('../lib/dialogue.mjs');
+  const c = buildTurnContext({ retrieved: [], message: 'x', avoidFrames: ['What happens to the chicken when'] });
+  assert.match(c, /You have already asked, in these shapes: "What happens to the chicken when"/);
+  assert.ok(readFileSync(new URL('../server.mjs', import.meta.url), 'utf8').includes("avoidFrames: stoneTurns.filter((q) => String(q).includes('?')).slice(-4)"));
+});
+
+// 4 Oct 2026: a tester was asked for "the specific" or "the exact" seven times in 25 questions.
+test('a precision demand is not made again within three questions of the last', async () => {
+  const { validateOutput } = await import('../lib/dialogue.mjs');
+  const lastThree = ['Which specific action marks the point where it lifts?', 'Where do the roses sit?', 'What does she say to them?'];
+  assert.equal(validateOutput('What specific struggle does she include?', { lastThree }).ok, false);
+  assert.equal(validateOutput('What struggle does she include?', { lastThree }).ok, true);
+  assert.equal(validateOutput('What specific struggle does she include?', { lastThree: ['Where do the roses sit?', 'What does she say?', 'How does it end?'] }).ok, true);
+});
