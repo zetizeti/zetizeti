@@ -10,7 +10,9 @@ import { readSensed } from '../lib/sensed.mjs';
 // ───────────────────── verdict-drift guard ─────────────────────
 
 test('criticism guard: a clean question about the text passes', () => {
-  const ok = validateCriticismOutput('This word — "seamless" — is it describing what the interface does, or approving of it?');
+  // Was "…is it describing what the interface does, or approving of it?", a two-box question the widened guard
+  // refuses (4 Oct 2026); the public copy already admits the second voice asked those for months.
+  const ok = validateCriticismOutput('This word — "seamless" — what is it doing in that sentence?');
   assert.equal(ok.ok, true, ok.reasons.join('; '));
 });
 

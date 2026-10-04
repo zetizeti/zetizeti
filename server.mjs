@@ -65,6 +65,8 @@ import { resolveVersion } from './lib/version.mjs';
 import { capture, labelCapture, captureEnabled } from './lib/capture.mjs';   // LOCAL operator-only test-chat capture (never in production)
 import { buildStudentSystemPrompt, pickSeed } from './lib/author.mjs';
 import { addSubmission, listSubmissions, withdrawSubmission } from './lib/db.mjs';        // LOCAL "author mode" — the play-acted student
+import { CHANNELS, compactRetrieved, earlierMessages, fitContext, prewarm } from './lib/channels.mjs';
+import { returnMark } from './lib/dialogue.mjs';   // a return says it is one (4 Oct 2026)   // the three-channel prompt for a local model (off unless ZETIZETI_CHANNELS=3)
 
 // Build version (SemVer, aligned to git tags — see lib/version.mjs). Resolved once at boot: from the
 // image's version.json in production, live from `git describe` in dev.
@@ -548,6 +550,8 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // CONCEPT-ONLY FOCUS (12 Aug 2026). Whitelisted rather than passed through: only the exact string
   // 'concept' turns it on, so an unknown value is no focus rather than an unspecified one.
   const focus = req.body?.focus === 'concept' ? 'concept' : null;
+  // What the model saw for each earlier reply, held by the browser (lib/channels.mjs). Read only in channels mode.
+  const tails = CHANNELS && Array.isArray(req.body?.tails) ? req.body.tails.map((x) => (typeof x === 'string' ? x.slice(0, 20000) : null)) : [];
 
   const goalTerms = (goal.toLowerCase().match(/[a-z0-9]+/g) || []).filter((t) => t.length > 2);
 
@@ -953,7 +957,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
       message,
     })
     : buildTurnContext({
-      retrieved,
+      retrieved: CHANNELS ? compactRetrieved(retrieved) : retrieved,   // the RAG channel's budget, local only
       focus,                                    // concept-only: stated to the model, enforced by the guard
       posture: (felt && felt.posture) || nudge.posture || '',
       shape: formShape(exchanges, { flow: true }),
@@ -974,10 +978,10 @@ app.post('/api/chat', requireUser, async (req, res) => {
       message,
     });
 
-  const messages = [
-    ...history.map((h) => ({ role: h.role === 'student' ? 'user' : 'assistant', content: h.content })),
-    { role: 'user', content: turnContent },
-  ];
+  // The conversation so far, built once for every call on this route (lib/channels.mjs: in channels mode each
+  // earlier reply as the model saw it, so every call extends one prompt; otherwise the plain history).
+  const earlier = CHANNELS ? earlierMessages(history, tails) : history.map((h) => ({ role: h.role === 'student' ? 'user' : 'assistant', content: h.content }));
+  const messages = CHANNELS ? fitContext(system, [...earlier, { role: 'user', content: turnContent }]) : [...earlier, { role: 'user', content: turnContent }];
 
   // Metered paths (shared pool AND the personal key) capture usage during the stream, then count the turn
   // ONCE on success (so the counter is exact even if OpenRouter omits the cost figure). AI-club keys are
@@ -1022,6 +1026,8 @@ app.post('/api/chat', requireUser, async (req, res) => {
         noHypeVerdict: prepping && prepWalk.phase === 'station',
         // ONE question, which both modes' repair text has always demanded and neither ever enforced.
         noCompound: true,
+        noStockFrame: true,                      // intent kept, stock wording refused (4 Oct 2026)
+        lastTwo: stoneTurns.filter((q) => String(q).includes('?')).slice(-2),   // no third question in a row on the same words (4 Oct 2026)
         // No design jargon unless the learner used the word (v1.10.0).
         noJargon: true,
         // ownWords — the warmth clause may only say back words the learner used. Their whole transcript
@@ -1039,26 +1045,17 @@ app.post('/api/chat', requireUser, async (req, res) => {
           .concat(returnNote ? [...contentWords(stoneTurns[stoneTurns.length - 1] || ''), ...RETURN_LEAD_WORDS] : [])),
         // The return must say what the last answer left out, and must not grade it (sharedFormChecks).
         returnNote,
-        // 🔴 THE JOIN'S REQUIREMENT MUST BE MATERIAL, NOT HEDGES (17 Aug 2026). `assoc.mjs` filters
-        // NONMATERIAL in four places — its own comment says a hedge may never become a carried word —
-        // and this route then built the guard's demand from unfiltered `contentWords`, throwing that
-        // discipline away at the last step. Two of ten probe questions were refused for failing to
-        // "reuse one word from each" when the words on offer were `maybe/paper/receipt` and
-        // `good/point/hadn't`: the guard was requiring the model to say "maybe" or "hadn't" back, which
-        // is unsatisfiable in any question worth asking and is against invariant #1's whole point —
-        // Clean Language reuses their MATERIAL, and a hedge is not material.
-        // ⚠️ This is not the whole of the known 15–20% join misfire rate. It is the part of it the guard
-        // was manufacturing itself, which is the part that was never about association at all.
-        mustHold: assoc ? {
-          a: [...new Set(contentWords(assoc.earlyText))].filter((w) => !NONMATERIAL.has(w)).slice(0, 8),
-          b: [...new Set(contentWords(assoc.liveText))].filter((w) => !NONMATERIAL.has(w)).slice(0, 8),
-        } : null,
+        // 🔴 NO WORD FROM EACH SIDE OF A JOIN (4 Oct 2026, Prayas: "drop the join's rule requiring a word from each
+        // statement"). It made questions that stitched two of their phrases without asking what they meant: 19 of 39
+        // questions in five testers' dialogues joined words of the latest reply with words of earlier ones, heard as
+        // "general/superficial". The join still offers the pairing in the prompt; nothing requires it.
+        mustHold: null,
       
     };
     // The hand-back turn for the guard's fallback: the same turn with the subject handed back. Built lazily —
     // it is only ever composed when three ordinary attempts have already breached.
     const handBackMessages = () => [
-      ...history.map((h) => ({ role: h.role === 'student' ? 'user' : 'assistant', content: h.content })),
+      ...earlier,
       { role: 'user', content: buildTurnContext({
         retrieved, focus, shape: formShape(exchanges, { flow: true }), declined, corrected, playing, banOpeners, banHeads, message,
         rutInvite: { word: rut ? rut.word : null, run: rut ? rut.run : 0, exhausted: true },
@@ -1103,10 +1100,10 @@ app.post('/api/chat', requireUser, async (req, res) => {
         attempts: 2,                             // a failure falls back to a question, so it must not cost the learner long
         validate: (t) => validateStatement(t, { ownWords, reply: message }),
         generate: (correction) => streamQuestion({
-          system: STATEMENT_SYSTEM,
+          system: CHANNELS ? system : STATEMENT_SYSTEM,   // one system for every local call, so none pushes the conversation out
           messages: [
-            ...history.map((h) => ({ role: h.role === 'student' ? 'user' : 'assistant', content: h.content })),
-            { role: 'user', content: `${message}\n\n${statementBrief()}` },
+            ...earlier,
+            { role: 'user', content: CHANNELS ? `${message}\n\n${STATEMENT_SYSTEM}\n${statementBrief()}` : `${message}\n\n${statementBrief()}` },
             ...(correction && correction.previous ? [{ role: 'assistant', content: correction.previous }, { role: 'user', content: `[Refused: ${correction.reasons.join('; ')}. Write the one sentence again.]` }] : []),
           ],
           maxTokens: 60, reasoning: { enabled: false }, onToken: () => {}, apiKey, onUsage,
@@ -1141,7 +1138,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
         const text = await streamQuestion({
           system,
           messages: [
-            ...history.map((h) => ({ role: h.role === 'student' ? 'user' : 'assistant', content: h.content })),
+            ...earlier,
             { role: 'user', content: `${message}\n\n${brief(CHOICE_ASK)}` },
           ],
           maxTokens: 250, reasoning: { enabled: false }, onToken: () => {}, apiKey, onUsage,
@@ -1194,7 +1191,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
       }),
     });
     noteGuard('enquiry', guarded);
-    const full = guarded.text;
+    let full = guarded.text;   // let: a return gets its marker below
     // Both attempts empty (provider blip / cold local model) — refuse honestly rather than deliver a blank.
     if (!full.trim()) {
       if (meter) addPoolSpend(utcDay(), req.user.id, poolCost, poolFlag);    // it still cost money
@@ -1205,7 +1202,10 @@ app.post('/api/chat', requireUser, async (req, res) => {
     //    material has entered. The page is told the hold began, so it shows stillness, not processing.
     const beat = beatMs({ replyWords: String(message).split(/\s+/).filter(Boolean).length, moment: fs && fs.semEvent ? 'new' : null });
     if (beat) { send('hold', { ms: beat }); await sleep(beat); }
+    // A return says it is one, in words code chooses, before the model's sentence about what was left out.
+    if (returnNote && guarded.check.ok) full = returnMark(full, stoneTurns, returnNote.need);
     send('token', { t: full });                  // the ACCEPTED question, delivered whole
+    if (CHANNELS) send('tail', { t: turnContent });   // the browser holds it and posts it back, so the next prompt only grows
     send('validation', { ...guarded.check, attempts: guarded.attempts, regenerated: guarded.regenerated, fallback: !!guarded.fallback,
       // which footing this turn took — what the last message WAS and what the tool did about it, never who they are
       footing: askingBack ? 'asking-back' : declined ? 'declined' : corrected ? 'corrected' : playing ? 'playing' : rutInvite ? 'rut-invite' : stalledInvite ? 'stalled-invite' : featureInvite ? 'invite' : returnNote ? 'return' : null });
@@ -1963,6 +1963,7 @@ const aiClubLog = creditEngineConfigured
   : 'off (no engine)';
 app.listen(PORT, () => {
   console.log(`[zetizeti] v${BUILD.build} · http://localhost:${PORT}  (google:${googleConfigured} · admin:${adminConfigured ? 'set' : 'unset'} · personal:${personalLog} · students:${studentsLog} · ai-club:${aiClubLog})`);
+  if (CHANNELS) prewarm(streamQuestion, buildSystemPrompt(methodCore, ''));   // a first turn then reads only its opening (lib/channels.mjs)
   // Listen-first, warm-async (24 Jul 2026): the app serves immediately; the embedding model loads in
   // the background so no learner ever meets the cold path. Until it resolves, felt-shift turns are
   // simply skipped (feltForTurn gates on neuralReady) — the dialogue is unaffected. A load failure

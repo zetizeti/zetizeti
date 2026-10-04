@@ -258,22 +258,14 @@ test('the deictic rule survived four drafts, each of which refused a correct que
 // maybe" or "reuse hadn't" — unsatisfiable in any question worth asking, and against invariant #1, which
 // reuses their MATERIAL. Two of ten probe questions were refused for exactly that. assoc.mjs filters
 // NONMATERIAL in four places; the route threw the discipline away at the last step.
-test('the route filters hedges out of the join requirement, as assoc.mjs already does', async () => {
-  const { NONMATERIAL } = await import('../lib/arc.mjs');
+test('no word is required from each side of a join, in the route or in its mirror (4 Oct 2026)', async () => {
+  // Was: the route filtered hedges out of the join requirement (17 Aug 2026). The requirement itself went on
+  // Prayas's word, after a tester heard the stitched questions it made as "general/superficial".
   const src = readFileSync(join(HERE, '..', 'server.mjs'), 'utf8');
-  const i = src.indexOf('mustHold: assoc ?');
-  assert.notEqual(i, -1, 'the join requirement must still be built here');
-  const block = src.slice(i, i + 400);
-  assert.match(block, /NONMATERIAL\.has/, 'the join words must be filtered to material');
-  // and the words that caused it are the ones the list holds
-  for (const w of ['maybe', 'probably', 'would', "hadn't"]) {
-    assert.ok(NONMATERIAL.has(w), `"${w}" must not be demandable as a carried word`);
-  }
-  // the mirror must not drift from the route — a harness measuring a different build measures nothing
+  assert.ok(src.includes('        mustHold: null,\n'), 'the route builds no join requirement');
+  assert.equal(src.includes('mustHold: assoc ?'), false);
   const probe = readFileSync(join(HERE, '..', 'scripts', 'flow-probe.mjs'), 'utf8');
-  const j = probe.indexOf('mustHold: {');
-  assert.notEqual(j, -1);
-  assert.match(probe.slice(j, j + 400), /NONMATERIAL\.has/, 'flow-probe must filter identically');
+  assert.equal(probe.includes('mustHold: {'), false, 'flow-probe must not demand it either');
 });
 
 test('a GAP is not a menu — the widened rule swept in an ordinary noun and it came back out', () => {
@@ -325,4 +317,17 @@ test('and a list inside one question is still one question', () => {
   const q = 'What does the rider notice about the queue, the awning and the stool?';
   assert.equal(validateOutput(q, { noCompound: true }).ok, true,
     JSON.stringify(validateOutput(q, { noCompound: true }).reasons));
+});
+
+// 4 October 2026, Prayas: "invented premises, the occasional either-or question, and dragging in design --> I want
+// to fix". Tonight's either-or questions that passed, and a design frame the person never used, are refused.
+test('the widened two-box rule and the design frame are refused; a plain question passes', async () => {
+  const { validateOutput } = await import('../lib/dialogue.mjs');
+  const own = new Set(['dolls', 'like', 'surprise', 'poetry']);
+  for (const q of ['Where does surprise happen — in you or in the thing?', 'Are you looking to hold a moment or tell a story?',
+    'Which part of the similarity is yours and which part is the doll\'s?', 'What keeps the poetry hidden rather than revealed?',
+    'What would have to be true for surprise to be a design goal?', 'Where does the player meet the surprise?'])
+    assert.equal(validateOutput(q, { noBinary: true, noJargon: true, ownWords: own }).ok, false, q);
+  assert.equal(validateOutput('What do dolls give you that other things don\'t?', { noBinary: true, noJargon: true, ownWords: own }).ok, true);
+  assert.equal(validateOutput('What does your design do with the dolls?', { noBinary: true, noJargon: true, ownWords: new Set([...own, 'design']) }).ok, true, 'their own word passes');
 });

@@ -209,3 +209,22 @@ test('on a return the enquiry prompt drops the "no preamble" shape and the postu
   assert.match(without, /SHAPE of this question/);
   assert.match(without, /\[Reply with ONE short Socratic question only/);
 });
+
+// 4 October 2026, Prayas: "question repetition because it was incompletely answered previously needs to be said
+// clearly - in language". A return opens with a marker code chooses, in turn; and no third question in a row on the
+// same words, unless it is an announced return.
+test('a return says it is one in words code chooses, and a third question in a row on the same words is refused', async () => {
+  const { returnMark, RETURN_MARKS, validateOutput } = await import('../lib/dialogue.mjs');
+  const lead = 'Your answer has not yet said how you decide. What do you look for first?';
+  assert.equal(returnMark(lead, [], 'how it happens'), `${RETURN_MARKS[0]}, because your answer has not yet said how you decide. What do you look for first?`);
+  assert.equal(returnMark('What makes the silence feel like being alone?', [], 'how it happens'), `${RETURN_MARKS[0]}, because your answer did not yet say how it happens: what makes the silence feel like being alone?`, 'with no sentence from the model, code says why');
+  assert.ok(returnMark(lead, [`${RETURN_MARKS[0]}, because x?`]).startsWith(RETURN_MARKS[1]), 'the marks are taken in turn');
+  for (const m of [returnMark(lead, []), returnMark('What is it?', [])]) assert.match(m, /, because /, 'every return says why');
+  const lastTwo = ['Where do the streetlights leave the chicken on the road?', 'Why does the chicken leave the streetlights behind?'];
+  assert.equal(validateOutput('What happens to the chicken when the streetlights fail?', { lastTwo }).ok, false);
+  assert.equal(validateOutput('What makes the risk worth taking for it?', { lastTwo }).ok, true);
+  assert.equal(validateOutput('What does the ending give the user who leaves?', { lastTwo: ['How does the user end it?', 'Where does the ending sit?'] }).reasons.some((r) => /third question/.test(r)), false, '"does" is not a subject');
+  assert.equal(validateOutput('What happens to the chicken when the streetlights fail?', { lastTwo, returnNote: { words: ['streetlights'] } }).reasons.some((r) => /third question/.test(r)), false, 'an announced return may stay');
+  const s = readFileSync(new URL('../server.mjs', import.meta.url), 'utf8');
+  assert.ok(s.includes('if (returnNote && guarded.check.ok) full = returnMark(full, stoneTurns, returnNote.need);'));
+});

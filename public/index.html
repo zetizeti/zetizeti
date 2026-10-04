@@ -1359,6 +1359,8 @@ const DIALOG_PH='Respond — or sit with the question…', REDRAW_PH='Re-draw th
 const PREP_NOTE_DEFAULT = 'A glossary or briefing about a field you don\u2019t work in yet. Six lines of questioning across three sittings, asking where <em>you</em> stand — then it stops and the enquiry is yours. Read here in your browser, never uploaded.';
 const OPENING="What are you trying to do right now — and where does it resist you?";
 let questId=null, history=[], busy=false, phase='goal', goal='', honed=0, exchanges=0, lineage=[];
+// What the model saw for each reply, in channels mode only (lib/channels.mjs): posted back so the next prompt only grows.
+let tails=[];
 // nudge refractory, tracked client-side now that nothing is persisted: turns since a nudge last surfaced
 // (large when none has). Sent with each turn; reset to 0 when a nudge fires, else incremented.
 let turnsSinceNudge=99;
@@ -2476,7 +2478,7 @@ function armPrepDoorway(){
 // ---------- conversation state — declared above, before boot() ----------
 
 function resetConversation(){
-  questId=null; history=[]; busy=false; phase='goal'; goal=''; honed=0; exchanges=0; lineage=[]; turnsSinceNudge=99;
+  questId=null; history=[]; tails=[]; busy=false; phase='goal'; goal=''; honed=0; exchanges=0; lineage=[]; turnsSinceNudge=99;
   stream.innerHTML=''; edge.hidden=true; field.classList.remove('redraw');
   { const dl=$('dlTranscript'); if(dl) dl.hidden=true; }
   // The sheet does NOT survive into a new enquiry. A file attached for one area silently prepping the next
@@ -2974,10 +2976,11 @@ async function streamStone(message, kind, reuseNode){
   const body=node.querySelector('.body');
   body.innerHTML=`<span class="thinking"><span class="bead"></span> drawing the edge</span>`;
   let retrieved=null, guard=null, full='', errored=false, nudgedThisTurn=false, blanked=false, revealing=null, acked=false, choices=null;
+  const tailAt=history.filter(h=>h.role==='student').length-1; let tail=null;
   try{
     // Stateless: no quest_id. The browser sends the whole transcript + turnsSinceNudge; the server stores nothing.
     const res = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ message, history:history.slice(0,-1), goal, kind, honed, exchanges, lineage, turnsSinceNudge, focus, prep:prepText, tasks:prepTasksText, sheetName:prepName }) });
+      body: JSON.stringify({ message, history:history.slice(0,-1), tails, goal, kind, honed, exchanges, lineage, turnsSinceNudge, focus, prep:prepText, tasks:prepTasksText, sheetName:prepName }) });
     const reader=res.body.getReader(), dec=new TextDecoder(); let buf='';
     while(true){
       const {value,done}=await reader.read(); if(done) break;
@@ -2992,6 +2995,7 @@ async function streamStone(message, kind, reuseNode){
         // A held beat: the machine's indicator goes quiet, so the pause reads as a pause, not as processing.
         else if(type==='hold'){ body.innerHTML=''; }
         else if(type==='token'){ full+=data.t; revealing=revealWords(body, full); }
+        else if(type==='tail'){ tail=data.t; }
         // A turn that does not ask: a fixed line about the exchange, chosen by code. No chip, no curtain.
         else if(type==='ack'){ acked=true; full=data.t; revealing=revealWords(body, full); }
         // A choice turn: three questions, and the learner picks the one asked. Code decided it; drawn once the stream ends.
@@ -3029,6 +3033,7 @@ async function streamStone(message, kind, reuseNode){
   if(choices && !errored) offerChoices(node, body, choices);
   if(full && !errored) attachExplain(node, full, { surface:'enquiry', goal, context: explainContext(history), notAsked: acked || undefined });
   if(full) history.push({role:'interlocutor', content:full});
+  if(tail && tailAt>=0) tails[tailAt]=tail;
   // refractory bookkeeping: reset when a nudge surfaced this turn, else it grows by one.
   turnsSinceNudge = nudgedThisTurn ? 0 : turnsSinceNudge+1;
   if(!errored && !blanked && !acked && !choices) attachCurtain(node, retrieved, guard);

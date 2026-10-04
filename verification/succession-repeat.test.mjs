@@ -94,7 +94,7 @@ test('without a repeat, dwell holds the anchor — the 28 July decision is untou
   const d = readDwell({ studentTurns: STUCK, stoneTurns: ASKED, goal: GOAL });
   assert.ok(d && d.anchor, 'an anchor should still be picked');
   assert.equal(d.invite, undefined);
-  assert.equal(ANCHOR_MAX, 3, 'the dwell budget itself is unchanged');
+  assert.equal(ANCHOR_MAX, 2, 'the dwell budget: 3 until 4 Oct 2026, then 2, after testers tired of being brought back to the same thing');
 });
 
 test('a repeat retires the held anchor and hands the turn to an untouched thing in their OWN goal', () => {

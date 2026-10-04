@@ -217,10 +217,12 @@ test('a quoted phrase must be one unbroken run of their words: nothing added, no
 test('a charged short reply is said back, but not straight after another turn that did not ask', () => {
   const earlier = ['New things start with mirages', 'And what is there just before a mirage becomes a thing?', 'A strong will', 'Where did that belief come from?'];
   const replies = ['A strong will', 'Mirages', 'Romance'];
-  assert.equal(ackTurn({ replies, lastStoneAsked: true, earlier, questionsSince: 2 }).kind, 'charged');
-  assert.equal(ackTurn({ replies, lastStoneAsked: true, earlier, questionsSince: 1 }), null, 'too soon after the last one');
-  assert.equal(ackTurn({ replies: ['A strong will', 'Mirages'], lastStoneAsked: true, earlier, questionsSince: 2 }), null, 'mirages is not new');
-  assert.equal(ackTurn({ replies: ['a', 'a long reply with many words that all happen to be new'], lastStoneAsked: true, earlier, questionsSince: 3 }), null, 'long replies belong to the felt reading');
+  // From 4 Oct 2026 every turn that does not ask needs SAY_BACK_GAP (4) questions since the last ("it is too much").
+  assert.equal(ackTurn({ replies, lastStoneAsked: true, earlier, questionsSince: 4 }).kind, 'charged');
+  assert.equal(ackTurn({ replies, lastStoneAsked: true, earlier, questionsSince: 3 }), null, 'too soon after the last one');
+  assert.equal(ackTurn({ replies, lastStoneAsked: true, earlier, questionsSince: 3, newMaterial: true }), null, 'the gap holds for new material too');
+  assert.equal(ackTurn({ replies: ['A strong will', 'Mirages'], lastStoneAsked: true, earlier, questionsSince: 4 }), null, 'mirages is not new');
+  assert.equal(ackTurn({ replies: ['a', 'a long reply with many words that all happen to be new'], lastStoneAsked: true, earlier, questionsSince: 4 }), null, 'long replies belong to the felt reading');
   assert.match(server, /questionsSince: \(\(\) => \{/, 'the route must count, or the gap is inert');
 });
 

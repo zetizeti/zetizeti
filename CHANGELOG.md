@@ -26,6 +26,18 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.19.0] — 4 October 2026
+
+**A question asked again says so, and says why.** From two testers' call and five of their dialogues (9 of 39 questions went back to the previous question's subject; one said so; one tester left a dialogue tired of being brought *"back to the same thing"*). Prayas: *"question repetition because it was incompletely answered previously needs to be said clearly - in language"*, *"also say why"*. When code returns to a question because the answer left part of it out, the turn reads *[Asking again / Back to this once more / Asking this a second time / One more time on this], because [reason]*: the model's sentence naming the gap is the reason, and when it writes none, code gives it from what it read as missing.
+
+**Less looping, fewer statements.** No third question in a row on the same content words unless it is an announced return, and the dwell holds a word for two questions, not three (129 of 945 questions on record shared two or more words with both of the two before). A turn that does not ask needs at least four questions since the last (Prayas: *"it is too much. not feeling natural"*): 28% of the testers' stone turns were said-back.
+
+**Asking what they meant, not stitching their words.** The new-words line asks what a word points to for the person, not to build a question out of it, and the join no longer requires a word from each statement (19 of 39 testers' questions joined phrases of different replies, heard as *"general/superficial"*).
+
+**Guards.** The approaches keep their intent and lose their fixed wording, and the stock wordings (*what would have to be true*, *what would you want to have happen*, *what happens just before*) are refused on every turn; either-or questions are refused in five more forms (a dash before the boxes, *or simply*, *are you … or …*, *which part … and which part*, *rather than*); *design*, *user*, *player*, *product*, *client* and *customer* are refused until the person has used the word; a question with no question word is refused as closed (86 of 2,537 on record, every one yes/no or either-or).
+
+**Toward a local model, off by default.** `ZETIZETI_LLM_BASE` points zetizeti at a model on the person's own machine (Ollama), and `ZETIZETI_CHANNELS=3` sends it a compact prompt that only grows, so each turn reads only its new part. The live site is unchanged by either and stays on Gemini 3.1 Flash-Lite.
+
 ## [1.18.0] — 4 October 2026
 
 **The opening question takes no frame.** Prayas, on *"And what happens just before you like dolls?"*: *"formulaic. strange opening"*, then *"Make fresh, unique openings"*. The first question is now the model's own, about exactly what was written (`OPENING_FRESH`), and the guard refuses the stock frames' openings on it (`OPENING_HEADS`: *what would have…*, *what would you…*, *what happens just…*). The frames start with the first reply.
