@@ -504,6 +504,8 @@ From two testers' call and five of their dialogues. **A return says it is one an
 
 **v1.19.1.** The prompt names the last four question shapes and the question has five attempts, after v1.19.0's wider guards sent more questions out flagged (6.7 a replay of the cohort fixture against 5.0; now 3.3). A question may not press for *the specific* or *the exact* within three questions of the last that did (`lastThree`).
 
+**v1.19.3.** Every return the model wrote is marked, including one that failed every attempt, and its lead sentence is spoken to the person as *you*: each instruction for it says so (it had described them as *their*, and the model wrote that back), with the word change after the fact kept as a backstop (`docs/ops/return-address-check/`).
+
 **v1.19.2.** The return reads only the words of what the last question asked (`askedSentence`), never its opening condition, after a reply that answered was told it had not; and a stone turn is joined into one paragraph before it is sent, after a return's two sentences read as two turns with no reply between.
 
 ## Known limits

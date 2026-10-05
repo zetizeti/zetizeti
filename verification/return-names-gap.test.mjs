@@ -226,7 +226,11 @@ test('a return says it is one in words code chooses, and a third question in a r
   assert.equal(validateOutput('What does the ending give the user who leaves?', { lastTwo: ['How does the user end it?', 'Where does the ending sit?'] }).reasons.some((r) => /third question/.test(r)), false, '"does" is not a subject');
   assert.equal(validateOutput('What happens to the chicken when the streetlights fail?', { lastTwo, returnNote: { words: ['streetlights'] } }).reasons.some((r) => /third question/.test(r)), false, 'an announced return may stay');
   const s = readFileSync(new URL('../server.mjs', import.meta.url), 'utf8');
-  assert.ok(s.includes('if (returnNote && guarded.check.ok) full = returnMark(full, stoneTurns, returnNote.need);'));
+  // A return whose every attempt failed was delivered unmarked (13 of 37, 4 Oct 2026); now any return the model wrote
+  // that asks is marked, and the hand-back fallback never is.
+  assert.ok(s.includes('if (returnNote && !guarded.fallback && /\\?\\s*$/.test(full)) full = returnMark(full, stoneTurns, returnNote.need);'));
+  assert.equal(returnMark('Their answer did not say who the name addresses. How would you know?', []), `${RETURN_MARKS[0]}, because your answer did not say who the name addresses. How would you know?`, 'the person is spoken to');
+  assert.equal(returnMark('What their answer did not yet say is whose sky it is. Whose sky is it?', []), `${RETURN_MARKS[0]}, because what your answer did not yet say is whose sky it is. Whose sky is it?`, 'anywhere in the sentence');
 });
 
 // 4 Oct 2026: with the approaches reduced to intent, frame repeats went out more often; the enquiry prompt now names

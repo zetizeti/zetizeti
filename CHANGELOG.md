@@ -26,6 +26,10 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.19.3] — 5 October 2026
+
+**Every return is marked, and it speaks to the person.** A return whose every attempt failed the guard reached the person with no *"Asking again, because …"* (13 of 37 in a 110-dialogue run on v1.19.2); now every return the model wrote is marked. The model's sentence naming the gap sometimes said *"Their answer did not say …"* to the person it was talking to (Prayas: *"why their?"*). The cause was zetizeti's own instruction, which described the person in the third person (*"WHAT THEIR LAST ANSWER DID NOT GIVE"*); every instruction for that sentence now says it is *spoken to them as you, never about them as they*, and the word change after the fact stays as a backstop. Checked on 80 dialogues with the backstop off: third-person lead sentences 9 of 20 before, 0 of 27 after; questions sent out flagged after every try 14.3% before, 11.0% after (`docs/ops/return-address-check/`). A first version that quoted an example sentence was copied word for word by the model and was dropped.
+
 ## [1.19.2] — 4 October 2026
 
 **An answer is no longer told it left out what the question never asked.** Marking a dialogue, Prayas found *"It stops. The silence is no longer waiting."* met with *"You have not said what happens next when the hum stops."* The return counted every word of the last question, including the condition before the ask (*"If the 'only' in the placement … are the same, what happens to the hum?"*). Only the words of the ask itself count now: over 995 reply points on record, returns 74 → 70, none new, all four that stopped false.

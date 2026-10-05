@@ -1209,7 +1209,10 @@ app.post('/api/chat', requireUser, async (req, res) => {
     // two turns with the person's reply missing between them ("how is no reply ok?").
     full = full.replace(/\s*\n+\s*/g, ' ').trim();
     // A return says it is one, in words code chooses, before the model's sentence about what was left out.
-    if (returnNote && guarded.check.ok) full = returnMark(full, stoneTurns, returnNote.need);
+    // Marked whenever the model's own return asks something, passed or not: a return delivered after every attempt
+    // failed reached the person unmarked, so it read as the same question again (13 of 37 returns, 4 Oct 2026).
+    // The hand-back fallback is not a return and is never marked.
+    if (returnNote && !guarded.fallback && /\?\s*$/.test(full)) full = returnMark(full, stoneTurns, returnNote.need);
     send('token', { t: full });                  // the ACCEPTED question, delivered whole
     if (CHANNELS) send('tail', { t: turnContent });   // the browser holds it and posts it back, so the next prompt only grows
     send('validation', { ...guarded.check, attempts: guarded.attempts, regenerated: guarded.regenerated, fallback: !!guarded.fallback,
