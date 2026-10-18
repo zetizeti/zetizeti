@@ -26,6 +26,12 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.20.3] — 18 October 2026
+
+**new brainstorm, and the lit link names the mode you are in.** The nav link reads *new brainstorm*, matching *new enquiry* (his: *"it should be new brainstorm right"*), and both links now stay lit through their own conversations, so the two behave alike.
+
+**sign out is reachable on a phone again.** The top bar was wider than a phone, and the root clip added in v1.20.0 to stop the about page overflowing cut off its right end, *sign out* included. Under 640px the *signed in as* name is hidden and the links wrap; under 380px they tighten so the fixed bar still clears the start screen's title. Measured at 360, 390, 414 and 1920: *sign out* on screen and the bar above the title at every size.
+
 ## [1.20.2] — 18 October 2026
 
 **The nav says where you are.** *brainstorm* stays lit through a brainstorm conversation, not only on its start screen (*new enquiry* is an action and stays unlit, as before). The admin's *review* link kept its gold but is dimmed unless it is the page you are on or under the pointer: full gold is also how the nav marks the current page, so it read as lit everywhere; it now lights on its own page, which it never did.

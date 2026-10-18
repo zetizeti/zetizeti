@@ -97,6 +97,9 @@
   .topbar nav a:hover, .topbar nav a.on{color:var(--gold-bright)}
   .topbar .who{color:var(--faint); font-size:11px}
   .topbar .who b{color:var(--goldtext); font-weight:400}
+  /* On a phone the bar ran past the right edge and the root clip (v1.20.0) hid 'sign out' entirely (18 Oct 2026). The name is the least needed item, so it goes, and the links wrap instead of running off. */
+  @media(max-width:640px){ .topbar .who{display:none} .topbar nav{flex-wrap:wrap; justify-content:flex-end; row-gap:6px} }
+  @media(max-width:380px){ .topbar nav{gap:10px; font-size:11px; letter-spacing:.04em} }   /* at 360px the links wrapped to a third row and the fixed bar covered the start screen's title */
 
   /* the 6vh breathing space at the top is PADDING, not margin — a top margin here collapses
      through the section onto <body> and slides the whole body box 65px past the viewport,
@@ -749,7 +752,7 @@
     </div>
     <nav>
       <a id="navQuests">new enquiry</a>
-      <a id="navBrain" hidden>brainstorm</a>
+      <a id="navBrain" hidden>new brainstorm</a>
       <a id="navCrit" hidden>critique</a>
       <a id="navSpec" hidden>spec</a>
       <a id="navAuthor" class="nav-author" hidden>author</a>
@@ -1303,9 +1306,9 @@ function showView(name){
   for(const k in views) views[k].classList.toggle('active', k===name);
   // topbar hidden on the landing, and on About when reached before sign-in (nav links would 404).
   $('topbar').hidden = (name==='login') || (name==='about' && !me);
-  $('navQuests').classList.toggle('on', name==='quests' && mode!=='brainstorm');
+  $('navQuests').classList.toggle('on', (name==='quests' || name==='conversation') && mode!=='brainstorm');
   $('navAdmin').classList.toggle('on', name==='admin');
-  $('navBrain').classList.toggle('on', (name==='quests' || name==='conversation') && mode==='brainstorm');   // a mode you are in, so it stays lit through the conversation; 'new enquiry' is an action and does not
+  $('navBrain').classList.toggle('on', (name==='quests' || name==='conversation') && mode==='brainstorm');   // the lit link names the mode you are in, on its start screen and through its conversation, for both modes
   $('navCrit').classList.toggle('on', name==='criticism' || name==='criticism-chat');
   $('navSpec').classList.toggle('on', name==='spec' || name==='spec-chat');
   $('navAbout').classList.toggle('on', name==='about');

@@ -69,7 +69,7 @@ test('the brainstorm prompt frames creative work and forbids ideas of its own; t
 });
 
 test('the page offers brainstorm only when the server says it is on, sends the mode, and a saved brainstorm resumes as one', () => {
-  assert.match(page, /<a id="navBrain" hidden>brainstorm<\/a>/);
+  assert.match(page, /<a id="navBrain" hidden>new brainstorm<\/a>/);
   assert.match(page, /\$\('navBrain'\)\.hidden = !cfg\.surfaces\.includes\('brainstorm'\)/);
   assert.match(page, /case '\/brainstorm': showStart\(cfg\.surfaces\.includes\('brainstorm'\) \? 'brainstorm' : 'enquiry'\)/);
   assert.match(page, /focus, mode, prep:prepText/);
@@ -98,7 +98,8 @@ test('enquiry or brainstorm is chosen on the start screen, only while brainstorm
   assert.match(page, /\$\('startModeToggle'\)\.addEventListener\('click', \(\)=>go\(mode==='brainstorm' \? '\/' : '\/brainstorm'\)\)/);
 });
 
-test('the brainstorm nav link stays lit through a brainstorm conversation', () => {
+test('the nav link for the mode you are in stays lit through its conversation, for both modes', () => {
+  assert.match(page, /\$\('navQuests'\)\.classList\.toggle\('on', \(name==='quests' \|\| name==='conversation'\) && mode!=='brainstorm'\)/);
   assert.match(page, /\$\('navBrain'\)\.classList\.toggle\('on', \(name==='quests' \|\| name==='conversation'\) && mode==='brainstorm'\)/);
 });
 
