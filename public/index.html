@@ -291,7 +291,8 @@
   .poolcount.budget.low b{color:var(--vermilion)}
 
   /* ---- admin: usage monitor (machinery — Space Mono register) ---- */
-  .nav-admin{color:var(--gold) !important}
+  .nav-admin{color:var(--gold) !important; opacity:.5}   /* gold is the admin's, but full gold is also how the nav marks the page you are on, so it read as lit everywhere (18 Oct 2026, "why is review lit?"); dimmed until it is the page or hovered */
+  .nav-admin.on, .nav-admin:hover{opacity:1}
   /* AI Club studio strip — the sibling tools, in the HEADER (10 Aug 2026) so it sits where the other
      three studio apps carry theirs. Turquoise because vermilion is the author's and gold the admin's;
      the colour marks the group as OUTBOUND — these links leave zetizeti. Same mono grammar, same hover
@@ -1303,7 +1304,8 @@ function showView(name){
   // topbar hidden on the landing, and on About when reached before sign-in (nav links would 404).
   $('topbar').hidden = (name==='login') || (name==='about' && !me);
   $('navQuests').classList.toggle('on', name==='quests' && mode!=='brainstorm');
-  $('navBrain').classList.toggle('on', name==='quests' && mode==='brainstorm');
+  $('navAdmin').classList.toggle('on', name==='admin');
+  $('navBrain').classList.toggle('on', (name==='quests' || name==='conversation') && mode==='brainstorm');   // a mode you are in, so it stays lit through the conversation; 'new enquiry' is an action and does not
   $('navCrit').classList.toggle('on', name==='criticism' || name==='criticism-chat');
   $('navSpec').classList.toggle('on', name==='spec' || name==='spec-chat');
   $('navAbout').classList.toggle('on', name==='about');

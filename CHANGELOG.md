@@ -26,6 +26,10 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.20.2] — 18 October 2026
+
+**The nav says where you are.** *brainstorm* stays lit through a brainstorm conversation, not only on its start screen (*new enquiry* is an action and stays unlit, as before). The admin's *review* link kept its gold but is dimmed unless it is the page you are on or under the pointer: full gold is also how the nav marks the current page, so it read as lit everywhere; it now lights on its own page, which it never did.
+
 ## [1.20.1] — 18 October 2026
 
 **Enquiry or brainstorm, chosen where you begin.** The signed-in start screen offered only an enquiry, with brainstorm reachable from the nav alone (his word: *"enquiry or brainstorm should be selectable"*). A mode switch under the start screen's title, the critique's mode toggle reused in the same gold register, flips between the two and moves the address between `/` and `/brainstorm`, so a reload keeps the choice. Shown only while brainstorm is on; a `[hidden]` guard on `.crit-controls` keeps it hidden, since its `display:flex` outranked the attribute (caught by `hidden-guard.test.mjs`).

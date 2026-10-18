@@ -97,3 +97,12 @@ test('enquiry or brainstorm is chosen on the start screen, only while brainstorm
   assert.match(page, /<button class="focus-toggle mode-toggle" id="startModeToggle"/);
   assert.match(page, /\$\('startModeToggle'\)\.addEventListener\('click', \(\)=>go\(mode==='brainstorm' \? '\/' : '\/brainstorm'\)\)/);
 });
+
+test('the brainstorm nav link stays lit through a brainstorm conversation', () => {
+  assert.match(page, /\$\('navBrain'\)\.classList\.toggle\('on', \(name==='quests' \|\| name==='conversation'\) && mode==='brainstorm'\)/);
+});
+
+test('the admin link is dimmed unless it is the page you are on', () => {
+  assert.match(page, /\.nav-admin\{color:var\(--gold\) !important; opacity:\.5\}/);
+  assert.match(page, /\$\('navAdmin'\)\.classList\.toggle\('on', name==='admin'\)/);
+});
