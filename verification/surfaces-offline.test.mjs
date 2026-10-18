@@ -42,9 +42,12 @@ test('an address for an offline surface lands on the start screen', () => {
   assert.equal(direct, 3 + 2, 'three guarded calls and the two definitions; a new caller must be guarded too');
 });
 
-test('the about page says the second voice is offline, until the server says it is on', () => {
-  assert.match(page, /second voice · to stress-test<span id="critOffline"> · offline for now<\/span>/);
-  assert.match(page, /if\(cfg\.surfaces\.includes\('criticism'\)\)\{ const o=\$\('critOffline'\); if\(o\) o\.remove\(\); \}/);
+test('the about page describes the second voice only while the critique is on', () => {
+  const crit = [...page.matchAll(/<div class="about-mode crit crit-on" hidden>\s*<div class="about-tag">([^<]+)</g)].map(m => m[1]);
+  assert.deepEqual(crit, ['second voice · to stress-test', 'how the second voice reads · its method']);
+  assert.doesNotMatch(page, /<(?:div|p|span)[^>]*class="[^"]*crit-on[^"]*"(?![^>]*hidden)[^>]*>/, 'every crit-on element starts hidden');
+  assert.match(page, /el\.hidden = el\.classList\.contains\('crit-on'\) !== cfg\.surfaces\.includes\('criticism'\)/);
+  assert.match(page, /<span class="crit-on" hidden>What are the two voices\? →<\/span><span class="crit-off">How does it work\? →<\/span>/);
 });
 
 // Prep offline (1 October 2026, Prayas: "take prep offline"). Prep rides inside /api/chat, so the gate is the

@@ -787,7 +787,7 @@
         <p class="lede">It helps you develop your own concepts. Tell it what you are working on and it asks you questions, one at a time, and leaves the answers to you. What comes out is yours.</p>
         <p class="lede" id="brainLede" hidden>It does the same for a film script, a short story or a song: every idea stays yours.</p>
         <p class="lede" id="critLede" hidden>Or paste in a text, and it points to where the text quietly pushes a view on you.</p>
-        <p class="nameline">The name comes from the Greek for “to inquire”. <a id="aboutLink" class="aboutlink">What are the two voices? →</a></p>
+        <p class="nameline">The name comes from the Greek for “to inquire”. <a id="aboutLink" class="aboutlink"><span class="crit-on" hidden>What are the two voices? →</span><span class="crit-off">How does it work? →</span></a></p>
         <div class="signin">
           <a class="btn-google" href="/auth/google" id="googleBtn">
             <svg width="18" height="18" viewBox="0 0 48 48" fill="#1a1206" aria-hidden="true">
@@ -985,32 +985,32 @@
   <section class="view" id="view-about">
     <div class="wrap short">
       <span class="backlink" id="aboutBack">‹ back</span>
-      <h2 class="vh">The two voices</h2>
-      <p class="vsub">zetizeti is a whetstone. A whetstone does not cut for you; it is the stone you draw your own edge against. It asks; it does not answer. It has two voices — <b>one helps you develop an idea, the other stress-tests an idea to see if it holds</b>; both ask questions in your own words, and neither hands you a conclusion.</p>
+      <h2 class="vh"><span class="crit-on" hidden>The two voices</span><span class="crit-off">How it works</span></h2>
+      <p class="vsub">zetizeti is a whetstone. A whetstone does not cut for you; it is the stone you draw your own edge against. It asks; it does not answer. <span class="crit-on" hidden>It has two voices — <b>one helps you develop an idea, the other stress-tests an idea to see if it holds</b>; both ask questions in your own words, and neither hands you a conclusion.</span><span class="crit-off"><b>It helps you develop an idea</b>; it asks questions in your own words, and it never hands you a conclusion.</span></p>
       <p class="vsub"><b>The conversation is not a route to something else.</b> A tool that teaches you something has a thing to deliver — a method, a correction — and the talking is how it travels; once it has arrived, the talking can be thrown away. Nothing is being delivered here. <b>No answer is handed over because there is none to hand over.</b></p>
       <p class="vsub">What you leave with is the conversation. It did not exist before and now it does; nobody else holds a copy; and when the tab closes it is gone unless you take it. <b>That is why nothing is kept here.</b> It belongs to whoever was in it, and the download is how it survives the tab closing.</p>
 
       <div class="about-mode">
-        <div class="about-tag">first voice · to develop</div>
+        <div class="about-tag"><span class="crit-on" hidden>first voice · </span>to develop</div>
         <h3>It helps you develop your own idea</h3>
         <p>You name an edge — what you are trying to do, and where it resists you. The stone asks back, each question grounded in a real tension in the field that was never settled. It does not resolve the tension for you; it keeps you in the question long enough to think. This is the older harm it was built against: the answer dropped in too soon, before you have done the thinking that would make it yours. An <em>information</em> gap a sentence can close; an <em>understanding</em> gap only your own movement can close. The stone refuses to close the second one for you.</p>
       </div>
 
       <div class="about-mode" id="aboutBrain" hidden>
-        <div class="about-tag">first voice · for creative work</div>
+        <div class="about-tag"><span class="crit-on" hidden>first voice · </span>for creative work</div>
         <h3>For a script, a story, a song</h3>
         <p>Brainstorm asks the same kind of questions as an enquiry, about something creative you are making: a film script, a story, a poem, a song, a play, a painting. You say what you are making and where it is stuck or still open. Each question draws on something writers, film-makers and musicians still argue about, such as whether a script is a plan for a film or a piece of writing in its own right, or whether an ending owes the audience an answer. It offers no ideas of its own: no plot turn, no character, no line, no title.</p>
       </div>
 
-      <div class="about-mode crit">
-        <div class="about-tag">second voice · to stress-test<span id="critOffline"> · offline for now</span></div>
+      <div class="about-mode crit crit-on" hidden>
+        <div class="about-tag">second voice · to stress-test</div>
         <h3>It stress-tests an idea — does it hold?</h3>
         <p>Bring an idea you want to pressure-test — a conclusion you reached in an enquiry, an answer a machine handed you, a claim you found anywhere — and paste it in. The stone questions <em>that text</em> instead of you. A settled idea, wherever it came from, is a conclusion already sitting in your understanding; the question worth asking is whether you reached it, or it was simply deposited there. So the stone does to the text what it does to your own premature certainty — it locates the spots where the text quietly decided something <em>for</em> you (called a thing "intuitive", "best practice", "obviously" — a judgement worn as a description) and asks you about those spots.</p>
         <p class="about-want"><b>What this voice wants.</b> Not to tell you the idea is wrong. It never grades the text, never marks it right or wrong — that would only be a second deposited verdict, this time the tool's. It wants to give you back the act of judging. <b>It locates; you decide.</b> It is the <em>neti neti</em> of the name turned outward — "not this, not this" — subtracting the text's smuggled certainties until what is left is yours to weigh.</p>
         <p class="about-want"><b>Nothing is kept, and the reason is not privacy.</b> A reading of a text is a frame somebody put on it once, and an average of such frames is a number about nothing. So a critique lives only while this tab is open, and there is no list, no history and no tally — not withheld from you, but never made.</p>
       </div>
 
-      <div class="about-mode crit">
+      <div class="about-mode crit crit-on" hidden>
         <div class="about-tag">how the second voice reads · its method</div>
         <h3>The reading is made of rules you can read</h3>
         <p>When you paste a text in, nothing about it is decided by a model. It is first broken into segments, and each segment is tagged by plain, stated rules — is this <em>describing</em>, or is it quietly <em>deciding</em>? A value worn as a property (the <em>clean</em> interface), a directive (you <em>should</em>…), a verdict relayed as settled (<em>obviously</em>, best practice) — each is caught by a rule about grammar and a short list of words, not by anything trained on the open web. A second step, also only arithmetic, settles which of those spots the question will point at. Only then does the model arrive, and only to do one thing: phrase a single question about that one spot, in the text's own words. A last check confirms what comes back is still a question, and carries no verdict of its own.</p>
@@ -1045,9 +1045,10 @@
       </div>
 
       <div class="about-mode">
-        <div class="about-tag">what holds across both</div>
+        <div class="about-tag">what holds <span class="crit-on" hidden>across both</span><span class="crit-off">throughout</span></div>
         <h3>Questions only. The thinking stays yours.</h3>
-        <p>The second voice is not a looser version of the first — it is the same discipline, held tighter. Both speak in questions and nothing else. Both reuse your exact words rather than paraphrasing them. Neither explains, advises, reassures, concludes, or scores. There are no grades here, no leaderboards, no percent-complete. Those measure a person. This makes a conversation, and you keep it. <b>It asks the questions; you do the thinking — whether a premature answer came from you, or from a machine.</b></p>
+        <p class="crit-off">It speaks in questions and nothing else. It reuses your exact words rather than paraphrasing them. It never explains, advises, reassures, concludes, or scores. There are no grades here, no leaderboards, no percent-complete. Those measure a person. This makes a conversation, and you keep it. <b>It asks the questions; you do the thinking — whether a premature answer came from you, or from a machine.</b></p>
+        <p class="crit-on" hidden>The second voice is not a looser version of the first — it is the same discipline, held tighter. Both speak in questions and nothing else. Both reuse your exact words rather than paraphrasing them. Neither explains, advises, reassures, concludes, or scores. There are no grades here, no leaderboards, no percent-complete. Those measure a person. This makes a conversation, and you keep it. <b>It asks the questions; you do the thinking — whether a premature answer came from you, or from a machine.</b></p>
       </div>
 
       <div class="about-mode crit">
@@ -1414,14 +1415,15 @@ let turnsSinceNudge=99;
   ]);
   cfg.poolEnabled = !!c.poolEnabled; cfg.poolUserTurns = c.poolUserTurns || 0; cfg.guestAllowed = !!c.guestAllowed;
   cfg.version = c.version || '';
-  // Which surfaces are on (30 Sep 2026: the critique and spec pages are offline, enquiry only). The two nav links are hidden in the markup and shown only when the server says their surface is on; the about page's "offline for now" is removed when it is.
+  // Which surfaces are on (30 Sep 2026: the critique and spec pages are offline, enquiry only). The two nav links are hidden in the markup and shown only when the server says their surface is on; so are the about page's critique sections.
   cfg.surfaces = c.surfaces || [];
   $('navCrit').hidden = !cfg.surfaces.includes('criticism');
   $('navSpec').hidden = !cfg.surfaces.includes('spec');
   $('navBrain').hidden = !cfg.surfaces.includes('brainstorm');
   $('brainLede').hidden = $('aboutBrain').hidden = $('startModeRow').hidden = !cfg.surfaces.includes('brainstorm');
   $('critLede').hidden = !cfg.surfaces.includes('criticism');   // the landing offered the critique while it was offline (18 Oct 2026)   // the site says what brainstorm is for only while it is on
-  if(cfg.surfaces.includes('criticism')){ const o=$('critOffline'); if(o) o.remove(); }
+  // The about page and the landing link describe a second voice only while the critique is on (18 Oct 2026, Prayas: "the criticism section is not online anymore"); .crit-off is the wording for when it is not.
+  for(const el of document.querySelectorAll('.crit-on, .crit-off')) el.hidden = el.classList.contains('crit-on') !== cfg.surfaces.includes('criticism');
   // Prep is offline from 1 Oct 2026 ("take prep offline"): its doorway is hidden in the markup and shown only when the server says it is on.
   if(cfg.surfaces.includes('prep')){ $('prepDoor').hidden=false; $('prepNote').hidden=false; }
   if(cfg.version) document.querySelectorAll('.build-ver').forEach(e=>{ e.textContent='v'+cfg.version; });

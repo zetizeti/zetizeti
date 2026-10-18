@@ -26,6 +26,10 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.20.7] — 18 October 2026
+
+**The about page no longer describes the critique, which is offline.** His word: *"the criticism section is not online anymore"*. Since v1.16.0 the about page had kept both of the second voice's sections, marked *offline for now*, and opened by promising two voices. Those two sections, the *two voices* heading and opening sentence, the *first voice* labels and the paragraph comparing the voices are now shown only while the critique surface is on; while it is off the page is headed *How it works*, says the tool helps you develop an idea, and the landing link reads *How does it work?* Nothing was deleted: `ZETIZETI_SURFACES` with `criticism` brings every word back (`verification/surfaces-offline.test.mjs`). *Where it stands* keeps its sentence about the second voice's two-box questions unchanged.
+
 ## [1.20.6] — 18 October 2026
 
 **A question the guard refused is never sent.** His word: *"flagged responses should never go public"*. When every attempt at a question broke one of the guard's rules, the least-bad attempt used to go out, with a flag shown only behind the curtain and counted for the operator; nothing acted on either, so the person read exactly the question the guard had refused. Now, in enquiry and brainstorm, the turn says back a phrase of the person's last reply instead, where a turn that does not ask is allowed and the said-back passes its own guard; otherwise nothing is sent, the page says no question passed, and the reply goes back into the box to send again. The critique and spec surfaces (offline) withhold the same way. On the 38-round replay: no refused question delivered (4 and 8 in today's earlier reads), no *send it again*, and nine said-backs where there had been four. The conversation probe resends a withheld turn and no longer counts a said-back, a choice or a blank as a breach.
