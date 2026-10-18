@@ -66,6 +66,7 @@ const BASE = arg('base', 'http://localhost:3999');
 const ROUNDS = Number(arg('rounds', '10'));
 const PERSONA = arg('persona', 'agreeable');
 const DISCIPLINE = arg('discipline', 'all');
+const MODE = arg('mode', 'enquiry');   // --mode=brainstorm drives the brainstorm surface (18 Oct 2026)
 const EDGE_FILE = arg('edge-file');
 // 🔴 --force-repeat-at=N makes the student hand back their previous reply, unchanged, at round N.
 // This exists because a unit test on `readDwell` proves the FUNCTION responds to a repeat and proves
@@ -376,7 +377,7 @@ async function assertLiveBuild() {
       message: round === 1 ? EDGE : studentTurns[studentTurns.length - 1],
       history: history.slice(0, -1).map((h) => ({ role: h.role === 'stone' ? 'interlocutor' : 'student', content: h.content })),
       goal: EDGE, kind: round === 1 ? 'open' : 'turn', exchanges: round - 1, discipline: DISCIPLINE,
-      turnsSinceNudge: 99,
+      turnsSinceNudge: 99, mode: MODE,
     });
     // A turn that does not ask arrives as `ack` (a sentence) or `blank` (nothing); both are turns, as in the page.
     question = ev.filter((e) => e.event === 'token' || e.event === 'ack').map((e) => e.data.t).join('').trim();

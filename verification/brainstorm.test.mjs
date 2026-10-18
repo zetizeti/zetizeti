@@ -107,3 +107,33 @@ test('the admin link is dimmed unless it is the page you are on', () => {
   assert.match(page, /\.nav-admin\{color:var\(--gold\) !important; opacity:\.5\}/);
   assert.match(page, /\$\('navAdmin'\)\.classList\.toggle\('on', name==='admin'\)/);
 });
+
+// 18 Oct 2026, Prayas on a live brainstorm: "nonsense, dumb", then "I said flying is the dramatic event. then it is asking again". After "its the drama of the event" the stone asked "Where is the drama of the event?", on the live site and on every local replay. Two things built it: TAKE THIS UP asked what one of the new words means, and a quiet turn could use only the words of that reply plus "where". In a brainstorm neither may hand the reply back.
+import { buildTurnContext, validateOutput } from '../lib/dialogue.mjs';
+
+test('in a brainstorm the new words are taken as given, never asked about; enquiry keeps its own instruction', () => {
+  const brain = buildTurnContext({ newMaterial: ['drama', 'event'], brainstorm: true });
+  assert.match(brain, /take it as given/);
+  assert.doesNotMatch(brain, /what they mean by it/);
+  assert.match(buildTurnContext({ newMaterial: ['drama', 'event'] }), /what they mean by it/);
+  assert.match(server, /^\s+brainstorm,\s+\/\/ its new words are taken as given/m, 'the chat route passes the mode to the turn context');
+});
+
+test('a brainstorm quiet turn made only of words new in the last reply is refused; one that reaches back passes', () => {
+  const quietWords = new Set(['story', 'flying', 'freedom', 'central', 'draw', 'drama', 'event']);
+  const quietLast = new Set(['drama', 'event']);
+  const refused = validateOutput('Where is the drama of the event?', { quietWords, quietLast });
+  assert.ok(refused.reasons.some((r) => /last reply/.test(r)), refused.reasons.join(' | '));
+  assert.ok(validateOutput('What happens next in the flying?', { quietWords, quietLast }).ok);
+  // enquiry: no quietLast, so the same question is still a quiet turn it may ask
+  assert.ok(validateOutput('Where is the drama of the event?', { quietWords }).ok);
+  assert.match(server, /quietLast: light && brainstorm \?/, 'quietLast is only ever set in a brainstorm');
+  assert.match(server, /light: !light \? null : brainstorm \? \[\.\.\.earlierWords\]/, 'the brainstorm quiet turn lists only the words they used before this reply');
+});
+
+test('a choice left unchosen is saved as a choice not taken, never as a blank, and reads back as one', () => {
+  assert.match(page, /const entry=\{role:'interlocutor', content:'', choice:true\}/);
+  assert.match(page, /h\.choice \? '\*\*—\*\* \[choice not taken\]\\n\\n' : '\*\*—\*\* \[blank\]\\n\\n'/);
+  assert.match(page, /h\.choice \? '—  \[choice not taken\]' : '—  \[blank\]'/, 'the PDF says the same');
+  assert.match(page, /t==='\[choice not taken\]' \? \{role:'interlocutor', content:'', choice:true\}/);
+});

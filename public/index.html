@@ -2590,7 +2590,8 @@ function buildTranscriptMd(){
     const q=String(h.content).replace(/\n+/g,' ').trim();
     // a question is **Q.**; a turn that did not ask (said back) or said nothing (blank) is **—**, so the file never
     // calls a said-back line a question, and resuming reads each back as what it was
-    body += !q ? '**—** [blank]\n\n' : q.includes('?') ? '**Q.** '+q+'\n\n' : '**—** '+q+'\n\n';
+    // an unchosen choice is empty too, and is not a blank: Prayas's live brainstorm of 18 Oct 2026 ended on '[blank]' where three ways had been offered
+    body += !q ? (h.choice ? '**—** [choice not taken]\n\n' : '**—** [blank]\n\n') : q.includes('?') ? '**Q.** '+q+'\n\n' : '**—** '+q+'\n\n';
   }
   return '---\nsource: zetizeti\ntype: idea-transcript\ntopic: '+topic+'\ndate: '+new Date().toISOString()+'\nturns: '+turns+(focus==='concept'?'\nfocus: concept-only':'')+(mode==='brainstorm'?'\nmode: brainstorm':'')+'\n---\n\n'
     +'# A dialogue — '+topic+'\n\n'
@@ -2623,7 +2624,7 @@ function downloadTranscriptPdf(){
   // same leading now; the italic marks who is speaking and does not rank them.
   for(const h of history){
     // a blank turn happened and belongs in the record — 'Q.' with nothing after it would claim a question
-    if(h.role==='interlocutor') block(!String(h.content).trim() ? '—  [blank]' : String(h.content).includes('?') ? 'Q.  '+h.content : '—  '+h.content, 'italic', 12, [25,25,35], 17, 9);
+    if(h.role==='interlocutor') block(!String(h.content).trim() ? (h.choice ? '—  [choice not taken]' : '—  [blank]') : String(h.content).includes('?') ? 'Q.  '+h.content : '—  '+h.content, 'italic', 12, [25,25,35], 17, 9);
     else block(h.content, 'normal', 12, [25,25,35], 17, 13);
   }
   doc.save(transcriptName('pdf'));
@@ -2742,7 +2743,7 @@ function parseTranscriptMd(text){
     if(/^#/.test(para)) continue;                       // the '# Idea transcript — …' heading
     if(/^_[\s\S]*_$/.test(para)) continue;              // the italic note under it
     const quiet=para.match(/^\*\*—\*\*\s*([\s\S]*)$/);   // a blank, or a turn that did not ask
-    if(quiet){ const t=quiet[1].trim(); turns.push({role:'interlocutor', content: t==='[blank]' ? '' : t}); continue; }
+    if(quiet){ const t=quiet[1].trim(); turns.push(t==='[choice not taken]' ? {role:'interlocutor', content:'', choice:true} : {role:'interlocutor', content: t==='[blank]' ? '' : t}); continue; }
     const q=para.match(/^\*\*Q\.\*\*\s*([\s\S]+)$/);
     if(q) turns.push({role:'interlocutor', content:q[1].trim()});
     else  turns.push({role:'student', content:para});
@@ -2774,8 +2775,9 @@ function resumeFromTranscript(parsed){
   let lastNode=null;
   restoring=true;
   for(const t of parsed.turns){
-    history.push({role:t.role, content:t.content});
+    history.push(t.choice ? {role:t.role, content:'', choice:true} : {role:t.role, content:t.content});
     if(t.role==='student'){ addYou(t.content); lastNode=stream.lastElementChild; }
+    else if(t.choice){ lastNode=addStone('', null, null, {opening:true}); lastNode.querySelector('.body').innerHTML='<p class="choose-lead">three ways were offered — none was taken</p>'; }
     else { lastNode=addStone(t.content, null, null, {opening:true});
       if(!t.content){ const b=lastNode.querySelector('.body'); b.classList.add('blank'); b.innerHTML='<span class="mark">&lt;blank&gt;</span>'; }   // a resumed blank is marked, as a live one is
       attachExplain(lastNode, t.content, { surface:'enquiry', goal, context: explainContext(history.slice(0,-1)), notAsked: !t.content.includes('?') || undefined }); }
@@ -2979,7 +2981,7 @@ function redraw(text){
 //    becomes the chosen question when the learner picks one; if they reply without choosing, it stays empty
 //    and the three stay unasked. The service stores nothing, so this entry is the whole record of the choice.
 function offerChoices(node, body, qs){
-  const entry={role:'interlocutor', content:''}; history.push(entry);
+  const entry={role:'interlocutor', content:'', choice:true}; history.push(entry);   // `choice`: saved as a choice not taken, never as a blank (18 Oct 2026)
   body.innerHTML=`<div class="choose"><p class="choose-lead">three ways on, from your words — choose the one to be asked</p><ol class="ways">${qs.map(q=>`<li class="way" tabindex="0">${esc(q)}</li>`).join('')}</ol><p class="own">or <u>write your own reply</u> — the three stay unasked</p></div>`;
   const list=body.querySelector('.ways'), ways=[...list.querySelectorAll('.way')];
   const open=()=>!list.classList.contains('decided') && !list.classList.contains('closed');

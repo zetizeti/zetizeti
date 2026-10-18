@@ -26,6 +26,14 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.20.4] — 18 October 2026
+
+**A brainstorm no longer asks back what you have just said.** From a live dialogue (his: *"nonsense, dumb"*, then *"I said flying is the dramatic event. then it is asking again"*): after *its the drama of the event* the tool asked *Where is the drama of the event?*, though the event was the flying named in the first line, and it did so on every local replay of his replies. Two instructions built it. The turn context told the model to ask what one of the newly used words means; in a brainstorm it now says the answer is a decision about the work, to be taken as given, and asks what it opens in the work itself. A quiet turn could use only the words of the last reply plus *where*; in a brainstorm it now lists only the words used before that reply, may also use *happens* and *next*, and the guard refuses a quiet question made only of words new in that reply. Enquiry is unchanged. Replayed four times on his exact replies: the re-ask did not come back and the guard needed no hand-back, though later questions can still recombine his own words.
+
+**A choice left unchosen is saved as one.** A choice turn sits in the history as an empty turn until a way is picked, and a transcript saved while three ways were offered wrote it as *[blank]*. It is now written *[choice not taken]*, in the PDF too, and reads back as a choice not taken when the transcript is carried on; the unpicked ways are still never saved.
+
+The conversation probe takes `--mode=brainstorm`.
+
 ## [1.20.3] — 18 October 2026
 
 **new brainstorm, and the lit link names the mode you are in.** The nav link reads *new brainstorm*, matching *new enquiry* (his: *"it should be new brainstorm right"*), and both links now stay lit through their own conversations, so the two behave alike.

@@ -55,7 +55,7 @@ test('the route offers the choice before the ordinary question, and only a set t
 
 test('the page holds the choice as an empty turn until one is chosen, and replying closes it', () => {
   assert.match(page, /else if\(type==='choices'\)\{ choices=data\.qs;/);
-  assert.match(page, /const entry=\{role:'interlocutor', content:''\}; history\.push\(entry\);/);
+  assert.match(page, /const entry=\{role:'interlocutor', content:'', choice:true\}; history\.push\(entry\);/);   // `choice` from 18 Oct 2026: saved as a choice not taken (brainstorm.test.mjs)
   assert.match(page, /entry\.content=qs\[i\];/);
   assert.match(page, /async function turn\(text\)\{\n  busy=true; send\.disabled=true;\n  closeChoices\(\);/);
 });

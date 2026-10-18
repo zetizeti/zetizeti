@@ -970,13 +970,14 @@ app.post('/api/chat', requireUser, async (req, res) => {
       shape: formShape(exchanges, { flow: true }),
       dwell,
       newMaterial: (() => { const m = newMaterial.filter((w) => !NONMATERIAL.has(w)); return m.length ? m : null; })(),   // never ask the model to build on a pronoun or hedge ("themselves", 4 Oct 2026)
+      brainstorm,                               // its new words are taken as given, never asked about (dialogue.mjs)
       declined,
       corrected,
       assoc: assoc ? associationBlock(assoc) : '',
       banOpeners,
       banHeads,
       precision,
-      light: light ? contentWords(message) : null,
+      light: !light ? null : brainstorm ? [...earlierWords].filter((w) => !NONMATERIAL.has(w)) : contentWords(message),   // brainstorm: the words they had already used, so the short question does not hand this reply back
       featureInvite,
       stalledInvite,
       avoidFrames: stoneTurns.filter((q) => String(q).includes('?')).slice(-4).map((q) => String(q).replace(/\s+/g, ' ').trim().slice(0, 60)),
@@ -1025,6 +1026,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
         // span is inside the count. Named as a chosen difference rather than left to be discovered.
         maxWords: prepping ? 40 : light ? LIGHT_MAX : 34,
         quietWords: light ? new Set([...studentTurns, message].flatMap((t) => contentWords(t))) : null,   // a quiet turn uses only words they have said
+        quietLast: light && brainstorm ? new Set(contentWords(message).filter((w) => !earlierWords.has(w) && !NONMATERIAL.has(w))) : null,   // brainstorm: never only the words new in this reply
         // THE THREE PREP GUARDS. noDefine keeps prep from becoming teaching; mustAddress keeps the question
         // about this learner rather than about the field, which is what makes asking another model pointless
         // instead of merely discouraged; noHypeVerdict keeps the one judgement the arc solicits on the
