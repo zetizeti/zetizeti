@@ -12,7 +12,7 @@
   <a href="https://zetizeti.com"><img src="https://img.shields.io/badge/live-zetizeti.com-0f7d72?style=flat-square" alt="live at zetizeti.com"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/zetizeti/zetizeti?style=flat-square&color=173a8c" alt="AGPL-3.0"></a>
   <a href="https://github.com/zetizeti/zetizeti/releases"><img src="https://img.shields.io/github/v/release/zetizeti/zetizeti?style=flat-square&color=f0b324" alt="release"></a>
-  <img src="https://img.shields.io/badge/tests-662%20passing-0f7d72?style=flat-square" alt="662 tests passing">
+  <img src="https://img.shields.io/badge/tests-672%20passing-0f7d72?style=flat-square" alt="672 tests passing">
 </p>
 
 <p align="center">
@@ -46,7 +46,7 @@ an education conducted elsewhere, and it is retired.)*
 
 It asks a great deal of patience. People who do not have it to give leave, and most people do not have it to give.
 
-183 of the 283 corpus entries are still awaiting sign-off on their framing. Their citations are verified — that gate is absolute and no entry ships without it — and the curtain states which of the two states each entry is in, per entry, in the learner's own view. The method core (Part A) is a single note where it should be many. The reading plan on the criticism surface was measured against the clock it replaced and came back null on question quality: it changes the route, not what gets asked. Until v0.16.0 that surface asked two-box questions, which handed the student a menu instead of a question. It was found because a student said it felt off and could not say why.
+183 of the 283 corpus entries are still awaiting sign-off on their framing, and so are all 30 entries of the brainstorm corpus. Their citations are verified — that gate is absolute and no entry ships without it — and the curtain states which of the two states each entry is in, per entry, in the learner's own view. The method core (Part A) is a single note where it should be many. The reading plan on the criticism surface was measured against the clock it replaced and came back null on question quality: it changes the route, not what gets asked. Until v0.16.0 that surface asked two-box questions, which handed the student a menu instead of a question. It was found because a student said it felt off and could not say why.
 
 ## The two voices
 
@@ -62,7 +62,7 @@ as a property ("the *clean* interface"), a directive, a verdict relayed as settl
 those spots. It never grades the text, never says "this is wrong," never speculates about whether the
 text is AI-written. **The tool locates; you judge.**
 
-**At zetizeti.com only the first voice is running.** The second voice, and a third surface that questions a specification, are in the code and switched off by default. A self-hosted copy turns them on with `ZETIZETI_SURFACES=enquiry,criticism,spec`.
+**At zetizeti.com only the first voice is running**, in two modes: an enquiry, for developing a concept, and a brainstorm, the same questioning turned to creative work such as a film script or a short story, drawing on a corpus of its own and offering no ideas of its own. The second voice, and a third surface that questions a specification, are in the code and switched off by default. A self-hosted copy turns them on with `ZETIZETI_SURFACES=enquiry,brainstorm,criticism,spec`.
 
 ## How it works — the architecture
 

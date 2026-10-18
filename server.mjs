@@ -263,10 +263,13 @@ const poolEvent = (userId) => {
 const corpus = new Database(':memory:');
 const nEntries = buildIndex(corpus, join(__dirname, 'corpus', 'domain'));
 const methodCore = loadMethodCore(join(__dirname, 'corpus', 'method'));
+// 🔵 BRAINSTORM (18 Oct 2026, Prayas: "add a copy of the enquiry mode for brainstorm partnering for all creative works including writing film scripts"). The same route, guards and rhythm as enquiry; only the corpus it retrieves from and the line framing that material differ. Its own index, so a brainstorm never draws on the design tensions and an enquiry never on the creative ones.
+const creative = new Database(':memory:');
+const nCreative = buildIndex(creative, join(__dirname, 'corpus', 'creative'));
 // Criticism surface (zetizeti's second face): base Clean discipline + the critical-register notes.
 // Loaded resident on /api/criticise only — NOT globbed into the Socratic prompt.
 const criticismCore = methodCore + '\n\n---\n\n' + loadCriticismCore(join(__dirname, 'corpus', 'criticism'));
-console.log(`[zetizeti] indexed ${nEntries} domain entries; method core ${methodCore.length} chars; criticism core ${criticismCore.length} chars; pool-only (operator key; BYOK removed)`);
+console.log(`[zetizeti] indexed ${nEntries} domain entries, ${nCreative} creative entries; method core ${methodCore.length} chars; criticism core ${criticismCore.length} chars; pool-only (operator key; BYOK removed)`);
 
 const app = express();
 app.use(express.json());
@@ -294,7 +297,8 @@ const STUDIO = { zetizeti: (process.env.STUDIO_URL_ZETIZETI || '').trim(), mindm
 const STARTED_AT = new Date().toISOString();
 
 // 🔴 ENQUIRY ONLY (30 September 2026). Prayas: "make the critique ad spec pages offline - only enquiry mode needed". The critique and spec surfaces stay in the code and are switched off. Their routes answer 404, as every closed door here does, and `/api/config` tells the page which surfaces are on, so it offers no way in. `ZETIZETI_SURFACES=enquiry,criticism,spec` brings them back, and the critique and spec probes need it set locally.
-const SURFACES = new Set((process.env.ZETIZETI_SURFACES || 'enquiry').split(',').map((s) => s.trim()).filter(Boolean));
+// Brainstorm is on by default from 18 Oct 2026; it rides inside /api/chat as a `mode` field, like prep, so the chat route reads the switch itself.
+const SURFACES = new Set((process.env.ZETIZETI_SURFACES || 'enquiry,brainstorm').split(',').map((s) => s.trim()).filter(Boolean));
 const surfaceOn = (name) => (req, res, next) => (SURFACES.has(name) ? next() : res.status(404).json({ error: 'not found' }));
 app.use('/api/criticism', surfaceOn('criticism'));
 app.use('/api/spec', surfaceOn('spec'));
@@ -550,6 +554,9 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // CONCEPT-ONLY FOCUS (12 Aug 2026). Whitelisted rather than passed through: only the exact string
   // 'concept' turns it on, so an unknown value is no focus rather than an unspecified one.
   const focus = req.body?.focus === 'concept' ? 'concept' : null;
+  // BRAINSTORM: whitelisted the same way, and ignored while the surface is off, so an offline brainstorm turn is a plain enquiry turn.
+  const brainstorm = SURFACES.has('brainstorm') && req.body?.mode === 'brainstorm';
+  const pool = brainstorm ? creative : corpus;
   // What the model saw for each earlier reply, held by the browser (lib/channels.mjs). Read only in channels mode.
   const tails = CHANNELS && Array.isArray(req.body?.tails) ? req.body.tails.map((x) => (typeof x === 'string' ? x.slice(0, 20000) : null)) : [];
 
@@ -636,14 +643,14 @@ app.post('/api/chat', requireUser, async (req, res) => {
   ].filter(Boolean);
   const excludeIds = (!prepping && studentTurns.length >= 2)
     ? [...new Set(recentWindows.flatMap((w) =>
-        retrieve(corpus, w, { limit: 3, extraTerms: goalTerms, focus }).map((r) => r.id)))]
+        retrieve(pool, w, { limit: 3, extraTerms: goalTerms, focus }).map((r) => r.id)))]
     : [];
-  let retrieved = retrieve(corpus, windowText, { limit: 3, extraTerms: goalTerms, excludeIds, focus });
+  let retrieved = retrieve(pool, windowText, { limit: 3, extraTerms: goalTerms, excludeIds, focus });
   if (!retrieved.length && excludeIds.length) {   // cycle-back: rotation emptied the results → re-include
     // NOTE the focus is carried into the cycle-back too. Dropping it here would make a making entry
     // reappear on exactly the turns where rotation had emptied the pool — the failure would be rare,
     // silent, and would look like the guard misfiring rather than the filter leaking.
-    retrieved = retrieve(corpus, windowText, { limit: 3, extraTerms: goalTerms, focus });
+    retrieved = retrieve(pool, windowText, { limit: 3, extraTerms: goalTerms, focus });
   }
   const curtain = retrieved.map((r) => ({ id: r.id, snippet: r.snippet, sources: r.sources, provenance: r.provenance }));
 
@@ -922,7 +929,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // Stable system (cacheable prefix) + per-turn volatile material on the final turn. Keeping the
   // retrieved tensions and posture OUT of the system prompt is what lets prompt caching reuse the prefix
   // (cache: true below); only the live final turn is wrapped with this turn's domain material.
-  const system = buildSystemPrompt(methodCore, goal);
+  const system = buildSystemPrompt(methodCore, goal, brainstorm);
   // WINDOW THE PREP SHEET, on the criticism surface's argument and its arithmetic. The document enters the
   // prompt on every prep turn, so an unwindowed 25,000-character sheet across a dozen prep turns would cost
   // roughly what a whole enquiry costs today, against a lifetime ₹ ceiling sized when nothing like it
@@ -1102,13 +1109,17 @@ app.post('/api/chat', requireUser, async (req, res) => {
         attempts: 2,                             // a failure falls back to a question, so it must not cost the learner long
         validate: (t) => validateStatement(t, { ownWords, reply: message }),
         generate: (correction) => streamQuestion({
-          system: CHANNELS ? system : STATEMENT_SYSTEM,   // one system for every local call, so none pushes the conversation out
+          // POOLED (18 Oct 2026, Prayas: "pool smaller prompt calls - redistribute"). The turn's own instruction travels in
+          // the message and the system prompt is the question's, so this call shares the prefix the question call caches:
+          // Gemini caches nothing under its minimum prompt size (measured: none at 3,608 tokens, all of 4,292 above it),
+          // and a 56-token system of its own could never be cached. Guard pass rate unchanged on a real dialogue (5/5 both).
+          system,
           messages: [
             ...earlier,
-            { role: 'user', content: CHANNELS ? `${message}\n\n${STATEMENT_SYSTEM}\n${statementBrief()}` : `${message}\n\n${statementBrief()}` },
+            { role: 'user', content: `${message}\n\n${STATEMENT_SYSTEM}\n${statementBrief()}` },
             ...(correction && correction.previous ? [{ role: 'assistant', content: correction.previous }, { role: 'user', content: `[Refused: ${correction.reasons.join('; ')}. Write the one sentence again.]` }] : []),
           ],
-          maxTokens: 60, reasoning: { enabled: false }, onToken: () => {}, apiKey, onUsage,
+          cache: true, maxTokens: 60, reasoning: { enabled: false }, onToken: () => {}, apiKey, onUsage,
         }),
       });
       noteGuard('statement', said);
@@ -1143,7 +1154,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
             ...earlier,
             { role: 'user', content: `${message}\n\n${brief(CHOICE_ASK)}` },
           ],
-          maxTokens: 250, reasoning: { enabled: false }, onToken: () => {}, apiKey, onUsage,
+          cache: true, maxTokens: 250, reasoning: { enabled: false }, onToken: () => {}, apiKey, onUsage,   // pooled with the question call's cached prefix
         });
         kept = keepChoices(text, kept, choiceOptions);
       }
@@ -1953,7 +1964,7 @@ app.use(express.static(join(__dirname, 'public'), {
 // SPA deep links — serve the app shell for the client routes so /critique, /about, /enquiry/:id
 // etc. resolve on a direct load or refresh (real shareable URLs, not hash links). The API routes
 // and static assets are matched first above; only genuine client paths fall through to here.
-app.get(['/about', '/critique', '/critique/:id', '/spec', '/progress', '/enquiries', '/enquiry', '/enquiry/:id', '/admin', '/author', '/deposit'], (req, res) => {
+app.get(['/about', '/brainstorm', '/critique', '/critique/:id', '/spec', '/progress', '/enquiries', '/enquiry', '/enquiry/:id', '/admin', '/author', '/deposit'], (req, res) => {
   res.setHeader('Cache-Control', 'no-cache');
   res.sendFile(join(__dirname, 'public', 'index.html'));
 });

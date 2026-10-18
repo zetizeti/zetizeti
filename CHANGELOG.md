@@ -26,6 +26,14 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.20.0] — 18 October 2026
+
+**Brainstorm: the enquiry for creative work.** A second mode of the first voice, for a film script, a story, a poem, a song, a play or a painting. Same route, guards and rhythm; its own corpus (`corpus/creative/`, 30 entries in six files, sourced through Exa and Consensus and settled in Crossref, all pending, gates 1–3 run) and one changed sentence in the system prompt, which forbids the tool any idea of its own. `/brainstorm`, a nav link, its own start screen and opening question; a saved brainstorm resumes as one. On by default; `ZETIZETI_SURFACES` without `brainstorm` turns it off, and the site then says nothing about it.
+
+**Pooled calls.** The said-back and choice calls now share the question call's cached prompt (Gemini caches nothing under its minimum prompt size, and their own prompts were far below it). Measured on a 20-round replay: 49.5% of prompt tokens read from cache.
+
+**Site.** The landing and about page say what brainstorm is for; the landing's critique line shows only while critique is on. Rendering: the about page no longer overflows a 390px phone (root `overflow-x:clip`), and the landing clears its footer at 390×844 (96px logo under 600px wide). Phones shorter than 740px still overlap, as before.
+
 ## [1.19.3] — 5 October 2026
 
 **Every return is marked, and it speaks to the person.** A return whose every attempt failed the guard reached the person with no *"Asking again, because …"* (13 of 37 in a 110-dialogue run on v1.19.2); now every return the model wrote is marked. The model's sentence naming the gap sometimes said *"Their answer did not say …"* to the person it was talking to (Prayas: *"why their?"*). The cause was zetizeti's own instruction, which described the person in the third person (*"WHAT THEIR LAST ANSWER DID NOT GIVE"*); every instruction for that sentence now says it is *spoken to them as you, never about them as they*, and the word change after the fact stays as a backstop. Checked on 80 dialogues with the backstop off: third-person lead sentences 9 of 20 before, 0 of 27 after; questions sent out flagged after every try 14.3% before, 11.0% after (`docs/ops/return-address-check/`). A first version that quoted an example sentence was copied word for word by the model and was dropped.

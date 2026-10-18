@@ -12,8 +12,8 @@ const APP = join(dirname(fileURLToPath(import.meta.url)), '..');
 const server = readFileSync(join(APP, 'server.mjs'), 'utf8');
 const page = readFileSync(join(APP, 'public', 'index.html'), 'utf8');
 
-test('with nothing set, enquiry is the only surface on', () => {
-  assert.match(server, /process\.env\.ZETIZETI_SURFACES \|\| 'enquiry'/);
+test('with nothing set, enquiry and brainstorm are the only surfaces on', () => {
+  assert.match(server, /process\.env\.ZETIZETI_SURFACES \|\| 'enquiry,brainstorm'/);
 });
 
 test('every critique and spec route sits behind the switch, and a closed one answers 404', () => {

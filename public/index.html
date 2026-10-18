@@ -42,6 +42,7 @@
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
+  html{overflow-x:clip}   /* a fixed background mass escapes body's clip on phones and widened the about page past 390px (18 Oct 2026) */
   body{
     /* cobalt light up top, sinking to deep blue-black below — gravity, glow against dark */
     background:linear-gradient(180deg, var(--cobalt) 0%, var(--cobalt-deep) 52%, var(--ink) 100%);
@@ -154,6 +155,7 @@
   header{padding:clamp(4px,1.2vh,14px) 0 clamp(8px,2vh,22px); opacity:0; animation:rise .9s .1s forwards}
   .mark{display:block}
   .logo{display:block; width:auto; height:clamp(92px,16vh,178px); margin-bottom:clamp(8px,2vh,22px)}   /* the big mark — lone protagonist in the field */
+  @media (max-width:600px){ #view-login .mark .logo{height:96px} }   /* at 390×844 the landing ran 16px into its footer (18 Oct 2026); 96px is the largest that clears it */
   .mark h1{font-family:var(--display); font-weight:400; font-size:clamp(44px,min(9vw,8vh),92px); letter-spacing:.5px; line-height:.92; color:var(--bone)}
   .ethos{display:block; margin-top:clamp(8px,1.6vh,18px); font-family:var(--display); font-size:clamp(19px,min(3.4vw,3vh),36px); letter-spacing:.3px; color:var(--gold-bright)}
   .lede{margin-top:clamp(10px,2.2vh,24px); color:var(--bone-dim); max-width:58ch; font-size:clamp(13.5px,1.62vh,18px); line-height:1.6}
@@ -744,6 +746,7 @@
     </div>
     <nav>
       <a id="navQuests">new enquiry</a>
+      <a id="navBrain" hidden>brainstorm</a>
       <a id="navCrit" hidden>critique</a>
       <a id="navSpec" hidden>spec</a>
       <a id="navAuthor" class="nav-author" hidden>author</a>
@@ -776,7 +779,8 @@
         <!-- CUT BY ABOUT 60% (Prayas, 16 Sep 2026: "lighter … shorter - easier to understand"). The longer
              argument lives on the about page; this screen says what the tool does and nothing more. -->
         <p class="lede">It helps you develop your own concepts. Tell it what you are working on and it asks you questions, one at a time, and leaves the answers to you. What comes out is yours.</p>
-        <p class="lede">Or paste in a text, and it points to where the text quietly pushes a view on you.</p>
+        <p class="lede" id="brainLede" hidden>It does the same for a film script, a short story or a song: every idea stays yours.</p>
+        <p class="lede" id="critLede" hidden>Or paste in a text, and it points to where the text quietly pushes a view on you.</p>
         <p class="nameline">The name comes from the Greek for “to inquire”. <a id="aboutLink" class="aboutlink">What are the two voices? →</a></p>
         <div class="signin">
           <a class="btn-google" href="/auth/google" id="googleBtn">
@@ -800,10 +804,10 @@
   <!-- ===== START (a fresh, ephemeral enquiry) ===== -->
   <section class="view" id="view-quests">
     <div class="wrap short">
-      <h2 class="vh">Begin an enquiry</h2>
+      <h2 class="vh" id="startTitle">Begin an enquiry</h2>
 
       <div id="enquiryUI">
-      <p class="vsub">Say what you are working on and where it resists you. The questions come back in your own words, against tensions in the field that were never settled. Nothing is saved here — the conversation is yours and this holds no copy of it, so download it if you want to keep it.</p>
+      <p class="vsub" id="startSub">Say what you are working on and where it resists you. The questions come back in your own words, against tensions in the field that were never settled. Nothing is saved here — the conversation is yours and this holds no copy of it, so download it if you want to keep it.</p>
       <div class="newq">
         <input id="newqName" placeholder="Name what you're trying to do — e.g. “onboarding for a meditation app”" />
         <button id="newqBtn">begin</button>
@@ -980,6 +984,12 @@
         <div class="about-tag">first voice · to develop</div>
         <h3>It helps you develop your own idea</h3>
         <p>You name an edge — what you are trying to do, and where it resists you. The stone asks back, each question grounded in a real tension in the field that was never settled. It does not resolve the tension for you; it keeps you in the question long enough to think. This is the older harm it was built against: the answer dropped in too soon, before you have done the thinking that would make it yours. An <em>information</em> gap a sentence can close; an <em>understanding</em> gap only your own movement can close. The stone refuses to close the second one for you.</p>
+      </div>
+
+      <div class="about-mode" id="aboutBrain" hidden>
+        <div class="about-tag">first voice · for creative work</div>
+        <h3>For a script, a story, a song</h3>
+        <p>Brainstorm asks the same kind of questions as an enquiry, about something creative you are making: a film script, a story, a poem, a song, a play, a painting. You say what you are making and where it is stuck or still open. Each question draws on something writers, film-makers and musicians still argue about, such as whether a script is a plan for a film or a piece of writing in its own right, or whether an ending owes the audience an answer. It offers no ideas of its own: no plot turn, no character, no line, no title.</p>
       </div>
 
       <div class="about-mode crit">
@@ -1286,7 +1296,8 @@ function showView(name){
   for(const k in views) views[k].classList.toggle('active', k===name);
   // topbar hidden on the landing, and on About when reached before sign-in (nav links would 404).
   $('topbar').hidden = (name==='login') || (name==='about' && !me);
-  $('navQuests').classList.toggle('on', name==='quests');
+  $('navQuests').classList.toggle('on', name==='quests' && mode!=='brainstorm');
+  $('navBrain').classList.toggle('on', name==='quests' && mode==='brainstorm');
   $('navCrit').classList.toggle('on', name==='criticism' || name==='criticism-chat');
   $('navSpec').classList.toggle('on', name==='spec' || name==='spec-chat');
   $('navAbout').classList.toggle('on', name==='about');
@@ -1321,7 +1332,7 @@ async function route(path){
   }
   // EPHEMERAL (11 Jul 2026): nothing is saved, so nothing resumes. A deep link to a past enquiry or
   // critique simply opens a fresh one — there is no stored thread to reopen.
-  if(conv){ startFreshEnquiry(); return; }
+  if(conv){ mode='enquiry'; startFreshEnquiry(); return; }
   if(crit){ cfg.surfaces.includes('criticism') ? openNewCritique() : showStart(); return; }
   switch(path){
     case '/about':    showView('about'); break;
@@ -1330,7 +1341,8 @@ async function route(path){
     case '/spec':     cfg.surfaces.includes('spec') ? openNewSpec() : showStart(); break;
     case '/author':   openAuthor(); break;
     case '/admin':    openAdmin(); break;
-    case '/enquiry':  startFreshEnquiry(); break;
+    case '/enquiry':  mode='enquiry'; startFreshEnquiry(); break;
+    case '/brainstorm': showStart(cfg.surfaces.includes('brainstorm') ? 'brainstorm' : 'enquiry'); break;   // offline, it is the enquiry start screen
     case '/':
     case '/enquiries':
     default:          showStart(); break;   // the start screen (no history list — see showStart)
@@ -1358,6 +1370,7 @@ const DIALOG_PH='Respond — or sit with the question…', REDRAW_PH='Re-draw th
 // is a string that will disagree with itself. Kept byte-identical to the markup it replaces.
 const PREP_NOTE_DEFAULT = 'A glossary or briefing about a field you don\u2019t work in yet. Six lines of questioning across three sittings, asking where <em>you</em> stand — then it stops and the enquiry is yours. Read here in your browser, never uploaded.';
 const OPENING="What are you trying to do right now — and where does it resist you?";
+const OPENING_BRAIN="What are you making, and where is it stuck?";
 let questId=null, history=[], busy=false, phase='goal', goal='', honed=0, exchanges=0, lineage=[];
 // What the model saw for each reply, in channels mode only (lib/channels.mjs): posted back so the next prompt only grows.
 let tails=[];
@@ -1394,6 +1407,9 @@ let turnsSinceNudge=99;
   cfg.surfaces = c.surfaces || [];
   $('navCrit').hidden = !cfg.surfaces.includes('criticism');
   $('navSpec').hidden = !cfg.surfaces.includes('spec');
+  $('navBrain').hidden = !cfg.surfaces.includes('brainstorm');
+  $('brainLede').hidden = $('aboutBrain').hidden = !cfg.surfaces.includes('brainstorm');
+  $('critLede').hidden = !cfg.surfaces.includes('criticism');   // the landing offered the critique while it was offline (18 Oct 2026)   // the site says what brainstorm is for only while it is on
   if(cfg.surfaces.includes('criticism')){ const o=$('critOffline'); if(o) o.remove(); }
   // Prep is offline from 1 Oct 2026 ("take prep offline"): its doorway is hidden in the markup and shown only when the server says it is on.
   if(cfg.surfaces.includes('prep')){ $('prepDoor').hidden=false; $('prepNote').hidden=false; }
@@ -1477,6 +1493,7 @@ async function fetchPool(){
 function applyKeyGate(){ const u=$('enquiryUI'); if(u) u.hidden=false; }
 $('navLogout').addEventListener('click', async ()=>{ await api('/auth/logout',{method:'POST'}).catch(()=>{}); location.reload(); });
 $('navQuests').addEventListener('click', ()=>go('/'));
+$('navBrain').addEventListener('click', ()=>go('/brainstorm'));
 $('navAbout').addEventListener('click', ()=>go('/about'));
 $('aboutLink').addEventListener('click', ()=>go('/about'));
 $('aboutFoot').addEventListener('click', ()=>go('/about'));
@@ -1652,6 +1669,13 @@ function readDocFile(file){
 // from retrieval and the guard withholds a question that lands on production anyway. A toggle that only
 // asked the model nicely would be the same shape as a guard that only reports.
 let focus=null, critFocus=null;
+// BRAINSTORM (18 Oct 2026): the enquiry with the creative corpus. Set by the start screen and by a resumed transcript, never by resetConversation, which runs at the start of the conversation it belongs to.
+let mode='enquiry';
+const ground=()=> mode==='brainstorm' ? 'creative work' : 'design';
+const START_COPY={
+  enquiry:{ title:'Begin an enquiry', sub:null, placeholder:'Name what you\u2019re trying to do \u2014 e.g. \u201Conboarding for a meditation app\u201D' },
+  brainstorm:{ title:'Begin a brainstorm', sub:'Say what you are making, a film script or a short story, say, and where it is stuck. Each question draws on an argument people who make things still have, such as whether a song should surprise its listener or give them what they expect. It won\u2019t suggest ideas; those stay with you. Nothing is saved here, so download the conversation if you want to keep it.', placeholder:'Name what you\u2019re making, e.g. \u201Ca short film script about two sisters who stop speaking\u201D' },
+};
 function wireFocus(id, valId, get, set){
   const b=document.getElementById(id); if(!b) return;
   const v=document.getElementById(valId);
@@ -2317,10 +2341,15 @@ function enterApp(){
 // existed, which is a surface disagreeing with its own state rather than a cosmetic untidiness.
 function resetPrepDoorway(){
   const b=$('newqBtn'); if(b) b.textContent='begin';
-  const n=$('newqName'); if(n) n.placeholder='Name what you\u2019re trying to do \u2014 e.g. \u201Conboarding for a meditation app\u201D';
+  const n=$('newqName'); if(n) n.placeholder=START_COPY[mode].placeholder;
   const note=$('prepNote'); if(note){ note.classList.remove('bad'); note.innerHTML=PREP_NOTE_DEFAULT; }
 }
-function showStart(){ applyKeyGate(); showView('quests'); resetPrepDoorway(); const n=$('newqName'); if(n){ n.value=''; setTimeout(()=>n.focus(),50); } }
+const ENQUIRY_SUB=$('startSub').textContent;
+function showStart(m){
+  mode = m==='brainstorm' ? 'brainstorm' : 'enquiry';
+  $('startTitle').textContent=START_COPY[mode].title;
+  $('startSub').textContent=START_COPY[mode].sub || ENQUIRY_SUB;
+  applyKeyGate(); showView('quests'); resetPrepDoorway(); const n=$('newqName'); if(n){ n.value=''; setTimeout(()=>n.focus(),50); } }
 $('newqBtn').addEventListener('click', newQuest);
 $('newqName').addEventListener('keydown', e=>{ if(e.key==='Enter') newQuest(); });
 // Begin: if the student named an edge, dive straight in with it; otherwise open with the stone's question.
@@ -2339,7 +2368,8 @@ function newQuest(){
 // Open a brand-new ephemeral enquiry in the conversation view. `seed` (optional) is treated as the first
 // edge, so the landing composer flows straight into the dialogue.
 function startFreshEnquiry(seed, prep){
-  if(location.pathname!=='/enquiry'){ try{ window.history.pushState({}, '', '/enquiry'); }catch(e){} }
+  const path = mode==='brainstorm' ? '/brainstorm' : '/enquiry';
+  if(location.pathname!==path){ try{ window.history.pushState({}, '', path); }catch(e){} }
   resetConversation(); showView('conversation'); fetchPool();
   seedViz(hashStr('e'+Date.now()));
   // 🔴 A PREP SHEET NEEDS NO PROMPT, AND ASKING FOR ONE ASKS FOR THE THING THE PREP EXISTS TO GIVE.
@@ -2415,7 +2445,7 @@ function afterPrepTurn(){
     // disagree with it. It also lands abruptly in a one-sitting walk, where nothing marks progress by
     // design — so a line asserting a state they may not feel reads as the tool deciding for them.
     addDivider('that is the sheet walked through — your own enquiry from here');
-    hint.innerHTML='grounded in <b>design</b> · the question is yours to answer';
+    hint.innerHTML='grounded in <b>'+ground()+'</b> · the question is yours to answer';
     return;
   }
   if(prepPausing){
@@ -2488,10 +2518,10 @@ function resetConversation(){
   prepActive=false; prepPausing=false; prepJustFinished=false;
   { const ps=$('prepStrip'); if(ps) ps.hidden=true; }
   input.value=''; input.placeholder='Name what you’re trying to do…';
-  hint.innerHTML='grounded in <b>design</b> · name the edge, then it sharpens';
+  hint.innerHTML='grounded in <b>'+ground()+'</b> · name the edge, then it sharpens';
   setVizSignals({condensation:0.12, specificity:0, conviction:0.5, movement:0, redraws:0}); // diffuse: the question, unformed
 }
-function openingQuestion(){ addStone(OPENING, null, null, {opening:true}); }
+function openingQuestion(){ addStone(mode==='brainstorm' ? OPENING_BRAIN : OPENING, null, null, {opening:true}); }
 
 // ---- download idea transcript (MD + PDF) — carries the student's thinking to the AI Club making tools.
 // The student's OWN responses are the substance; the stone's questions are kept as light context (~80/20).
@@ -2548,7 +2578,7 @@ function buildTranscriptMd(){
     // calls a said-back line a question, and resuming reads each back as what it was
     body += !q ? '**—** [blank]\n\n' : q.includes('?') ? '**Q.** '+q+'\n\n' : '**—** '+q+'\n\n';
   }
-  return '---\nsource: zetizeti\ntype: idea-transcript\ntopic: '+topic+'\ndate: '+new Date().toISOString()+'\nturns: '+turns+(focus==='concept'?'\nfocus: concept-only':'')+'\n---\n\n'
+  return '---\nsource: zetizeti\ntype: idea-transcript\ntopic: '+topic+'\ndate: '+new Date().toISOString()+'\nturns: '+turns+(focus==='concept'?'\nfocus: concept-only':'')+(mode==='brainstorm'?'\nmode: brainstorm':'')+'\n---\n\n'
     +'# A dialogue — '+topic+'\n\n'
     // 🔴 THE FILE SAYS WHAT IT IS (7 Sep 2026). It read "An AI Club idea transcript… the student's own
     // responses are the substance; the questions are light context" — which said `student`, and called
@@ -2707,12 +2737,16 @@ function parseTranscriptMd(text){
   while(turns.length && turns[0].role!=='student') turns.shift();
   if(!turns.length) return {error:'That transcript has nothing in it to continue from.'};
   return {turns, topic:(fm[1].match(/^topic:\s*([\s\S]*?)$/m)||[])[1]||turns[0].content,
-    focus: /^focus:\s*concept-only\s*$/m.test(fm[1]) ? 'concept' : null};
+    focus: /^focus:\s*concept-only\s*$/m.test(fm[1]) ? 'concept' : null,
+    mode: /^mode:\s*brainstorm\s*$/m.test(fm[1]) ? 'brainstorm' : 'enquiry'};
 }
 // Rebuild the conversation in the tab, then hand it back to the student mid-flow. Everything the
 // live loop reads off is restored: goal, lineage, history, the exchange count, the download button.
 function resumeFromTranscript(parsed){
-  if(location.pathname!=='/enquiry'){ try{ window.history.pushState({}, '', '/enquiry'); }catch(e){} }
+  // A saved brainstorm carries on as one, or the creative material would silently give way to design mid-thread.
+  mode = parsed.mode==='brainstorm' && cfg.surfaces.includes('brainstorm') ? 'brainstorm' : 'enquiry';
+  const path = mode==='brainstorm' ? '/brainstorm' : '/enquiry';
+  if(location.pathname!==path){ try{ window.history.pushState({}, '', path); }catch(e){} }
   resetConversation(); showView('conversation'); fetchPool();
   seedViz(hashStr('e'+parsed.turns[0].content));
   goal=parsed.turns[0].content; lineage=[goal];
@@ -2734,7 +2768,7 @@ function resumeFromTranscript(parsed){
   }
   exchanges=Math.max(0, history.filter(h=>h.role==='student').length-1);
   phase='dialogue'; input.placeholder=DIALOG_PH;
-  hint.innerHTML='grounded in <b>design</b> · the question is yours to answer';
+  hint.innerHTML='grounded in <b>'+ground()+'</b> · the question is yours to answer';
   showEdge(); updateEdge();
   showSaveStrip();
   // If it ends on a question, the student answers it; if it ends on their own words, the stone owes
@@ -2908,7 +2942,7 @@ function startDialogue(text){
   goal=text; lineage.push(text); honed=0; history.push({role:'student', content:text});
   showEdge(); updateEdge();
   phase='dialogue'; field.classList.remove('redraw'); input.placeholder=DIALOG_PH;
-  hint.innerHTML='grounded in <b>design</b> · the question is yours to answer';
+  hint.innerHTML='grounded in <b>'+ground()+'</b> · the question is yours to answer';
   busy=true; send.disabled=true;
   streamStone(text,'goal').then(()=>{ busy=false; send.disabled=false; input.focus(); });
 }
@@ -2980,7 +3014,7 @@ async function streamStone(message, kind, reuseNode){
   try{
     // Stateless: no quest_id. The browser sends the whole transcript + turnsSinceNudge; the server stores nothing.
     const res = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ message, history:history.slice(0,-1), tails, goal, kind, honed, exchanges, lineage, turnsSinceNudge, focus, prep:prepText, tasks:prepTasksText, sheetName:prepName }) });
+      body: JSON.stringify({ message, history:history.slice(0,-1), tails, goal, kind, honed, exchanges, lineage, turnsSinceNudge, focus, mode, prep:prepText, tasks:prepTasksText, sheetName:prepName }) });
     const reader=res.body.getReader(), dec=new TextDecoder(); let buf='';
     while(true){
       const {value,done}=await reader.read(); if(done) break;

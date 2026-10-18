@@ -27,11 +27,12 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isLensEntry, LENS_DISCIPLINES } from '../lib/retrieval.mjs';
 
-const DOMAIN = join(dirname(dirname(fileURLToPath(import.meta.url))), 'corpus', 'domain');
+// Both corpora: the brainstorm surface's `corpus/creative/` carries a lens too (creative-process, 18 Oct 2026).
+const CORPORA = ['domain', 'creative'].map((d) => join(dirname(dirname(fileURLToPath(import.meta.url))), 'corpus', d));
 
-const files = readdirSync(DOMAIN)
+const files = CORPORA.flatMap((dir) => readdirSync(dir)
   .filter((f) => f.endsWith('.md'))
-  .map((f) => ({ name: f, text: readFileSync(join(DOMAIN, f), 'utf8') }));
+  .map((f) => ({ name: f, text: readFileSync(join(dir, f), 'utf8') })));
 
 const disciplinesIn = (text) =>
   [...text.matchAll(/^\*\*discipline:\*\* (.+)$/gm)].map((m) => m[1].trim());

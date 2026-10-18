@@ -508,6 +508,13 @@ From two testers' call and five of their dialogues. **A return says it is one an
 
 **v1.19.2.** The return reads only the words of what the last question asked (`askedSentence`), never its opening condition, after a reply that answered was told it had not; and a stone turn is joined into one paragraph before it is sent, after a return's two sentences read as two turns with no reply between.
 
+
+## Brainstorm: the enquiry for creative work (v1.20.0, 18 October 2026)
+
+Prayas: *"add a copy of the enquiry mode for brainstorm partnering for all creative works including writing film scripts. add special brainstorming corpora with exa and consensus"*. It is not a second route. `/api/chat` takes `mode: 'brainstorm'` (whitelisted, ignored while the surface is off) and changes two things: retrieval reads its own FTS index over `corpus/creative/` (`pool` in the route, never `corpus`), and one sentence of the system prompt (`BRAINSTORM_MATERIAL`) frames the material as creative work and says again that every idea is the person's. Every guard, the rhythm, the return and the choice turn are the enquiry's. The creative corpus is 30 entries in six files, all pending, with gates 1–3 of `docs/corpus-build/verification-workflow.md` run on 18 October 2026.
+
+**Pooled calls (same release).** Gemini 3.1 Flash-Lite caches nothing below its minimum prompt size: measured, none at 3,608 tokens shared across users, all of 4,292 above 4,096 with one cache marker. So the said-back turn now uses the question's system prompt with its own instruction in the message, and the choice turn asks for the cache too, and both reuse the prefix the question call writes. On a 20-round replay 49.5% of prompt tokens were read from cache, and cached calls cost about half; the first call of each turn stays uncached, because its prefix carries the newest exchange. Said-back guard pass rate on a real dialogue was 5/5 with either prompt.
+
 ## Known limits
 
 - ⚠️ **The return's reading of "left out" is lexical, and so is the check that the question then asks for it.** A reply can answer *where* in words the list does not contain. The kind check covers when, who, why, how many and yes/no, and a *what* or *which* answered by naming something. *Where*, *how* and *what would have to be true* rely on the word list alone.
