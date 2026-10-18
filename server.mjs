@@ -163,7 +163,7 @@ function noteGuard(surface, guarded) {
   if (!s) return;
   s.turns++;
   if (guarded.regenerated) s.regenerated++;      // the guard rejected an attempt and made the model ask again
-  if (!guarded.check.ok) s.flagged++;            // it broke the rule twice; the least-bad was delivered, flagged
+  if (!guarded.check.ok) s.flagged++;            // every attempt broke a rule; withheld since 18 Oct 2026 (before then the least-bad was delivered, flagged)
 }
 // Total-budget helpers. budgetSpentINR — cumulative real billed spend across all days, in rupees.
 // budgetExhausted — true once the rupee ceiling is reached (false when no ceiling is configured).
@@ -196,6 +196,8 @@ const USER_LIFETIME_MSG = "You've used your full share of the shared budget — 
 // Both attempts came back empty (a provider blip, or a local model that had not warmed up). The turn is
 // refused honestly rather than delivered as a blank stone bubble — see lib/guard.mjs.
 const EMPTY_MSG = "The interlocutor didn't answer that time — send that again.";
+// Every attempt at a question broke a rule, so none was sent (18 Oct 2026, "flagged responses should never go public").
+const WITHHELD_MSG = 'No question passed the checks this time, so none was sent. Your reply is back in the box: send it again.';
 // AI Club path (credit engine). An AI Club student runs on their OWN key, not the pool, so their refusals
 // are distinct from the pool caps: the credit exhausted at OpenRouter, the student not yet provisioned,
 // their access withdrawn, or the credit service itself being unreachable (an operator-side problem).
@@ -1105,7 +1107,11 @@ app.post('/api/chat', requireUser, async (req, res) => {
       earlier: [...studentTurns.slice(0, -1), ...stoneTurns],
       questionsSince: (() => { let n = 0; for (const q of [...stoneTurns].reverse()) { if (!String(q).includes('?')) break; n++; } return n; })(),
     });
-    if (ack) {
+    // Also the turn a refused question becomes (sayBackInstead, below), so it is a function; it delivers and returns true,
+    // or returns false having sent nothing.
+    let saidBackTried = false;
+    const sayBackTurn = async () => {
+      saidBackTried = true;
       const ownWords = new Set(String(message).toLowerCase().match(/[a-z']+/g) || []);   // their LATEST reply only: joining it to earlier words made claims they never made
       const said = await generateGuarded({
         attempts: 2,                             // a failure falls back to a question, so it must not cost the learner long
@@ -1132,9 +1138,11 @@ app.post('/api/chat', requireUser, async (req, res) => {
         noteTurnDepth({ day: utcDay(), surface: 'enquiry', version: BUILD.version, depth: studentTurns.length - (prepWalk ? prepWalk.path.length : 0) });
         if (meter) { addPoolSpend(utcDay(), req.user.id, poolCost, poolFlag); if (usingPool) send('pool', poolEvent(req.user.id)); }
         send('done', {});
-        return res.end();
+        return true;
       }
-    }
+      return false;
+    };
+    if (ack && await sayBackTurn()) return res.end();
     // 🔴 THE CHOICE TURN (lib/pace.mjs, choiceTurn; lib/dialogue.mjs, keepChoices). Code decides when. Up to three
     //    tries, each in a different wording (CHOICE_BRIEFS), each asking for CHOICE_ASK candidates; every candidate
     //    must pass the question guard and name a different thing the learner said, and the passing ones are kept
@@ -1212,6 +1220,17 @@ app.post('/api/chat', requireUser, async (req, res) => {
     if (!full.trim()) {
       if (meter) addPoolSpend(utcDay(), req.user.id, poolCost, poolFlag);    // it still cost money
       send('error', { code: 'EMPTY_GENERATION', message: EMPTY_MSG });
+      return res.end();
+    }
+    // 🔴 A REFUSED QUESTION IS NEVER SENT (18 Oct 2026, Prayas: "flagged responses should never go public"). Until now the
+    //    least-bad of five refused attempts went out, its flag only behind the curtain, so the person read the very
+    //    question the guard exists to stop. Now the turn says back a phrase of theirs instead, where the rhythm allows a
+    //    turn that does not ask and one passes its own guard; otherwise nothing is sent and their reply goes back to them.
+    if (!guarded.check.ok) {
+      const sayBackInstead = !saidBackTried && !prepping && !declined && studentTurns.length > 1 && lastStoneAsked;
+      if (sayBackInstead && await sayBackTurn()) return res.end();
+      if (meter) addPoolSpend(utcDay(), req.user.id, poolCost, poolFlag);    // it still cost money
+      send('error', { code: 'WITHHELD', message: WITHHELD_MSG });
       return res.end();
     }
     // 🔴 THE BEAT (lib/pace.mjs): mostly nothing, air after a worked reply, a rare long hold where new
@@ -1497,6 +1516,7 @@ async function askCriticismQuestion({ send, apiKey, meter, artefact, forcedLocat
   noteGuard('criticism', guarded);
   const full = guarded.text;
   if (!full.trim()) { send('error', { code: 'EMPTY_GENERATION', message: EMPTY_MSG }); return { qCost, empty: true }; }
+  if (!guarded.check.ok) { send('error', { code: 'WITHHELD', message: WITHHELD_MSG }); return { qCost, empty: true }; }   // a refused question is never sent (18 Oct 2026)
   send('token', { t: full });                                // the ACCEPTED question, delivered whole
   send('validation', { ...guarded.check, attempts: guarded.attempts, regenerated: guarded.regenerated });
   // LOCAL, operator-only capture (no-op in production and unless ZETIZETI_CAPTURE_DIR is set).
@@ -1692,6 +1712,7 @@ async function askSpecQuestion({ send, apiKey, meter, spec, assignment, priorMes
   noteGuard('spec', guarded);
   const full = guarded.text;
   if (!full.trim()) { send('error', { code: 'EMPTY_GENERATION', message: EMPTY_MSG }); return { qCost, empty: true }; }
+  if (!guarded.check.ok) { send('error', { code: 'WITHHELD', message: WITHHELD_MSG }); return { qCost, empty: true }; }   // a refused question is never sent (18 Oct 2026)
   send('token', { t: full });
   // The joint travels with the question so the client can post it back and the rotation can be
   // recomputed. It is routing, not a reading of her: it says where the question went, never how she did.

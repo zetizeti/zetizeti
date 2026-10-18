@@ -3025,7 +3025,7 @@ async function streamStone(message, kind, reuseNode){
   const node=reuseNode||addStone('', null, null, {opening:true});
   const body=node.querySelector('.body');
   body.innerHTML=`<span class="thinking"><span class="bead"></span> drawing the edge</span>`;
-  let retrieved=null, guard=null, full='', errored=false, nudgedThisTurn=false, blanked=false, revealing=null, acked=false, choices=null;
+  let retrieved=null, guard=null, full='', errored=false, nudgedThisTurn=false, blanked=false, revealing=null, acked=false, choices=null, withheld=false;
   const tailAt=history.filter(h=>h.role==='student').length-1; let tail=null;
   try{
     // Stateless: no quest_id. The browser sends the whole transcript + turnsSinceNudge; the server stores nothing.
@@ -3065,11 +3065,20 @@ async function streamStone(message, kind, reuseNode){
         else if(type==='pool'){ poolTurnsLeft=data.turnsLeft; if(data.budget) poolBudget=data.budget; renderPoolCount(); renderPoolBudget(); }
         else if(type==='error'){ errored=true;
           if(data.code==='POOL_USER_CAP'){ poolTurnsLeft=0; renderPoolCount(); }
+          if(data.code==='WITHHELD') withheld=true;
           body.innerHTML=`<span style="color:var(--muted);font-style:italic">${esc(data.message)}</span>`;
         }
       }
     }
   }catch(err){ errored=true; body.innerHTML=`<span style="color:var(--muted);font-style:italic">connection lost — ${esc(String(err))}</span>`; }
+  // 🔴 A WITHHELD TURN TAKES THE REPLY BACK (18 Oct 2026, "flagged responses should never go public"). No question passed,
+  //    so none was sent; the reply leaves the history and its bubble, and goes back into the box to send again, so the
+  //    transcript never holds a reply that nothing answered.
+  if(withheld && kind==='turn' && history.length && history[history.length-1].role==='student'){
+    history.pop(); exchanges--; updateEdge();
+    const mine=node.previousElementSibling; if(mine && mine.classList.contains('you')) mine.remove();
+    input.value=message;
+  }
   if(revealing) await revealing;      // the chips and the curtain arrive once the question has finished unfolding
   // 🔴 A BLANK IS A TURN IN THE HISTORY, with empty content. The service stores nothing, so this is the
   //    only way it can know on the next turn that it has just blanked — and the only way the saved

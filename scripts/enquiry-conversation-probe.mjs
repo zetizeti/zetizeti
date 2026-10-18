@@ -176,6 +176,7 @@ const WEAK = new Set([...STOP, 'like','likes','liked','probably','maybe','feel',
 
 // ── guest session ────────────────────────────────────────────────────────────────────────────────
 let COOKIE = '';
+let WITHHELD = 0;   // turns where no question passed and none was sent
 async function signInAsGuest() {
   const r = await fetch(`${BASE}/auth/guest`, { redirect: 'manual' });
   const set = r.headers.getSetCookie ? r.headers.getSetCookie() : [r.headers.get('set-cookie')].filter(Boolean);
@@ -194,7 +195,7 @@ async function sse(path, body) {
     if (ev && da) { try { events.push({ event: ev[1], data: JSON.parse(da[1]) }); } catch { /* skip */ } }
   }
   const err = events.find((e) => e.event === 'error');
-  if (err) throw new Error(`${path} → ${err.data.code}: ${err.data.message}`);
+  if (err && err.data.code !== 'WITHHELD') throw new Error(`${path} → ${err.data.code}: ${err.data.message}`);   // a withheld turn is sent again, as the page asks (18 Oct 2026)
   return events;
 }
 
@@ -373,12 +374,16 @@ async function assertLiveBuild() {
     // footing count was added and read `stalled-invite×33` of 37. Production never had this; a browser
     // dialogue was never double-counted. Every conversation-probe number before this date is a number about
     // a route that was being fed its own reply twice.
-    const ev = await sse('/api/chat', {
+    let ev, sent = 0;
+    do { sent++; ev = await sse('/api/chat', {
       message: round === 1 ? EDGE : studentTurns[studentTurns.length - 1],
       history: history.slice(0, -1).map((h) => ({ role: h.role === 'stone' ? 'interlocutor' : 'student', content: h.content })),
       goal: EDGE, kind: round === 1 ? 'open' : 'turn', exchanges: round - 1, discipline: DISCIPLINE,
       turnsSinceNudge: 99, mode: MODE,
-    });
+    }); } while (ev.some((e) => e.event === 'error') && sent < 3);
+    const stillWithheld = ev.some((e) => e.event === 'error');
+    if (sent > 1 || stillWithheld) { WITHHELD += stillWithheld ? sent : sent - 1; console.log(`   [withheld, the reply sent again]`); }
+    if (stillWithheld) throw new Error(`round ${round}: withheld three times running`);
     // A turn that does not ask arrives as `ack` (a sentence) or `blank` (nothing); both are turns, as in the page.
     question = ev.filter((e) => e.event === 'token' || e.event === 'ack').map((e) => e.data.t).join('').trim();
     // A choice turn (v1.17.0) offers three questions and the learner picks one; the probe always takes the first, so a run is reproducible.
@@ -407,7 +412,7 @@ async function assertLiveBuild() {
       ? [...qw].filter((w) => words(stoneTurns[stoneTurns.length - 1]).includes(w)).length : 0;
 
     rows.push({ round, question, reply, repeated, anchor: dwell?.anchor || (dwell?.invite ? 'INVITE' : null),
-      tell, pre, overlapPrev, breach: !validation.ok, reasons: validation.reasons || [], fallback: !!validation.fallback, attempts: validation.attempts ?? null, footing: validation.footing || null });
+      tell, pre, overlapPrev, breach: validation.ok === false,   // a said-back, choice turn or blank carries no question verdict, and is not a breach reasons: validation.reasons || [], fallback: !!validation.fallback, attempts: validation.attempts ?? null, footing: validation.footing || null });
 
     console.log(`\n── round ${round} ${'─'.repeat(50)}`);
     console.log(`Q  ${question}`);
@@ -575,6 +580,7 @@ async function assertLiveBuild() {
   console.log(`longest rut               ${longestRut} consecutive questions on "${rutWord}"`);
   console.log(`interpretive preambles    ${tells}   (both checks: a named tell, and a reading they did not give)`);
   console.log(`guard breaches delivered  ${breaches}`);
+  console.log(`withheld, sent again      ${WITHHELD}   (no question passed, so none was sent; from 18 Oct 2026 a breach is never delivered)`);
   if (!savedTurns) {
     console.log(`hand-backs by the guard    ${rows.filter((r) => r.fallback).length}   (the final attempt handed the subject back; a breach among them is one that still failed)`);
     const footings = rows.reduce((m, r) => { if (r.footing) m[r.footing] = (m[r.footing] || 0) + 1; return m; }, {});

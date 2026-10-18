@@ -519,6 +519,11 @@ Prayas: *"add a copy of the enquiry mode for brainstorm partnering for all creat
 
 **Pooled calls (same release).** Gemini 3.1 Flash-Lite caches nothing below its minimum prompt size: measured, none at 3,608 tokens shared across users, all of 4,292 above 4,096 with one cache marker. So the said-back turn now uses the question's system prompt with its own instruction in the message, and the choice turn asks for the cache too, and both reuse the prefix the question call writes. On a 20-round replay 49.5% of prompt tokens were read from cache, and cached calls cost about half; the first call of each turn stays uncached, because its prefix carries the newest exchange. Said-back guard pass rate on a real dialogue was 5/5 with either prompt.
 
+
+## A refused question is never sent (v1.20.6, 18 October 2026)
+
+His word: *"flagged responses should never go public"*, then *"who is checking flags?"*. Nobody was. From 24 July the guard delivered the least-bad of its failed attempts, flagged, on the reasoning that an empty turn reads as a broken tool and a breach should never pass as clean; the flag went behind the curtain and into the operator's count, and no person or code acted on it, so the reasoning protected the record and not the person reading. Now `generateGuarded` still returns the least-bad attempt with its failed check, and every caller withholds it. Enquiry and brainstorm say back a phrase of the person's last reply where the rhythm allows a turn that does not ask (not on the first reply, not after a turn that did not ask, not on a decline, not if a said-back was already tried this turn) and the said-back passes `validateStatement`; otherwise the route sends `WITHHELD` and the page takes the reply out of the history and back into the box. Measured on the 38-round replay: no refused question delivered, no `WITHHELD`, nine said-backs against four, so the cost is rhythm, more turns that do not ask.
+
 ## Known limits
 
 - ⚠️ **The return's reading of "left out" is lexical, and so is the check that the question then asks for it.** A reply can answer *where* in words the list does not contain. The kind check covers when, who, why, how many and yes/no, and a *what* or *which* answered by naming something. *Where*, *how* and *what would have to be true* rely on the word list alone.
