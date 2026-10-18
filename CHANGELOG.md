@@ -26,6 +26,10 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.20.9] — 18 October 2026
+
+***Where it stands* is removed from the about page.** His word, *"remove"*. The section (the patience it asks, the method core being one note, the second voice's two-box questions) stays in the README, where `admission-figures.test.mjs` still requires it; the test now also pins that the page no longer carries it.
+
 ## [1.20.8] — 18 October 2026
 
 **The critique sections and *Nobody is qualified to have a conversation* are removed from the about page.** His word, *"remove"*, on each. v1.20.7 had only hidden the two critique sections while the surface was off; they are now out of the page, and so is the switch that showed them, so the page has one wording: *How it works*, and the landing link *How does it work?* The critique surface itself stays in the code, off by default.

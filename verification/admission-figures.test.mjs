@@ -57,8 +57,11 @@ const SURFACES = [
 // corpus figure must still be TRUE wherever it appears, which is the half of this file that was never
 // about the admission: a number written into prose is generated once and then sits static, and nothing
 // rebuilds it when the corpus grows.
-test('the public surfaces still say plainly where the tool stands', () => {
-  for (const s of SURFACES) {
+// 🔴 18 OCTOBER 2026, Prayas: *"remove"* on the about page's *Where it stands*. The section is gone from the page
+// by his word and stays in the README, so this test now holds the README alone and pins the page's removal.
+test('the README still says plainly where the tool stands; the about page no longer does', () => {
+  assert.doesNotMatch(SURFACES[0].text, /Where it stands/, 'Where it stands was removed from the about page on 18 Oct 2026');
+  for (const s of SURFACES.slice(1)) {
     assert.match(s.text, /Where it stands/i,
       `${s.name} dropped the section stating where the tool stands. The 16 Aug ADMISSION was retired on 7 Sep 2026 — the bar language went and the concrete facts did not.`);
     // ⚠️ The wording moved on 7 Sep 2026 after a NON-CLAUDE read (Gemini Pro) caught that removing the
