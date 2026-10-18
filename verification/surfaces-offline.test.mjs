@@ -42,12 +42,11 @@ test('an address for an offline surface lands on the start screen', () => {
   assert.equal(direct, 3 + 2, 'three guarded calls and the two definitions; a new caller must be guarded too');
 });
 
-test('the about page describes the second voice only while the critique is on', () => {
-  const crit = [...page.matchAll(/<div class="about-mode crit crit-on" hidden>\s*<div class="about-tag">([^<]+)</g)].map(m => m[1]);
-  assert.deepEqual(crit, ['second voice · to stress-test', 'how the second voice reads · its method']);
-  assert.doesNotMatch(page, /<(?:div|p|span)[^>]*class="[^"]*crit-on[^"]*"(?![^>]*hidden)[^>]*>/, 'every crit-on element starts hidden');
-  assert.match(page, /el\.hidden = el\.classList\.contains\('crit-on'\) !== cfg\.surfaces\.includes\('criticism'\)/);
-  assert.match(page, /<span class="crit-on" hidden>What are the two voices\? →<\/span><span class="crit-off">How does it work\? →<\/span>/);
+test('the about page no longer carries the critique sections or the conversation-credential section', () => {
+  // 18 Oct 2026, Prayas: "the criticism section is not online anymore", then "remove" for both critique sections and "Nobody is qualified to have a conversation".
+  for (const gone of ['second voice · to stress-test', 'how the second voice reads', 'Nobody is qualified to have a conversation', 'What are the two voices?', 'crit-on'])
+    assert.ok(!page.includes(gone), `${gone} is gone from the page`);
+  assert.match(page, /<h2 class="vh">How it works<\/h2>/);
 });
 
 // Prep offline (1 October 2026, Prayas: "take prep offline"). Prep rides inside /api/chat, so the gate is the

@@ -26,6 +26,10 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.20.8] — 18 October 2026
+
+**The critique sections and *Nobody is qualified to have a conversation* are removed from the about page.** His word, *"remove"*, on each. v1.20.7 had only hidden the two critique sections while the surface was off; they are now out of the page, and so is the switch that showed them, so the page has one wording: *How it works*, and the landing link *How does it work?* The critique surface itself stays in the code, off by default.
+
 ## [1.20.7] — 18 October 2026
 
 **The about page no longer describes the critique, which is offline.** His word: *"the criticism section is not online anymore"*. Since v1.16.0 the about page had kept both of the second voice's sections, marked *offline for now*, and opened by promising two voices. Those two sections, the *two voices* heading and opening sentence, the *first voice* labels and the paragraph comparing the voices are now shown only while the critique surface is on; while it is off the page is headed *How it works*, says the tool helps you develop an idea, and the landing link reads *How does it work?* Nothing was deleted: `ZETIZETI_SURFACES` with `criticism` brings every word back (`verification/surfaces-offline.test.mjs`). *Where it stands* keeps its sentence about the second voice's two-box questions unchanged.
