@@ -55,7 +55,7 @@ import { dashboardConfigured, dashboardAccount, sendToDashboard, sendProblem } f
 import { generateGuarded } from './lib/guard.mjs';           // the guard's ENFORCEMENT layer (invariant #3)
 import { startHeartbeat } from './lib/heartbeat.mjs';       // keeps the guard's SILENT interval alive (see the file)
 import { computeSignals, content as contentWords } from './lib/signals.mjs';
-import { readDwell, isDecline, isCorrection, isPlay, lastSubstantive, readRepeat, NONMATERIAL, isAskingBack, readRut, readReturn } from './lib/arc.mjs';
+import { readDwell, isDecline, isCorrection, isPlay, lastSubstantive, readRepeat, NONMATERIAL, MAKING_VERBS, isAskingBack, readRut, readReturn } from './lib/arc.mjs';
 import { readAssociation, associationBlock } from './lib/assoc.mjs';
 import { semanticFreshness, refineFresh } from './lib/novelty.mjs';   // SHADOW ONLY — measured, not wired (see novelty.mjs)           // the enquiry surface's dynamic arc (line of questioning)
 import { decideNudge, feltPosture, formShape } from './lib/nudge.mjs';
@@ -820,7 +820,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
   const stalled = !newMaterial.length;
   const repeated = readRepeat(studentTurns);
   const notAsked = rawHistory.filter((h) => h.role !== 'student' && !String(h.content || '').includes('?')).length;   // said-backs and blanks: answered, but no approach was used
-  const dwellRead = prepping ? null : readDwell({ studentTurns, stoneTurns, goal, repeated, notAsked });
+  const dwellRead = prepping ? null : readDwell({ studentTurns, stoneTurns, goal, repeated, notAsked, making: brainstorm });
   // The learner has declined this question. Outranks everything: nothing is built on words that carry no
   // content, and the next question changes footing to material they themselves supplied earlier.
   // ASKING BACK (9 Sep 2026) — they could not follow the last question and handed its words back as a
@@ -977,7 +977,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
       banOpeners,
       banHeads,
       precision,
-      light: !light ? null : brainstorm ? [...earlierWords].filter((w) => !NONMATERIAL.has(w)) : contentWords(message),   // brainstorm: the words they had already used, so the short question does not hand this reply back
+      light: !light ? null : brainstorm ? [...new Set(studentTurns.flatMap((t) => contentWords(t)))].filter((w) => !NONMATERIAL.has(w) && !MAKING_VERBS.has(w)) : contentWords(message),   // brainstorm: any of their words for the work, one at most (the stitching check)
       featureInvite,
       stalledInvite,
       avoidFrames: stoneTurns.filter((q) => String(q).includes('?')).slice(-4).map((q) => String(q).replace(/\s+/g, ' ').trim().slice(0, 60)),
@@ -1026,7 +1026,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
         // span is inside the count. Named as a chosen difference rather than left to be discovered.
         maxWords: prepping ? 40 : light ? LIGHT_MAX : 34,
         quietWords: light ? new Set([...studentTurns, message].flatMap((t) => contentWords(t))) : null,   // a quiet turn uses only words they have said
-        quietLast: light && brainstorm ? new Set(contentWords(message).filter((w) => !earlierWords.has(w) && !NONMATERIAL.has(w))) : null,   // brainstorm: never only the words new in this reply
+        quietOpening: light && brainstorm ? new Set(contentWords(studentTurns[0] || '')) : null,   // brainstorm: at most one of their words from after the opening
         // THE THREE PREP GUARDS. noDefine keeps prep from becoming teaching; mustAddress keeps the question
         // about this learner rather than about the field, which is what makes asking another model pointless
         // instead of merely discouraged; noHypeVerdict keeps the one judgement the arc solicits on the

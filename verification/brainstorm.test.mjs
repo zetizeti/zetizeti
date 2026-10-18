@@ -108,7 +108,7 @@ test('the admin link is dimmed unless it is the page you are on', () => {
   assert.match(page, /\$\('navAdmin'\)\.classList\.toggle\('on', name==='admin'\)/);
 });
 
-// 18 Oct 2026, Prayas on a live brainstorm: "nonsense, dumb", then "I said flying is the dramatic event. then it is asking again". After "its the drama of the event" the stone asked "Where is the drama of the event?", on the live site and on every local replay. Two things built it: TAKE THIS UP asked what one of the new words means, and a quiet turn could use only the words of that reply plus "where". In a brainstorm neither may hand the reply back.
+// 18 Oct 2026, Prayas on a live brainstorm: "nonsense, dumb", then "I said flying is the dramatic event. then it is asking again". After "its the drama of the event" the stone asked "Where is the drama of the event?", on the live site and on every local replay. Two things built it: TAKE THIS UP asked what one of the new words means, and a quiet turn could use only the words of that reply plus "where". In a brainstorm neither may hand the reply back, and (v1.20.5, his "fix it") a quiet turn may not stitch their words together and the verbs of making are never an anchor.
 import { buildTurnContext, validateOutput } from '../lib/dialogue.mjs';
 
 test('in a brainstorm the new words are taken as given, never asked about; enquiry keeps its own instruction', () => {
@@ -119,16 +119,33 @@ test('in a brainstorm the new words are taken as given, never asked about; enqui
   assert.match(server, /^\s+brainstorm,\s+\/\/ its new words are taken as given/m, 'the chat route passes the mode to the turn context');
 });
 
-test('a brainstorm quiet turn made only of words new in the last reply is refused; one that reaches back passes', () => {
+test('a brainstorm quiet turn may not stitch their words together, and asks with an opener still allowed', () => {
   const quietWords = new Set(['story', 'flying', 'freedom', 'central', 'draw', 'drama', 'event']);
-  const quietLast = new Set(['drama', 'event']);
-  const refused = validateOutput('Where is the drama of the event?', { quietWords, quietLast });
-  assert.ok(refused.reasons.some((r) => /last reply/.test(r)), refused.reasons.join(' | '));
-  assert.ok(validateOutput('What happens next in the flying?', { quietWords, quietLast }).ok);
-  // enquiry: no quietLast, so the same question is still a quiet turn it may ask
+  const quietOpening = new Set(['want', 'write', 'story', 'flying']);
+  for (const q of ['Where is the drama of the event?', 'Where is the freedom in the drama of the event?']) {
+    const r = validateOutput(q, { quietWords, quietOpening });
+    assert.ok(r.reasons.some((x) => /stitches their words/.test(x)), `${q} → ${r.reasons.join(' | ')}`);
+  }
+  for (const q of ['Who sees the event first?', 'Who is in the story?', 'What happens first in the flying?'])
+    assert.ok(validateOutput(q, { quietWords, quietOpening }).ok, q);
+  // enquiry: no quietOpening, so its quiet turn is unchanged
   assert.ok(validateOutput('Where is the drama of the event?', { quietWords }).ok);
-  assert.match(server, /quietLast: light && brainstorm \?/, 'quietLast is only ever set in a brainstorm');
-  assert.match(server, /light: !light \? null : brainstorm \? \[\.\.\.earlierWords\]/, 'the brainstorm quiet turn lists only the words they used before this reply');
+  assert.match(server, /quietOpening: light && brainstorm \?/, 'quietOpening is only ever set in a brainstorm');
+  const block = buildTurnContext({ light: ['story', 'flying'], newMaterial: ['drama', 'event'], brainstorm: true, banOpeners: ['what'] });
+  assert.match(block, /Begin it with "who" or "when" or "which" or "where"\./, 'a banned opener is never offered');
+  assert.doesNotMatch(block, /TAKE THIS UP/, 'a brainstorm quiet turn carries the turn alone');
+  assert.match(buildTurnContext({ light: ['drama'], newMaterial: ['drama'] }), /TAKE THIS UP/, 'enquiry keeps both');
+});
+
+test('in a brainstorm the verbs of making are never an anchor; in an enquiry they still can be', async () => {
+  const { readDwell } = await import('../lib/arc.mjs');
+  const studentTurns = ['I want to write a story about flying', 'freedom'];
+  const stoneTurns = ['What quality of flying are you trying to capture?'];   // touches "flying", never "write"
+  const brain = readDwell({ studentTurns, stoneTurns, goal: studentTurns[0], making: true });
+  const enq = readDwell({ studentTurns, stoneTurns, goal: studentTurns[0] });
+  assert.equal(enq && enq.anchor, 'write', 'enquiry tethers to the first untouched goal word, as before');
+  assert.notEqual(brain && brain.anchor, 'write');
+  assert.match(server, /readDwell\(\{ studentTurns, stoneTurns, goal, repeated, notAsked, making: brainstorm \}\)/);
 });
 
 test('a choice left unchosen is saved as a choice not taken, never as a blank, and reads back as one', () => {

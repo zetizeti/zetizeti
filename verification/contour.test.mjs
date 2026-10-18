@@ -57,7 +57,7 @@ test('the route passes the contour to the guard and to the prompt, and only on a
   const src = readFileSync(new URL('../server.mjs', import.meta.url), 'utf8');
   assert.match(src, /maxWords: prepping \? 40 : light \? LIGHT_MAX : 34/);
   assert.match(src, /const precision = !prepping && !light/);
-  assert.match(src, /light: !light \? null : brainstorm \? \[\.\.\.earlierWords\]\.filter\(\(w\) => !NONMATERIAL\.has\(w\)\) : contentWords\(message\),/, 'light reaches buildTurnContext (in a brainstorm, the words said before this reply: brainstorm.test.mjs)');
+  assert.match(src, /light: !light \? null : brainstorm \? \[\.\.\.new Set\(studentTurns\.flatMap\(\(t\) => contentWords\(t\)\)\)\]\.filter\(\(w\) => !NONMATERIAL\.has\(w\) && !MAKING_VERBS\.has\(w\)\) : contentWords\(message\),/, 'light reaches buildTurnContext (in a brainstorm, all their words for the work: brainstorm.test.mjs)');
   assert.match(src, /quietWords: light \? new Set\(\[\.\.\.studentTurns, message\]\.flatMap/, 'the guard gets their words');
   assert.match(src, /quietWords: null, maxWords: 34/, 'the hand-back fallback drops the quiet demand');
   for (const footing of ['declined', 'corrected', 'askingBack', 'playing', 'rutInvite', 'stalledInvite', 'featureInvite', 'returnNote']) {
