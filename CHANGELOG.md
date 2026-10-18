@@ -26,6 +26,10 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.20.1] — 18 October 2026
+
+**Enquiry or brainstorm, chosen where you begin.** The signed-in start screen offered only an enquiry, with brainstorm reachable from the nav alone (his word: *"enquiry or brainstorm should be selectable"*). A mode switch under the start screen's title, the critique's mode toggle reused in the same gold register, flips between the two and moves the address between `/` and `/brainstorm`, so a reload keeps the choice. Shown only while brainstorm is on; a `[hidden]` guard on `.crit-controls` keeps it hidden, since its `display:flex` outranked the attribute (caught by `hidden-guard.test.mjs`).
+
 ## [1.20.0] — 18 October 2026
 
 **Brainstorm: the enquiry for creative work.** A second mode of the first voice, for a film script, a story, a poem, a song, a play or a painting. Same route, guards and rhythm; its own corpus (`corpus/creative/`, 30 entries in six files, sourced through Exa and Consensus and settled in Crossref, all pending, gates 1–3 run) and one changed sentence in the system prompt, which forbids the tool any idea of its own. `/brainstorm`, a nav link, its own start screen and opening question; a saved brainstorm resumes as one. On by default; `ZETIZETI_SURFACES` without `brainstorm` turns it off, and the site then says nothing about it.

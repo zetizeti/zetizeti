@@ -707,6 +707,7 @@
   .focus-toggle .val{color:var(--turq); display:inline-block; text-align:left}
   #focusVal, #critFocusVal{min-width:calc(12 * (1ch + 0.09em))}   /* "concept only" — 12 chars, the wider of the two */
   #critModeVal{min-width:calc(14 * (1ch + 0.09em))}               /* "what you paste" — 14 chars, the wider of the two */
+  #startModeVal{min-width:calc(10 * (1ch + 0.09em))}              /* "brainstorm" — 10 chars, the wider of the two */
 
   .focus-toggle[aria-pressed="true"] .sw{background:var(--turq); box-shadow:0 0 10px rgba(24,192,192,.8)}
   .focus-toggle[aria-pressed="false"] .val{color:var(--muted)}
@@ -717,6 +718,7 @@
      colour side by side would read as one control with two halves. */
   .crit-controls{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin:14px 0 2px}
   .crit-controls .focus-toggle{margin-left:0}
+  .crit-controls[hidden]{display:none}   /* display:flex outranks [hidden]; the start screen's mode row is hidden while brainstorm is off */
   .mode-toggle{color:var(--goldtext)}
   .mode-toggle .sw{border-color:var(--gold-bright)}
   .mode-toggle .val{color:var(--gold-bright)}
@@ -805,6 +807,10 @@
   <section class="view" id="view-quests">
     <div class="wrap short">
       <h2 class="vh" id="startTitle">Begin an enquiry</h2>
+      <!-- ENQUIRY OR BRAINSTORM, chosen where you begin (18 Oct 2026, Prayas: "enquiry or brainstorm should be selectable"). The critique's mode toggle, reused: same grammar, gold register. Shown only while brainstorm is on. -->
+      <div class="crit-controls" id="startModeRow" hidden>
+        <button class="focus-toggle mode-toggle" id="startModeToggle" aria-pressed="false" title="Choose an enquiry, to develop a concept, or a brainstorm, for creative work such as a film script or a short story."><span class="sw" aria-hidden="true"></span><span class="lbl">mode</span> <span class="val" id="startModeVal" data-widest="brainstorm">enquiry</span></button>
+      </div>
 
       <div id="enquiryUI">
       <p class="vsub" id="startSub">Say what you are working on and where it resists you. The questions come back in your own words, against tensions in the field that were never settled. Nothing is saved here — the conversation is yours and this holds no copy of it, so download it if you want to keep it.</p>
@@ -1408,7 +1414,7 @@ let turnsSinceNudge=99;
   $('navCrit').hidden = !cfg.surfaces.includes('criticism');
   $('navSpec').hidden = !cfg.surfaces.includes('spec');
   $('navBrain').hidden = !cfg.surfaces.includes('brainstorm');
-  $('brainLede').hidden = $('aboutBrain').hidden = !cfg.surfaces.includes('brainstorm');
+  $('brainLede').hidden = $('aboutBrain').hidden = $('startModeRow').hidden = !cfg.surfaces.includes('brainstorm');
   $('critLede').hidden = !cfg.surfaces.includes('criticism');   // the landing offered the critique while it was offline (18 Oct 2026)   // the site says what brainstorm is for only while it is on
   if(cfg.surfaces.includes('criticism')){ const o=$('critOffline'); if(o) o.remove(); }
   // Prep is offline from 1 Oct 2026 ("take prep offline"): its doorway is hidden in the markup and shown only when the server says it is on.
@@ -1494,6 +1500,7 @@ function applyKeyGate(){ const u=$('enquiryUI'); if(u) u.hidden=false; }
 $('navLogout').addEventListener('click', async ()=>{ await api('/auth/logout',{method:'POST'}).catch(()=>{}); location.reload(); });
 $('navQuests').addEventListener('click', ()=>go('/'));
 $('navBrain').addEventListener('click', ()=>go('/brainstorm'));
+$('startModeToggle').addEventListener('click', ()=>go(mode==='brainstorm' ? '/' : '/brainstorm'));   // the address carries the choice, so a reload keeps it
 $('navAbout').addEventListener('click', ()=>go('/about'));
 $('aboutLink').addEventListener('click', ()=>go('/about'));
 $('aboutFoot').addEventListener('click', ()=>go('/about'));
@@ -2348,6 +2355,8 @@ const ENQUIRY_SUB=$('startSub').textContent;
 function showStart(m){
   mode = m==='brainstorm' ? 'brainstorm' : 'enquiry';
   $('startTitle').textContent=START_COPY[mode].title;
+  $('startModeToggle').setAttribute('aria-pressed', mode==='brainstorm' ? 'true' : 'false');
+  $('startModeVal').textContent=mode;
   $('startSub').textContent=START_COPY[mode].sub || ENQUIRY_SUB;
   applyKeyGate(); showView('quests'); resetPrepDoorway(); const n=$('newqName'); if(n){ n.value=''; setTimeout(()=>n.focus(),50); } }
 $('newqBtn').addEventListener('click', newQuest);

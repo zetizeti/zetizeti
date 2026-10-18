@@ -81,7 +81,7 @@ test('the page offers brainstorm only when the server says it is on, sends the m
 test('the site says what brainstorm is for, and only while it is on', () => {
   assert.match(page, /<p class="lede" id="brainLede" hidden>/);
   assert.match(page, /<div class="about-mode" id="aboutBrain" hidden>/);
-  assert.match(page, /\$\('brainLede'\)\.hidden = \$\('aboutBrain'\)\.hidden = !cfg\.surfaces\.includes\('brainstorm'\)/);
+  assert.match(page, /\$\('brainLede'\)\.hidden = \$\('aboutBrain'\)\.hidden = \$\('startModeRow'\)\.hidden = !cfg\.surfaces\.includes\('brainstorm'\)/);
   assert.match(page, /<p class="lede" id="critLede" hidden>/, 'the landing offers the critique only while it is on');
   assert.match(page, /\$\('critLede'\)\.hidden = !cfg\.surfaces\.includes\('criticism'\)/);
 });
@@ -91,4 +91,9 @@ test('new art forms retrieve from their own files', () => {
   hit('i cannot decide what to title this painting, maybe untitled', 'what-the-title-does');
   hit('we want to devise the play through improvisation in rehearsal', 'yes-and-or-the-plan');
   hit('i am adapting a novel and fans of the book want it faithful', 'faithful-to-what');
+});
+
+test('enquiry or brainstorm is chosen on the start screen, only while brainstorm is on', () => {
+  assert.match(page, /<button class="focus-toggle mode-toggle" id="startModeToggle"/);
+  assert.match(page, /\$\('startModeToggle'\)\.addEventListener\('click', \(\)=>go\(mode==='brainstorm' \? '\/' : '\/brainstorm'\)\)/);
 });
