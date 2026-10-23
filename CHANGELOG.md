@@ -26,6 +26,12 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.21.0] — 23 October 2026
+
+**No machine cadence in what the stone says.** His word: *"add rules from de-ai-coldread sub-agen to zetizeti"*. `lib/cadence.mjs` is one list of the tells a single question or explanation can show: words such as *delve*, *navigate*, *crucial* and *truly*, stock phrases such as *moreover*, *it is worth* and *not merely*, and more than two dashes. It is checked in `sharedFormChecks`, with no flag, so every question surface and the choice turn hold it, and in the explanation guard; every prompt says what it refuses. A word the person used is theirs; a stock phrase is refused outside quotation marks. Phrases that can begin an ordinary question (*as a result*, *speaks to*, *to be sure*) are left off. Measured alone over the questions on record, it refuses 4 of 1,196 and none of 215 explanations (`docs/ops/cadence-census/README.md`). Pinned by `verification/cadence.test.mjs`.
+
+**The conversation probe parses again.** A comment placed mid-line in v1.20.6 swallowed the rest of `rows.push`, so `scripts/enquiry-conversation-probe.mjs` had not run since.
+
 ## [1.20.9] — 18 October 2026
 
 ***Where it stands* is removed from the about page.** His word, *"remove"*. The section (the patience it asks, the method core being one note, the second voice's two-box questions) stays in the README, where `admission-figures.test.mjs` still requires it; the test now also pins that the page no longer carries it.

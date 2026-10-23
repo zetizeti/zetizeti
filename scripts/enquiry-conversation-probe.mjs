@@ -411,8 +411,10 @@ async function assertLiveBuild() {
     const overlapPrev = stoneTurns.length
       ? [...qw].filter((w) => words(stoneTurns[stoneTurns.length - 1]).includes(w)).length : 0;
 
+    // A said-back, choice turn or blank carries no question verdict, and is not a breach.
     rows.push({ round, question, reply, repeated, anchor: dwell?.anchor || (dwell?.invite ? 'INVITE' : null),
-      tell, pre, overlapPrev, breach: validation.ok === false,   // a said-back, choice turn or blank carries no question verdict, and is not a breach reasons: validation.reasons || [], fallback: !!validation.fallback, attempts: validation.attempts ?? null, footing: validation.footing || null });
+      tell, pre, overlapPrev, breach: validation.ok === false,
+      reasons: validation.reasons || [], fallback: !!validation.fallback, attempts: validation.attempts ?? null, footing: validation.footing || null });
 
     console.log(`\n── round ${round} ${'─'.repeat(50)}`);
     console.log(`Q  ${question}`);
