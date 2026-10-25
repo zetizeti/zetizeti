@@ -229,4 +229,6 @@ The name doubles *zeti* â€” from the Greek *zetetic*, "proceeding by inquiry" â€
 Sanskrit *neti neti*: "not this, not this." Which is also what the second voice does to a settled idea's
 smuggled certainties: it subtracts what was decided for you, and never adds a decision of its own.
 
+Tested by Shrobana Chattopadhyay.
+
 zetizeti is built and maintained by [Prayas Abhinav](https://prayasabhinav.net).

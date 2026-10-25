@@ -26,6 +26,10 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.21.1] — 25 October 2026
+
+**A tester credited by name.** The about page and the README now say *Tested by Shrobana Chattopadhyay*, at her request and on Prayas's word. Her first name is listed in `app/publish-credited-names.txt`, so the publish's identity scan lets the credit through; her transcripts stay where they were. No change to the questioning.
+
 ## [1.21.0] — 23 October 2026
 
 **No machine cadence in what the stone says.** His word: *"add rules from de-ai-coldread sub-agen to zetizeti"*. `lib/cadence.mjs` is one list of the tells a single question or explanation can show: words such as *delve*, *navigate*, *crucial* and *truly*, stock phrases such as *moreover*, *it is worth* and *not merely*, and more than two dashes. It is checked in `sharedFormChecks`, with no flag, so every question surface and the choice turn hold it, and in the explanation guard; every prompt says what it refuses. A word the person used is theirs; a stock phrase is refused outside quotation marks. Phrases that can begin an ordinary question (*as a result*, *speaks to*, *to be sure*) are left off. Measured alone over the questions on record, it refuses 4 of 1,196 and none of 215 explanations (`docs/ops/cadence-census/README.md`). Pinned by `verification/cadence.test.mjs`.
