@@ -26,6 +26,10 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.21.2] — 25 October 2026
+
+**A second tester credited.** The credit line on the about page and in the README now reads *Tested by Shrobana Chattopadhyay, and earlier by Siddhi Bhavya*: the two who did most of the testing, Siddhi in the tool's earlier months (Prayas's words). Siddhi has been credited by name in this changelog since v0.9.0; her names were already listed in `app/publish-credited-names.txt`. No change to the questioning.
+
 ## [1.21.1] — 25 October 2026
 
 **A tester credited by name.** The about page and the README now say *Tested by Shrobana Chattopadhyay*, at her request and on Prayas's word. Her first name is listed in `app/publish-credited-names.txt`, so the publish's identity scan lets the credit through; her transcripts stay where they were. No change to the questioning.
