@@ -26,6 +26,24 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.22.0] — 27 October 2026
+
+**What fifty AI Club dialogues showed, and what changed for it.** Prayas's words: *"fix in zetizeti"*. The fifty dialogues handed in between 9 September and 21 October, read for faults, and each fault set off again in sessions with no student in them, on the version that was live on its date and on v1.21.2. The record is `docs/ops/aiclub-cohort-faults/README.md`.
+
+**Not understood, now acknowledged.** His words: *"acknowledge and repeat previous question if not understood"*. When someone writes *"what?"* or *"I'm not getting what you want to say"*, the reply is *"Sorry, that was not clear. Here it is again:"* with the last question as it was. Code composes it and no model is called. A request for other words (*"reframe the question please"*), or not following a second time, gets the question again in plainer words.
+
+**A message about the conversation is read as one.** A request to put the question another way, or to say what the tool is getting at, is read as asking back, and the request's own word is kept out of the next question: before, *"reframe the question please"* was answered with a question about a reframe. *"Forget what I said earlier"* is read as withdrawing what was said, not as part of the idea. Asking back is no longer refused by the repeat gate and the head ban, which had withheld *"what?"* on every attempt in some replays.
+
+**The opening comes back when the questions circle or drift.** His words: *"Bring the opening's untouched words back when the tool circles"*. At a rut, or after six questions in a row with no word of the opening, a word from the opening returns as what the next question takes up: one no question has touched, or else the one touched longest ago. The hand-back invite runs only when the opening has nothing left. In four 50-round sessions each, questions using a word of the opening went from 23, 13, 8 and 11 to 17, 16, 21 and 19, and the longest stretch without one from 5, 7, 9 and 13 to 7, 5, 10 and 6. It moves drift; it does not end it.
+
+**A blank only on a turn that names something.** The insight markers behind a blank now match whole words, and *actually*, *the real* and *i see* count only where they mark a turn (*"actually, …"*, *"the real issue"*, *"i see now"*), not emphasis or eyesight. Blanks fell from 1.6% to 1.3% of real replies on record, and from 11.5% to 6.4% of a fluent simulated writer's.
+
+**Guard gaps closed.** A sentence that opens on *That*, *This*, *The* or *Your* and holds a word the person never used is refused, closing the approving-sentence class (*"is doing real work"*). A semicolon now ends the clause before a question, so the existing checks see it. *Instead of* is refused like *rather than* unless they wrote *instead*. More than two quoted single words in one question is refused.
+
+**Saved dialogues.** A reply with blank lines in it is saved as one paragraph, so a resumed dialogue no longer counts it as several replies. The conversation probe reads said-back lines in a saved dialogue as the tool's.
+
+**Left as it was.** A person's question restated as the tool's premise: a guard against it was built and taken out, because it multiplied withheld turns. The tool's own question pasted back as a reply is still taken as an answer.
+
 ## [1.21.2] — 25 October 2026
 
 **A second tester credited.** The credit line on the about page and in the README now reads *Tested by Shrobana Chattopadhyay, and earlier by Siddhi Bhavya*: the two who did most of the testing, Siddhi in the tool's earlier months (Prayas's words). Siddhi has been credited by name in this changelog since v0.9.0; her names were already listed in `app/publish-credited-names.txt`. No change to the questioning.

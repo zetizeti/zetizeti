@@ -137,6 +137,10 @@ function readTranscript(path) {
   for (let para of src.slice(fm[0].length).split(/\n{2,}/)) {
     para = para.trim();
     if (!para || /^#/.test(para) || /^_[\s\S]*_$/.test(para)) continue;
+    // A turn that did not ask (said back) or said nothing (blank) is `**—**`, as in parseTranscriptMd. Read as the learner's, every
+    // saved dialogue from 30 September on counted the stone's own said-backs as replies (26 Oct 2026).
+    const quiet = para.match(/^\*\*—\*\*\s*([\s\S]*)$/);
+    if (quiet) { const t = quiet[1].trim(); turns.push({ role: 'stone', content: /^\[(?:blank|choice not taken)\]$/.test(t) ? '' : t }); continue; }
     const q = para.match(/^\*\*Q\.\*\*\s*([\s\S]+)$/);
     turns.push(q ? { role: 'stone', content: q[1].trim() } : { role: 'student', content: para });
   }
@@ -294,7 +298,7 @@ async function assertLiveBuild() {
   if (savedTurns) {
     console.log(`reading  : ${TRANSCRIPT}`);
     console.log(`source   : a real saved dialogue — no server, no model call, nothing generated here`);
-    console.log(`rounds   : ${savedTurns.filter((t) => t.role === 'stone').length} questions asked`);
+    console.log(`rounds   : ${savedTurns.filter((t) => t.role === 'stone' && t.content.includes('?')).length} questions asked`);
   } else {
     if (REPLAY_FIXTURE) console.log(`replay   : ${REPLAY.split('/').slice(-1)[0]} — a REAL learner's replies to NEW questions; read the breach counts, never the questions as a dialogue`);
     else console.log(`persona  : ${PERSONA}${PERSONA === 'agreeable' ? '  (never complains; restates when out of material)' : '  (permitted to disengage)'}`);
@@ -314,7 +318,7 @@ async function assertLiveBuild() {
   // the only way to ask whether questions that shipped would still pass.
   if (savedTurns) {
     for (let i = 0; i < savedTurns.length; i++) {
-      if (savedTurns[i].role !== 'stone') continue;
+      if (savedTurns[i].role !== 'stone' || !savedTurns[i].content.includes('?')) continue;   // a said-back or a blank is not a question
       const q = savedTurns[i].content;
       const before = savedTurns.slice(0, i);
       const stoneTurns = before.filter((t) => t.role === 'stone').map((t) => t.content);

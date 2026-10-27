@@ -22,7 +22,7 @@ import { qualify, toCanonSegments, segmentText } from './lib/qualify.mjs';   // 
 import { planFor, windowOf, briefDigest } from './lib/plan.mjs';   // the reading plan — DETERMINISTIC, no LLM
 import { prepPlan, parseTasks, readiness as prepReadiness } from './lib/prep.mjs';   // the prep arc — DETERMINISTIC, no LLM
 import { isLight, LIGHT_MAX } from './lib/contour.mjs';   // the hidden intensity contour: a quiet turn is a short question, guarded
-import { blankTurn, ackTurn, choiceTurn, beatMs, BLANK_MS, sleep } from './lib/pace.mjs';   // when a turn is silent or does not ask, and the beat — DETERMINISTIC, no LLM
+import { blankTurn, ackTurn, choiceTurn, askAgainTurn, beatMs, BLANK_MS, sleep } from './lib/pace.mjs';   // when a turn is silent or does not ask, and the beat — DETERMINISTIC, no LLM
 import { STATEMENT_SYSTEM, statementBrief, validateStatement, sayBack } from './lib/dialogue.mjs';   // the turn that does not ask: its prompt and its guard
 import { CHOICE_BRIEFS, CHOICES, CHOICE_ASK, keepChoices } from './lib/dialogue.mjs';   // the choice turn: three questions, the learner picks the one asked
 import { docFreq, informativeOf } from './lib/reading.mjs';          // engagement sensors — planner-only, never rendered
@@ -55,7 +55,7 @@ import { dashboardConfigured, dashboardAccount, sendToDashboard, sendProblem } f
 import { generateGuarded } from './lib/guard.mjs';           // the guard's ENFORCEMENT layer (invariant #3)
 import { startHeartbeat } from './lib/heartbeat.mjs';       // keeps the guard's SILENT interval alive (see the file)
 import { computeSignals, content as contentWords } from './lib/signals.mjs';
-import { readDwell, isDecline, isCorrection, isPlay, lastSubstantive, readRepeat, NONMATERIAL, MAKING_VERBS, isAskingBack, readRut, readReturn } from './lib/arc.mjs';
+import { readDwell, isDecline, isCorrection, isPlay, lastSubstantive, readRepeat, NONMATERIAL, MAKING_VERBS, isAskingBack, readRut, readReturn, readRemark, readDrift, openingWordBack, approachFor, APPROACHES } from './lib/arc.mjs';
 import { readAssociation, associationBlock } from './lib/assoc.mjs';
 import { semanticFreshness, refineFresh } from './lib/novelty.mjs';   // SHADOW ONLY — measured, not wired (see novelty.mjs)           // the enquiry surface's dynamic arc (line of questioning)
 import { decideNudge, feltPosture, formShape } from './lib/nudge.mjs';
@@ -835,7 +835,10 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // The learner corrected a reading ("that's not what i meant", "you asked that twice") — Jung's
   // disturbed-reproduction indicator, worn protectively: their correction is authoritative, so the
   // steering that would press on is suppressed and the next question takes up what they re-stated.
-  const corrected = !declined && !askingBack && isCorrection(message);
+  // A message about the conversation (lib/arc.mjs, readRemark, 26 Oct 2026): a request to say it another way or to say what the
+  // tool is getting at is asking back (isAskingBack reads it); "forget what I said earlier" is a correction that withdraws.
+  const remark = readRemark(message, studentTurns.slice(0, -1));
+  const corrected = !declined && !askingBack && (isCorrection(message) || !!(remark && remark.kind === 'withdraw'));
   // They have said it is a joke (lib/arc.mjs, isPlay): the latest reply or the one before.
   const playing = !declined && !askingBack && (isPlay(message) || isPlay(studentTurns[studentTurns.length - 2] || '')) ? { edge: studentTurns[0] || goal } : null;
   // 🔴 `stalled` NOW REACHES THE STEERING, AND ITS RESPONSE IS ITS OWN (6 Sep 2026). Since 17 August the
@@ -856,10 +859,16 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // THE RUT (9 Sep 2026) — the stone's own last RUT_TURNS questions all carry one word. Hands the subject
   // back, exactly as `stalled` does; see readRut for why it is not a ban and not the refused re-ask gate.
   const rut = (!prepping && !declined && !corrected && !askingBack && !stalledInvite && !featureInvite) ? readRut(stoneTurns) : null;
-  const rutInvite = rut ? { word: rut.word, run: rut.run, span: rut.span, exhausted: false } : null;
+  // CIRCLING OR DRIFTING (27 Oct 2026, Prayas: "Bring the opening's untouched words back when the tool circles. -- build";
+  // lib/arc.mjs, readDrift and openingWordBack). At a rut, or after DRIFT_TURNS questions with no word of the opening, a word
+  // of the opening comes back as a tether. The rut invite (hand the subject back) runs only when the opening has none to give.
+  const drift = (!prepping && !declined && !corrected && !askingBack && !stalledInvite && !featureInvite && !rut) ? readDrift(goal || studentTurns[0], stoneTurns) : null;
+  const backWord = (rut || drift) ? openingWordBack(goal || studentTurns[0], stoneTurns, new Set(rut ? [rut.word] : [])) : null;
+  const rutInvite = rut && !backWord ? { word: rut.word, run: rut.run, span: rut.span, exhausted: false } : null;
   // Dwell is suppressed by either invite, and for one reason: both mean STOP MINING THIS MATERIAL, and an
   // anchor block would say the opposite in the same prompt.
-  const dwell = (featureInvite || stalledInvite || rutInvite || askingBack) ? null : dwellRead;
+  const dwell = backWord ? { anchor: backWord, returns: 1, tether: true, approach: approachFor(APPROACHES, studentTurns, goal, notAsked) }
+    : (featureInvite || stalledInvite || rutInvite || askingBack) ? null : dwellRead;
   // WIDENING BY ASSOCIATIVE VALUE (lib/assoc.mjs) — join two things the learner said at different times
   // and has never been asked about together. Measured 28 Jul as the best single addition of the day:
   // dry replies 30%→17%, uptake 83%→95%, and the only configuration whose student writes MORE as the
@@ -888,11 +897,11 @@ app.post('/api/chat', requireUser, async (req, res) => {
   // nothing. Only on a plain turn: a return, a decline, a correction, an asking-back, a play footing or an
   // invite each already say what this turn is for. It carries no association join either: the join demands a
   // word from two earlier statements, which a quiet turn built from their own words cannot also satisfy.
-  const light = !prepping && !declined && !corrected && !askingBack && !playing && !rutInvite && !stalledInvite
+  const light = !prepping && !declined && !corrected && !askingBack && !playing && !rutInvite && !backWord && !stalledInvite
     && !featureInvite && !returnNote
     && contentWords(message).length >= 2      // a quiet question is built from their words, so there must be some
     && isLight({ replies: studentTurns.slice(1), goal, asked: Math.max(0, studentTurns.length - 1 - notAsked) });
-  const assoc = (prepping || declined || corrected || askingBack || rutInvite || returnNote || light) ? null : readAssociation({ studentTurns, stoneTurns, selector: 'open' });
+  const assoc = (prepping || declined || corrected || askingBack || backWord || rutInvite || returnNote || light) ? null : readAssociation({ studentTurns, stoneTurns, selector: 'open' });
   // OPENER BAN — the question may not open with the word either of the last two questions opened with
   // (proactive here; enforced in the guard). 22 of 24 questions in a real session opened "When…" while
   // every sameness metric read clean.
@@ -982,6 +991,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
       light: !light ? null : brainstorm ? [...new Set(studentTurns.flatMap((t) => contentWords(t)))].filter((w) => !NONMATERIAL.has(w) && !MAKING_VERBS.has(w)) : contentWords(message),   // brainstorm: any of their words for the work, one at most (the stitching check)
       featureInvite,
       stalledInvite,
+      remark,
       avoidFrames: stoneTurns.filter((q) => String(q).includes('?')).slice(-4).map((q) => String(q).replace(/\s+/g, ' ').trim().slice(0, 60)),
       rutInvite,
       askingBack,
@@ -1013,9 +1023,12 @@ app.post('/api/chat', requireUser, async (req, res) => {
     const guardOptions = {
         noLiteral: !!playing,                    // play: a question testing the joke's literal truth is withheld (29 Sep 2026)
         focus,                                   // concept-only: a production question is withheld, not discouraged
-        avoid: stoneTurns,
+        // Asking back asks the SAME thing again in plainer words, so it shares the frame of the question, and of the ones before it
+        // that circled the same subject, by design: the repeat gate, the head ban and the third-in-a-row rule refused it on all five
+        // attempts ("what?" was withheld 3 times in 3 and "I'm not getting your question" 2 in 3, 26 Oct 2026). The opener ban stays.
+        avoid: askingBack ? [] : stoneTurns,
         banOpeners,
-        banHeads,
+        banHeads: askingBack ? [] : banHeads,
         noBinary: true,
         // noClosed — a question answerable "yes" is withheld and re-asked open (30 Jul 2026: three of
         // ten in a real session, and both of its thin replies followed one).
@@ -1039,7 +1052,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
         // ONE question, which both modes' repair text has always demanded and neither ever enforced.
         noCompound: true,
         noStockFrame: true,                      // intent kept, stock wording refused (4 Oct 2026)
-        lastTwo: stoneTurns.filter((q) => String(q).includes('?')).slice(-2),   // no third question in a row on the same words (4 Oct 2026)
+        lastTwo: askingBack ? null : stoneTurns.filter((q) => String(q).includes('?')).slice(-2),   // no third question in a row on the same words (4 Oct 2026); asking back is the same words again
         lastThree: stoneTurns.filter((q) => String(q).includes('?')).slice(-3),   // no precision demand within three of the last (4 Oct 2026)
         // No design jargon unless the learner used the word (v1.10.0).
         noJargon: true,
@@ -1056,6 +1069,8 @@ app.post('/api/chat', requireUser, async (req, res) => {
           // On a return the clause says back the LAST QUESTION's words — what was asked and not answered. They
           // are the tool's own question, already on the learner's screen, not a reading slipped in.
           .concat(returnNote ? [...contentWords(stoneTurns[stoneTurns.length - 1] || ''), ...RETURN_LEAD_WORDS] : [])),
+        // The words of a request about the conversation stay out of the question (26 Oct 2026).
+        noWords: remark && remark.words.length ? new Set(remark.words) : null,
         // The return must say what the last answer left out, and must not grade it (sharedFormChecks).
         returnNote,
         // 🔴 NO WORD FROM EACH SIDE OF A JOIN (4 Oct 2026, Prayas: "drop the join's rule requiring a word from each
@@ -1085,6 +1100,23 @@ app.post('/api/chat', requireUser, async (req, res) => {
     //    and the backstop goes on guarding every turn that does call it.
     //    It is for dramatic effect: only after the learner has just named what matters (a felt LEX event).
     //    studentTurns[0] is the opening edge, not a reply.
+    // 🔴 THE QUESTION ASKED AGAIN (27 Oct 2026, Prayas: "acknowledge and repeat previous question if not understood";
+    //    lib/pace.mjs, askAgainTurn). Here for the blank's reasons: after every wallet gate, before the only model call, so
+    //    it costs nothing and code alone decides it. A request for other words (remark kind 'redo') goes on to the plainer re-ask.
+    const again = prepping ? null : askAgainTurn({ askingBack, redo: !!(remark && remark.kind === 'redo'), stoneTurns });
+    if (again) {
+      await sleep(BLANK_MS - (Date.now() - t0));
+      send('token', { t: again });
+      send('validation', { ok: true, reasons: [], attempts: 0, regenerated: false, composed: true, footing: 'ask-again' });
+      noteTurnDepth({
+        day: utcDay(),
+        surface: 'enquiry',
+        version: BUILD.version,
+        depth: studentTurns.length - (prepWalk ? prepWalk.path.length : 0),
+      });
+      send('done', {});
+      return res.end();
+    }
     if (blankTurn({ named: !!(fs && fs.lexEvent), replies: studentTurns.length - 1, lastStoneAsked })) {
       await sleep(BLANK_MS - (Date.now() - t0));
       send('blank', {});
@@ -1102,14 +1134,15 @@ app.post('/api/chat', requireUser, async (req, res) => {
     //    the learner's words. If it never passes, this turn asks a question as before.
     // 🔴 Never on a decline (4 Oct 2026): "I dont' know" was said back, because a short reply of new words reads as
     //    charged and this decision returned before the choice turn, the turn a decline is for, was reached.
+    // 🔴 Nor on asking back (26 Oct 2026, below): "reframe the question please" or "what do you mean" is not a phrase of theirs to hear again.
     const ack = prepping || declined ? null : ackTurn({
-      replies: studentTurns.slice(1), lastStoneAsked, newMaterial: !!(fs && fs.semEvent),
+      replies: studentTurns.slice(1), lastStoneAsked: lastStoneAsked && !askingBack, newMaterial: !!(fs && fs.semEvent),
       earlier: [...studentTurns.slice(0, -1), ...stoneTurns],
       questionsSince: (() => { let n = 0; for (const q of [...stoneTurns].reverse()) { if (!String(q).includes('?')) break; n++; } return n; })(),
     });
     // Also the turn a refused question becomes (sayBackInstead, below), so it is a function; it delivers and returns true,
     // or returns false having sent nothing.
-    let saidBackTried = false;
+    let saidBackTried = !!askingBack;           // asking back is never said back, nor is a refused answer to it: "“What,” you say." answers nobody (26 Oct 2026)
     const sayBackTurn = async () => {
       saidBackTried = true;
       const ownWords = new Set(String(message).toLowerCase().match(/[a-z']+/g) || []);   // their LATEST reply only: joining it to earlier words made claims they never made
@@ -1249,7 +1282,7 @@ app.post('/api/chat', requireUser, async (req, res) => {
     if (CHANNELS) send('tail', { t: turnContent });   // the browser holds it and posts it back, so the next prompt only grows
     send('validation', { ...guarded.check, attempts: guarded.attempts, regenerated: guarded.regenerated, fallback: !!guarded.fallback,
       // which footing this turn took — what the last message WAS and what the tool did about it, never who they are
-      footing: askingBack ? 'asking-back' : declined ? 'declined' : corrected ? 'corrected' : playing ? 'playing' : rutInvite ? 'rut-invite' : stalledInvite ? 'stalled-invite' : featureInvite ? 'invite' : returnNote ? 'return' : null });
+      footing: askingBack ? 'asking-back' : declined ? 'declined' : corrected ? 'corrected' : playing ? 'playing' : backWord ? (rut ? 'rut-tether' : 'drift-tether') : rutInvite ? 'rut-invite' : stalledInvite ? 'stalled-invite' : featureInvite ? 'invite' : returnNote ? 'return' : null });
     // LOCAL, operator-only capture (no-op in production and unless ZETIZETI_CAPTURE_DIR is set) — the
     // situation → the question, so a chat can be replayed by the 2.0 "sounds-like-Prayas" harness. The
     // returned id lets the local UI attach an on-voice/off-voice label to this exact question. The guard's

@@ -2560,7 +2560,9 @@ function buildTranscriptMd(){
   //    below requires at least one character after the marker, so the line would come back as a STUDENT
   //    turn whose text is "**Q.**" — a corrupted dialogue, silently, on resume.
   for(const h of history){
-    if(h.role!=='interlocutor') { body+=String(h.content)+'\n\n'; continue; }
+    // A reply is ONE paragraph of the file: a blank line inside a pasted reply would read, in the file and on resume, as several replies with no
+    // question between them (56 such runs in eight of fifty real dialogues, 26 Oct 2026).
+    if(h.role!=='interlocutor') { body+=String(h.content).replace(/\n\s*\n+/g,'\n').trim()+'\n\n'; continue; }
     const q=String(h.content).replace(/\n+/g,' ').trim();
     // a question is **Q.**; a turn that did not ask (said back) or said nothing (blank) is **—**, so the file never
     // calls a said-back line a question, and resuming reads each back as what it was
