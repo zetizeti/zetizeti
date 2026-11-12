@@ -26,6 +26,16 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## [1.23.0] — 2026-11-12 — no review page, and no record of who used it
+
+Prayas, 12 November 2026: *"remove review page and all user traces"*.
+
+- **The review page is gone**: the *review* link, its view and `GET /api/admin/usage` are removed, with the admin gate that only it used. There is no per-person view of use.
+- **The spending ledger keeps no person.** `pool_spend` now holds one row per UTC day for the shared pool (`~pool`) and one for the personal key (`~personal`), which is all the ceilings read. Every row written per person before this release is folded into those day totals and deleted on boot.
+- **What one student spent today lives in memory only**, for the adaptive daily share that keeps one person from spending the pool's day: never written, forgotten at the turn of the UTC day and on a restart (the share starts afresh then). A lifetime per-student cap can no longer exist, since it would need a lasting record; `ZETIZETI_USER_BUDGET_INR` was unset in production.
+- **A person's record lasts only while they are signed in**: signing out, or a session expiring, removes the user row itself; expired sessions and signed-out users are also cleared at boot and every hour.
+- Tests: `test/no-user-traces.test.mjs`; `test/pool-caps.test.mjs` now pins that no person is on disk and that a day's spend is forgotten; the review link's style test is removed.
+
 ## [1.22.0] — 27 October 2026
 
 **What fifty AI Club dialogues showed, and what changed for it.** Prayas's words: *"fix in zetizeti"*. The fifty dialogues handed in between 9 September and 21 October, read for faults, and each fault set off again in sessions with no student in them, on the version that was live on its date and on v1.21.2. The record is `docs/ops/aiclub-cohort-faults/README.md`.

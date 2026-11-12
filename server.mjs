@@ -27,7 +27,7 @@ import { STATEMENT_SYSTEM, statementBrief, validateStatement, sayBack } from './
 import { CHOICE_BRIEFS, CHOICES, CHOICE_ASK, keepChoices } from './lib/dialogue.mjs';   // the choice turn: three questions, the learner picks the one asked
 import { docFreq, informativeOf } from './lib/reading.mjs';          // engagement sensors — planner-only, never rendered
 import {
-  googleConfigured, adminConfigured, emailIsAdmin, currentUser, logout, publicUser,
+  googleConfigured, adminConfigured, currentUser, logout, publicUser,
   beginGoogleAuth, handleGoogleCallback, guestAllowed, beginGuest,
   beginMaint, maintConfigured, userIsMaint,
   personalAllowlistConfigured, personalAllowlistSize,
@@ -42,7 +42,6 @@ import {
   // remain are operational, not content: auth sessions (in auth.mjs) and the per-user pool-spend ledger
   // below (turn counts + billed cost, for the ₹ caps + the admin usage monitor). What a student asks,
   // and the questions asked back, are never written anywhere. See the login-screen assurance copy.
-  usageByUser,
   poolSpendToday, poolSpendAllTime, poolSpendUser, poolSpendUserAllTime, poolTurnsUser, addPoolSpend,
   adaptiveUserDailyInr,
   // The survival curve (30 Jul 2026) — counts only, no user column, no session id, no content. The one
@@ -149,7 +148,7 @@ const usageCost = (u) => (u && typeof u.cost === 'number' && u.cost > 0)
 // Guard telemetry — IN-MEMORY, per process, three integers per surface. It records how often the
 // never-answer guard had to act, and NOTHING about any turn's content (invariant #8: no request body, no
 // question, no reasons text). Resets on restart by design: this is a live health reading for the operator
-// (/api/admin/usage), not a stored record, and zetizeti stores no conversation.
+// (formerly /api/admin/usage, removed in v1.23.0), not a stored record, and zetizeti stores no conversation.
 const guardStats = {
   enquiry:   { turns: 0, regenerated: 0, flagged: 0 },
   criticism: { turns: 0, regenerated: 0, flagged: 0 },
@@ -401,7 +400,7 @@ app.get('/api/pool', requireUser, (req, res) => {
 app.get('/api/me', (req, res) => {
   const u = currentUser(req);
   const pub = publicUser(u);
-  res.json({ user: pub ? { ...pub, isAdmin: emailIsAdmin(u.email) } : null });
+  res.json({ user: pub || null });
 });
 
 // Gate for everything below: must be signed in.
@@ -411,20 +410,6 @@ function requireUser(req, res, next) {
   req.user = u;
   next();
 }
-// Admin gate: a signed-in user whose verified Google email is on ZETIZETI_ADMIN_EMAILS — OR the
-// maintenance identity, which reached a session by presenting ZETIZETI_MAINT_TOKEN and is admitted here
-// by instruction (26 Aug 2026: *"remove gates for mantainence"*). The token was the gate; asking it to
-// also appear on an email list would be the gate twice.
-//
-// 🔴 This admits a MAINTENANCE session, never a student one. The check widens by exactly one identity,
-// recognised by its google_sub — a value Google cannot issue — and not by loosening what counts as an
-// admin email. Do not restate this as "sessions marked admin may pass": that phrasing is what lets the
-// next change quietly admit a second kind of caller.
-function requireAdmin(req, res, next) {
-  if (userIsMaint(req.user)) { next(); return; }
-  if (!emailIsAdmin(req.user.email)) { res.status(403).json({ error: 'not an admin' }); return; }
-  next();
-}
 
 // ---- quests / history: REMOVED (ephemeral, 11 Jul 2026) ----
 // There is no server-side quest, message, resume, fork, or progress-trajectory persistence any more.
@@ -432,52 +417,8 @@ function requireAdmin(req, res, next) {
 // /api/chat turn. Nothing to list, open, rename, or fork on the server. The old /api/quests* routes
 // (list, create, fork, rename, resume-hydration) are gone with the history view they fed.
 
-// ---- admin usage monitor (operator only) — read-only view of pool usage across all users ----
-// Per-user turns + real billed spend (USD ledger → ₹ at the live usdInr() rate) + days active + last active, plus
-// the instance total against the configured ₹ ceiling. No writes, no per-user content — just the
-// usage figures the operator needs to watch a cohort's spend. Gated on requireAdmin (ZETIZETI_ADMIN_EMAILS).
-app.get('/api/admin/usage', requireUser, requireAdmin, (req, res) => {
-  const users = usageByUser().map((r) => ({
-    email: r.email || '—',
-    name: r.name || '',
-    turns: r.turns,
-    spentInr: Math.round((r.usd || 0) * usdInr()),
-    daysActive: r.daysActive,
-    lastDay: r.lastDay,
-    pool: r.pool === 1,   // true = shared students pool key; false = personal/own key
-  }));
-  // personalInr is the personal-key spend total — shown apart from the pool figure, which stays the ₹
-  // ceiling meter (budgetSpentINR() is pool = 1 only).
-  const personalInr = Math.round(users.filter((u) => !u.pool).reduce((s, u) => s + u.spentInr, 0));
-  res.json({
-    users,
-    userCount: users.length,
-    totalInr: Math.round(budgetSpentINR()),
-    personalInr,
-    maxBudgetInr: MAX_BUDGET_INR || null,
-    usdInr: usdInr(),
-    // How hard the never-answer guard is working, per surface, since this process started. Counts only —
-    // no content (invariant #8). `regenerated` = the guard rejected a question and made the model ask
-    // again; `flagged` = it broke the rule twice and the least-bad was delivered, marked, to the student.
-    guard: guardStats,
-    // Felt-shift health — counts + the last compute's latency; no content (invariant #8). `neural`
-    // says whether the embedding backend is live (false = felt off entirely, the app unaffected).
-    felt: { ...feltStats, neural: neuralReady },
-    // THE SURVIVAL CURVE (30 Jul 2026) — the answer to "did they stay", which no instrument here could
-    // give before. `reached` is how many turns got to that depth; `leftHere` is the drop to the next one,
-    // i.e. how many conversations ended on that question. Counts only: no user, no session, no content —
-    // strictly more private than the per-user ledger above it. `byVersion` is what makes it a measurement
-    // rather than a number: a release that loses people one turn earlier is visible here and nowhere else.
-    depth: {
-      enquiry:   { summary: turnDepthSummary({ surface: 'enquiry' }),   curve: turnDepthCurve({ surface: 'enquiry' }) },
-      criticism: { summary: turnDepthSummary({ surface: 'criticism' }), curve: turnDepthCurve({ surface: 'criticism' }) },
-      byVersion: {
-        enquiry:   turnDepthVersions('enquiry').map((v) => ({ ...v, ...turnDepthSummary({ surface: 'enquiry',   version: v.version }) })),
-        criticism: turnDepthVersions('criticism').map((v) => ({ ...v, ...turnDepthSummary({ surface: 'criticism', version: v.version }) })),
-      },
-    },
-  });
-});
+// ---- review: REMOVED (12 Nov 2026, his word: "remove review page and all user traces") ----
+// There is no per-user usage view and no per-user record to build one from; see lib/db.mjs, pool_spend.
 
 // ---- felt-shift for one turn (v0.10.0) — the event detector over the learner's own words
 // (lib/feltshift.mjs), WATCH-SIDE + posture-steering only. Gated on the neural backend: the

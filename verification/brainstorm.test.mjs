@@ -103,10 +103,6 @@ test('the nav link for the mode you are in stays lit through its conversation, f
   assert.match(page, /\$\('navBrain'\)\.classList\.toggle\('on', \(name==='quests' \|\| name==='conversation'\) && mode==='brainstorm'\)/);
 });
 
-test('the admin link is dimmed unless it is the page you are on', () => {
-  assert.match(page, /\.nav-admin\{color:var\(--gold\) !important; opacity:\.5\}/);
-  assert.match(page, /\$\('navAdmin'\)\.classList\.toggle\('on', name==='admin'\)/);
-});
 
 // 18 Oct 2026, Prayas on a live brainstorm: "nonsense, dumb", then "I said flying is the dramatic event. then it is asking again". After "its the drama of the event" the stone asked "Where is the drama of the event?", on the live site and on every local replay. Two things built it: TAKE THIS UP asked what one of the new words means, and a quiet turn could use only the words of that reply plus "where". In a brainstorm neither may hand the reply back, and (v1.20.5, his "fix it") a quiet turn may not stitch their words together and the verbs of making are never an anchor.
 import { buildTurnContext, validateOutput } from '../lib/dialogue.mjs';

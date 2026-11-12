@@ -293,9 +293,6 @@
   .poolcount.budget b{color:var(--gold-bright); font-weight:400}
   .poolcount.budget.low b{color:var(--vermilion)}
 
-  /* ---- admin: usage monitor (machinery — Space Mono register) ---- */
-  .nav-admin{color:var(--gold) !important; opacity:.5}   /* gold is the admin's, but full gold is also how the nav marks the page you are on, so it read as lit everywhere (18 Oct 2026, "why is review lit?"); dimmed until it is the page or hovered */
-  .nav-admin.on, .nav-admin:hover{opacity:1}
   /* AI Club studio strip — the sibling tools, in the HEADER (10 Aug 2026) so it sits where the other
      three studio apps carry theirs. Turquoise because vermilion is the author's and gold the admin's;
      the colour marks the group as OUTBOUND — these links leave zetizeti. Same mono grammar, same hover
@@ -313,21 +310,6 @@
   .nav-studio a{color:var(--turq-bright) !important}   /* full chroma, like .nav-author and .nav-admin */
   .nav-studio span.tool{color:var(--faint)}            /* no URL configured — a label, never a dead link */
   @media(max-width:900px){ .nav-studio{padding-left:12px; gap:11px} .nav-studio .studio-kicker{display:none} }
-  .adminlist{display:flex; flex-direction:column}
-  .usage-summary{font-family:var(--mono); font-size:13px; color:var(--bone-dim); padding:0 0 22px; letter-spacing:.04em}
-  .usage-summary b{color:var(--gold-bright); font-size:22px}
-  .usage-summary span{color:var(--faint); font-size:12px}
-  .usage-headrow,.usage-row{display:flex; align-items:baseline; gap:16px; padding:13px 0; font-family:var(--mono); font-size:13px; border-top:1px solid rgba(244,231,200,.12)}
-  .usage-headrow{color:var(--faint); font-size:10px; letter-spacing:.1em; text-transform:uppercase; border-top:none}
-  .usage-headrow .u-who,.usage-row .u-who{flex:1 1 240px; min-width:0}
-  .usage-row .u-email{color:var(--goldtext); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:block}
-  .usage-row .u-name{color:var(--faint); font-size:11px}
-  .usage-row .u-src{display:inline-block; margin-top:3px; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint)}
-  .usage-row .src-personal{color:var(--gold-bright)}
-  .u-spent{flex:0 0 96px; text-align:right; color:var(--gold-bright)}
-  .u-turns{flex:0 0 76px; text-align:right; color:var(--bone-dim)}
-  .u-days{flex:0 0 76px; text-align:right; color:var(--bone-dim)}
-  .u-last{flex:0 0 104px; text-align:right; color:var(--faint); font-size:12px}
 
   /* ---- privacy assurance — a single linked line that opens the full text in a popup ---- */
   .privacy-line{margin-top:20px; font-family:var(--mono); font-size:12px; letter-spacing:.05em}
@@ -759,7 +741,6 @@
       <a id="navDeposit" class="nav-deposit" hidden>deposit</a>
       <a id="navAbout">about</a>
       <span class="nav-studio" id="navStudio" hidden><span class="studio-kicker">studio</span></span>
-      <a id="navAdmin" class="nav-admin" hidden>review</a>
       <span class="poolcount" id="poolCount" hidden></span>
       <span class="poolcount budget" id="poolBudget" hidden></span>
       <span class="who" id="who"></span>
@@ -1176,15 +1157,6 @@
     </div>
   </section>
 
-  <!-- ===== ADMIN — usage monitor ===== -->
-  <section class="view" id="view-admin">
-    <div class="wrap short">
-      <span class="backlink" id="adminBack">‹ back</span>
-      <h2 class="vh">Usage</h2>
-      <p class="vsub">Key usage across users — pool and personal — with turns, spend, and when each was last active. The pool figure runs against the ₹ ceiling; personal spend is shown apart. Read-only; no message content is shown. Figures are the real billed cost, converted at the live rate.</p>
-      <div class="adminlist" id="adminList"></div>
-    </div>
-  </section>
 
   <!-- (edge visualisation panel removed 11 Jul 2026 — conversation is full-width) -->
 
@@ -1276,13 +1248,12 @@ async function loadStudioFooter(){
   if(typeof u.questions==='number'){ $('fsAff').innerHTML='that buys about <b>'+plus(u.questions)+' questions</b>'; }
   $('studioFooter').hidden=false;
 }
-const views = { login:$('view-login'), quests:$('view-quests'), conversation:$('view-conversation'), progress:$('view-progress'), about:$('view-about'), criticism:$('view-criticism'), 'criticism-chat':$('view-criticism-chat'), spec:$('view-spec'), 'spec-chat':$('view-spec-chat'), admin:$('view-admin'), author:$('view-author'), deposit:$('view-deposit') };
+const views = { login:$('view-login'), quests:$('view-quests'), conversation:$('view-conversation'), progress:$('view-progress'), about:$('view-about'), criticism:$('view-criticism'), 'criticism-chat':$('view-criticism-chat'), spec:$('view-spec'), 'spec-chat':$('view-spec-chat'),  author:$('view-author'), deposit:$('view-deposit') };
 function showView(name){
   for(const k in views) views[k].classList.toggle('active', k===name);
   // topbar hidden on the landing, and on About when reached before sign-in (nav links would 404).
   $('topbar').hidden = (name==='login') || (name==='about' && !me);
   $('navQuests').classList.toggle('on', (name==='quests' || name==='conversation') && mode!=='brainstorm');
-  $('navAdmin').classList.toggle('on', name==='admin');
   $('navBrain').classList.toggle('on', (name==='quests' || name==='conversation') && mode==='brainstorm');   // the lit link names the mode you are in, on its start screen and through its conversation, for both modes
   $('navCrit').classList.toggle('on', name==='criticism' || name==='criticism-chat');
   $('navSpec').classList.toggle('on', name==='spec' || name==='spec-chat');
@@ -1326,7 +1297,6 @@ async function route(path){
     case '/critique': cfg.surfaces.includes('criticism') ? openNewCritique() : showStart(); break;   // an offline surface lands on the start screen
     case '/spec':     cfg.surfaces.includes('spec') ? openNewSpec() : showStart(); break;
     case '/author':   openAuthor(); break;
-    case '/admin':    openAdmin(); break;
     case '/enquiry':  mode='enquiry'; startFreshEnquiry(); break;
     case '/brainstorm': showStart(cfg.surfaces.includes('brainstorm') ? 'brainstorm' : 'enquiry'); break;   // offline, it is the enquiry start screen
     case '/':
@@ -2305,12 +2275,9 @@ function runCritDemo(){
 }
 $('tbBrand').addEventListener('click', ()=>go('/'));
 $('convBack').addEventListener('click', ()=>go('/'));
-$('navAdmin').addEventListener('click', ()=>go('/admin'));
-$('adminBack').addEventListener('click', ()=>go('/'));
 
 function enterApp(){
   $('who').innerHTML = me ? `signed in as <b>${esc(me.name||me.email||'you')}</b>` : '';
-  $('navAdmin').hidden = !(me && me.isAdmin);
   paintDashboardSend();   // shows 'send to dashboard' only for people with an AI Club dashboard account
   // resume a remembered deep link (a /critique link survives the Google round-trip via
   // sessionStorage), else honour the path the page actually loaded on, else the enquiries home.
@@ -3174,45 +3141,6 @@ $('authorSend').addEventListener('click', authorAsk);
 $('authorInput').addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); authorAsk(); } });
 $('authorInput').addEventListener('input', ()=>{ const i=$('authorInput'); i.style.height='auto'; i.style.height=Math.min(i.scrollHeight,170)+'px'; });
 
-// ---------- admin: usage monitor (operator only) ----------
-function openAdmin(){
-  $('adminList').innerHTML='<div class="qempty">loading…</div>';
-  showView('admin');
-  api('/api/admin/usage').then(renderUsage).catch(err=>{ $('adminList').innerHTML=`<div class="qempty">${esc(err.message||'could not load')}</div>`; });
-}
-function renderUsage(d){
-  const users=(d&&d.users)||[];
-  const list=$('adminList'); list.innerHTML='';
-  const totalInr=(d&&d.totalInr!=null)?d.totalInr:0;
-  const personalInr=(d&&d.personalInr)||0;
-  const rupee=n=>'₹'+Number(n||0).toLocaleString('en-IN');
-  const rate=d&&d.usdInr?Number(d.usdInr).toFixed(2):'—';
-  const usersTag = `${users.length} ${users.length===1?'user':'users'}`;
-  // Always surface BOTH figures — the pool spend (against its ₹ ceiling) and the personal spend
-  // (uncapped, own-key) — so the page visibly tracks both even while one is still ₹0.
-  const poolFig = (d&&d.maxBudgetInr!=null) ? `${rupee(totalInr)} of ${rupee(d.maxBudgetInr)} pool` : `${rupee(totalInr)} pool`;
-  const budgetLine = `<b>${poolFig}</b> <span>· ${rupee(personalInr)} personal · ${usersTag} · @ ₹${rate}/$</span>`;
-  list.appendChild(el(`<div class="usage-summary">${budgetLine}</div>`));
-  // How hard the never-answer guard is working — counts only, since this process started (they reset on
-  // restart, and nothing about any turn's content is recorded). A rising `flagged` is the reading that
-  // matters: a question broke the rule twice and still went out.
-  if(d&&d.guard){
-    const g=d.guard, part=(name,s)=>`${name} ${s.turns||0} turns · ${s.regenerated||0} repaired · ${s.flagged||0} flagged`;
-    list.appendChild(el(`<div class="usage-summary"><span>guard (this run): ${esc(part('enquiry',g.enquiry||{}))} · ${esc(part('critique',g.criticism||{}))}</span></div>`));
-  }
-  if(!users.length){ list.appendChild(el(`<div class="qempty">No usage yet.</div>`)); return; }
-  list.appendChild(el(`<div class="usage-headrow"><span class="u-who">user</span><span class="u-spent">spent</span><span class="u-turns">turns</span><span class="u-days">days</span><span class="u-last">last active</span></div>`));
-  for(const u of users){
-    const src = u.pool ? 'pool' : 'personal';
-    list.appendChild(el(`<div class="usage-row">
-      <span class="u-who"><span class="u-email">${esc(u.email||'—')}</span>${u.name?`<span class="u-name">${esc(u.name)}</span>`:''}<span class="u-src ${u.pool?'src-pool':'src-personal'}">${src}</span></span>
-      <span class="u-spent">${rupee(u.spentInr)}</span>
-      <span class="u-turns">${esc(String(u.turns))}</span>
-      <span class="u-days">${esc(String(u.daysActive))}</span>
-      <span class="u-last">${esc(u.lastDay||'—')}</span>
-    </div>`));
-  }
-}
 
 // ---------- progress ----------
 // (renderProgress / the cross-enquiry progress view removed: it read the saved trajectory across saved
