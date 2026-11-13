@@ -26,6 +26,14 @@ Today's `0.9.x` works for tolerant students; reaching `1.0` means it works for t
 sharpening work — the loopiness fix, warmth, the `2.0` "unique" measurement maths — is the road *to*
 stable, not a departure from it.
 
+## v1.24.2 — 13 November 2026
+
+A note's share image draws itself (his words: *"set it to happen automatically"*). A note page points at `/og/notes/<slug>.png`; the first request asks the notes source for the card with the note's title (`noteCard`, `lib/notes.mjs`) and keeps it in `note-cards/` beside the database on the data volume, under the note's address and a hash of its title, so a retitled note gets a new card. Nothing to run or redeploy when a note is published; `og-build.py` now draws only the fixed pages. The app-shell route's comment moved above it, so `spec-face.test.mjs` finds the route's `sendFile` again (it had failed since v1.24.1). Tests: 729 passing.
+
+## v1.24.1 — 13 November 2026
+
+Every page carries its own share image (`og/<slug>.png`: notes, about, brainstorm, each note), drawn by `og-build.py` from the editor's texts API; the home page keeps its designed card. Every page links the site's favicon set, `icon-192.png` added. No words, titles or design changed.
+
 ## v1.24.0 — 13 November 2026
 
 - A notes page at /notes, each note at /notes/<its address>, in zetizeti's own look. Notes are written and published elsewhere and read here; where from, and the key, are settings (`ZETIZETI_NOTES_URL`, `ZETIZETI_NOTES_KEY`, `ZETIZETI_NOTES_MEDIA`), never code, and with none set the page says there are no notes. Nothing is kept but a one-minute copy in memory. `lib/notes.mjs`; `verification/notes.test.mjs`.

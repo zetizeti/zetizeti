@@ -3,7 +3,8 @@
 // (retrieval, the never-answer guard, honing/exchange counts, ownership); the HUMAN
 // decides (names the goal, re-draws it). The model never scores the learner.
 
-import { notesIndex, noteFor } from './lib/notes.mjs';
+import { notesIndex, noteFor, noteCard } from './lib/notes.mjs';
+import { readFileSync } from 'node:fs';
 import express from 'express';
 import Database from 'better-sqlite3';
 import { fileURLToPath } from 'node:url';
@@ -1950,6 +1951,10 @@ app.post('/api/retrieve', (req, res) => {
 // Notes, published in Prayas's editor and read from its public texts API (lib/notes.mjs, 13 November 2026, his words:
 // "publish all texts everywhere through editor make my own api"). Server-rendered; nothing about the request is kept.
 app.get('/notes', async (req, res) => { res.setHeader('Cache-Control', 'no-cache'); res.type('html').send(await notesIndex()); });
+app.get('/og/notes/:slug.png', async (req, res) => {
+  let png = null; try { png = await noteCard(req.params.slug); } catch (e) {}
+  png ? res.setHeader('Cache-Control', 'public, max-age=86400').type('png').send(png) : res.redirect(302, '/og-image.png');
+});
 app.get('/notes/:slug', async (req, res) => {
   res.setHeader('Cache-Control', 'no-cache');
   let html = null; try { html = await noteFor(req.params.slug); } catch (e) { return res.status(502).type('html').send(await notesIndex()); }
@@ -1971,9 +1976,12 @@ app.use(express.static(join(__dirname, 'public'), {
 // SPA deep links — serve the app shell for the client routes so /critique, /about, /enquiry/:id
 // etc. resolve on a direct load or refresh (real shareable URLs, not hash links). The API routes
 // and static assets are matched first above; only genuine client paths fall through to here.
+// /about and /brainstorm have their own share image (og-build.py); the other client routes keep the site's card.
 app.get(['/about', '/brainstorm', '/critique', '/critique/:id', '/spec', '/progress', '/enquiries', '/enquiry', '/enquiry/:id', '/admin', '/author', '/deposit'], (req, res) => {
   res.setHeader('Cache-Control', 'no-cache');
-  res.sendFile(join(__dirname, 'public', 'index.html'));
+  const og = { '/about': 'about', '/brainstorm': 'brainstorm' }[req.path];
+  if (!og) return res.sendFile(join(__dirname, 'public', 'index.html'));
+  res.type('html').send(readFileSync(join(__dirname, 'public', 'index.html'), 'utf8').replaceAll('/og-image.png', `/og/${og}.png`));
 });
 
 // The cohort tiers, reported at boot. PERSONAL = the operator's own key (own-key billing, no ceiling);

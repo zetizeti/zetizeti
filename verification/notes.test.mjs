@@ -1,7 +1,10 @@
 // The notes pages (lib/notes.mjs): published in the editor, read from its public texts API, rendered here.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { markdown, notesIndex, noteFor, clearNotesCache } from '../lib/notes.mjs';
+import { markdown, notesIndex, noteFor, noteCard, clearNotesCache } from '../lib/notes.mjs';
+import { mkdtempSync, readdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 process.env.ZETIZETI_NOTES_URL = 'https://notes.invalid/texts';
 const fake = routes => async url => {
@@ -45,4 +48,24 @@ test('with no source set, the page says there are no notes and asks nothing', as
   assert.equal(await noteFor('first', async () => { asked = true; }), null);
   assert.equal(asked, false);
   process.env.ZETIZETI_NOTES_URL = saved;
+});
+
+test('a note page points at its own card, which is asked for with its title once and then kept', async () => {
+  clearNotesCache();
+  const asked = [];
+  const f = async url => {
+    asked.push(url);
+    if (url.includes('/og.png?')) return { status: 200, ok: true, arrayBuffer: async () => new TextEncoder().encode('PNG').buffer };
+    return fake({ '/notes/first': { title: 'First note', url: '/notes/first', text: 'Hello.', date: '2026-11-13' } })(url);
+  };
+  assert.match(await noteFor('first', f), /og:image" content="https:\/\/zetizeti\.com\/og\/notes\/first\.png"/);
+  const dir = mkdtempSync(join(tmpdir(), 'note-cards-'));
+  assert.equal(String(await noteCard('first', f, dir)), 'PNG');
+  assert.ok(asked.some(u => u.includes('/og.png?') && u.includes('title=First+note') && u.includes('kicker=Note')));
+  const before = asked.length;
+  assert.equal(String(await noteCard('first', f, dir)), 'PNG');
+  assert.equal(asked.filter(u => u.includes('/og.png?')).length, 1, 'the card is drawn once');
+  assert.equal(readdirSync(dir).length, 1);
+  assert.equal(await noteCard('missing', f, dir), null);
+  assert.equal(await noteCard('../etc', f, dir), null);
 });
