@@ -3,6 +3,7 @@
 // (retrieval, the never-answer guard, honing/exchange counts, ownership); the HUMAN
 // decides (names the goal, re-draws it). The model never scores the learner.
 
+import { notesIndex, noteFor } from './lib/notes.mjs';
 import express from 'express';
 import Database from 'better-sqlite3';
 import { fileURLToPath } from 'node:url';
@@ -1944,6 +1945,15 @@ app.post('/api/retrieve', (req, res) => {
   // the divergence rather than the rule.
   const focus = req.body?.focus === 'concept' ? 'concept' : null;
   res.json({ retrieved: retrieve(corpus, message, { extraTerms, focus }) });
+});
+
+// Notes, published in Prayas's editor and read from its public texts API (lib/notes.mjs, 13 November 2026, his words:
+// "publish all texts everywhere through editor make my own api"). Server-rendered; nothing about the request is kept.
+app.get('/notes', async (req, res) => { res.setHeader('Cache-Control', 'no-cache'); res.type('html').send(await notesIndex()); });
+app.get('/notes/:slug', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache');
+  let html = null; try { html = await noteFor(req.params.slug); } catch (e) { return res.status(502).type('html').send(await notesIndex()); }
+  html ? res.type('html').send(html) : res.redirect(302, '/notes');
 });
 
 // no-cache for the HTML so a deploy is seen immediately (the inline CSS lives in index.html, so a
